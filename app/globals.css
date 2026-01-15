@@ -1,26 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Compete Color Palette */
+  --color-compete-bg: #0B0B10;
+  --color-compete-card: #12121A;
+  --color-compete-purple: #9B5CFF;
+  --color-compete-purple-glow: #B48CFF;
+  --color-compete-text: #EDEDED;
+  --color-compete-muted: #9CA3AF;
+
+  /* Compete Glow Shadow */
+  --shadow-purple-glow: 0 0 40px rgba(155, 92, 255, 0.35);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Add a smooth scroll behavior for the whole site */
+html {
+  scroll-behavior: smooth;
+  background-color: var(--color-compete-bg);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer utilities {
+  .text-glow {
+    text-shadow: 0 0 20px rgba(155, 92, 255, 0.5);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Background particle animation */
+@keyframes float {
+  0% { transform: translateY(0px) translateX(0px); opacity: 0; }
+  50% { opacity: 0.5; }
+  100% { transform: translateY(-100px) translateX(20px); opacity: 0; }
+}
+
+.particle {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: float 5s infinite linear;
 }
