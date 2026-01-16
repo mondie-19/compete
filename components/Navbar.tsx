@@ -20,6 +20,7 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
         <Link href="/" className="hover:text-compete-purple transition-all">Home</Link>
         <Link href="/tournaments" className="hover:text-compete-purple transition-all">Tournaments</Link>
         <Link href="/leaderboard" className="hover:text-compete-purple transition-all">Rankings</Link>
+        <Link href="/faq" className="hover:text-compete-purple transition-all">FAQ/SUPPORT</Link>
       </div>
 
       {/* Auth Button */}
