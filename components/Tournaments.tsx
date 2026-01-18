@@ -56,7 +56,7 @@ export default function Tournaments() {
             transition={{ delay: i * 0.1 }}
             viewport={{ once: true }}
             whileHover={{ y: -10 }}
-            className="group relative bg-compete-card/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-compete-purple/50 transition-all duration-300 shadow-xl hover:shadow-purpleGlow"
+            className="group relative bg-compete-card/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-compete-purple/50 transition-all duration-300 card-hover"
           >
             {/* Status Badge */}
             <div className="flex justify-between items-start mb-6">
@@ -82,7 +82,7 @@ export default function Tournaments() {
               </div>
             </div>
 
-            <button className="w-full mt-8 py-3 rounded-xl bg-white/5 text-white font-bold uppercase tracking-widest group-hover:bg-compete-purple group-hover:text-white transition-all">
+            <button className="w-full mt-8 py-3 rounded-xl bg-white/5 text-white font-bold uppercase tracking-widest btn-glow hover:bg-compete-purple hover:text-white">
               Join Tournament
             </button>
           </motion.div>

@@ -9,7 +9,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="relative w-full bg-black border-t border-white/5 text-compete-muted p-8 mt-20 overflow-hidden">
+    <footer className="relative w-full bg-black border-t border-white/5 text-compete-muted p-8 mt-20 overflow-hidden z-50">
       
       {/* Background Particles Effect */}
       <div className="absolute inset-0 pointer-events-none">

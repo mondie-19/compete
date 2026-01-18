@@ -51,7 +51,7 @@ export default function Hero({ onJoinClick }: HeroProps) {
           >
             <button 
               onClick={onJoinClick}
-              className="px-8 py-3 bg-compete-purple text-white text-sm font-bold uppercase tracking-widest rounded-full hover:scale-105 transition-transform shadow-[0_0_25px_rgba(155,92,255,0.5)] cursor-pointer"
+              className="px-8 py-3 bg-compete-purple text-white text-sm font-bold uppercase tracking-widest rounded-full btn-glow shadow-[0_0_25px_rgba(155,92,255,0.5)] cursor-pointer"
             >
               Start Your Journey
             </button>
