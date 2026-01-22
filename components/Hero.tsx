@@ -1,5 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
+import Link from 'next/link';
 
 // Define the interface for the props
 interface HeroProps {
@@ -55,9 +56,11 @@ export default function Hero({ onJoinClick }: HeroProps) {
             >
               Start Your Journey
             </button>
-            <button className="text-white text-sm font-bold uppercase tracking-widest hover:text-compete-purple transition-colors cursor-pointer">
-              View Rankings —
-            </button>
+            <Link href="/rankings">
+              <button className="text-white text-sm font-bold uppercase tracking-widest hover:text-compete-purple transition-colors cursor-pointer">
+                View Rankings —
+              </button>
+            </Link>
           </motion.div>
         </div>
 

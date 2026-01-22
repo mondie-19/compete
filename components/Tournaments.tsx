@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { Trophy, Users, Clock, ArrowUpRight } from "lucide-react";
+import Link from 'next/link';
 
 const TOURNAMENTS = [
   {
@@ -42,9 +43,11 @@ export default function Tournaments() {
             Active Tournaments
           </h3>
         </div>
-        <button className="text-compete-purple font-bold flex items-center gap-2 hover:underline">
-          View All <ArrowUpRight size={20} />
-        </button>
+        <Link href="/tournaments">
+          <button className="text-compete-purple font-bold flex items-center gap-2 hover:underline">
+            View All <ArrowUpRight size={20} />
+          </button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

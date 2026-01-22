@@ -17,11 +17,11 @@ export default function Home() {
   return (
     <div className="relative min-h-screen bg-compete-bg slide-up">
       <Navbar onJoinClick={() => setIsAuthOpen(true)} />
-      
+
       {/* Add pt-20 to account for the fixed navbar height */}
       <main className="pt-20">
         <Hero onJoinClick={() => setIsAuthOpen(true)} />
-        <AboutSection /> 
+        <AboutSection />
         <Tournaments />
         <Leaderboard />
         <Reviews />
