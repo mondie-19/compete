@@ -2,11 +2,17 @@
 import React from "react";
 import Link from "next/link";
 import { ChevronUp } from "lucide-react";
+import { usePathname } from "next/navigation"; // 1. Import the hook
 
 export default function Footer() {
+  const pathname = usePathname(); // 2. Get the current route
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // 3. Conditional return: Hide footer on the coming-soon page
+  if (pathname === "/coming-soon") return null;
 
   return (
     <footer className="relative w-full bg-black border-t border-white/5 text-compete-muted p-8 mt-20 overflow-hidden z-50">

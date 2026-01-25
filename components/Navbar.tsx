@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation"; // 1. Import hook
 
 interface NavbarProps {
   onJoinClick: () => void;
@@ -10,6 +11,7 @@ interface NavbarProps {
 export default function Navbar({ onJoinClick }: NavbarProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname(); // 2. Get current route
 
   useEffect(() => {
     setMounted(true);
@@ -17,9 +19,12 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
     setIsLoggedIn(loggedIn);
   }, []);
 
+  // 3. Hide completely on coming-soon route
+  if (pathname === "/coming-soon") return null;
+
+  // Placeholder check (also hiding for coming-soon)
   if (!mounted) return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-20 bg-compete-bg/80 backdrop-blur-md border-b border-white/5 px-6 md:px-12 flex items-center justify-between">
-      {/* Logo Placeholder */}
       <div className="flex items-center gap-3">
         <div className="h-5 w-5 rounded-sm bg-compete-purple rotate-45" />
         <span className="text-xl font-black tracking-tighter text-white">COMPETE</span>
@@ -45,7 +50,6 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
         <Link href="/faq" className="hover:text-compete-purple transition-all">FAQ/SUPPORT</Link>
       </div>
 
-      {/* Auth Button */}
       {/* Auth Button / Player Badge */}
       {isLoggedIn ? (
         <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Footer from "@/components/Footer"; // Import your new footer
+import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
   title: "Compete",
@@ -16,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="relative min-h-screen bg-compete-bg text-compete-text overflow-x-hidden">
-        <Navbar /> .
+        {/* Navbar */}
+        <Navbar />
+
         {/* Background Effects */}
         <div className="pointer-events-none fixed inset-0 z-0">
           {/* Purple Glow Top */}
@@ -33,7 +36,12 @@ export default function RootLayout({
         <main className="relative z-10">
           {children}
         </main>
+
+        {/* Footer */}
         <Footer />
+
+        {/* Notification Toasts */}
+        <Toaster theme="dark" position="bottom-right" richColors closeButton />
       </body>
     </html>
   );
