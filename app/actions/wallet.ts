@@ -35,7 +35,7 @@ export async function verifyAndAddFunds(reference: string, amount: number) {
 
   if (data.status && data.data.status === "success") {
     // Paystack returns amount in subunits (Cents). Convert to KES.
-    const verifiedAmount = data.data.amount / 100; 
+    const verifiedAmount = data.data.amount / 100;
 
     // Security: Validate the actual amount Paystack processed against your KES limits
     if (verifiedAmount < 50 || verifiedAmount > 50000) {
@@ -47,26 +47,24 @@ export async function verifyAndAddFunds(reference: string, amount: number) {
     if (!user) return { error: "User not authenticated" };
 
     // 4. Update Balance in Supabase
+    const { error: updateError } = await supabase.rpc('deposit_funds', {
+      p_user_id: user.id,
+      p_amount: verifiedAmount,
+      p_reference_id: reference
+    });
+
+    if (updateError) return { error: updateError.message || "Failed to update balance" };
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("balance")
       .eq("id", user.id)
       .single();
 
-    const currentBalance = profile?.balance || 0;
-    const newBalance = currentBalance + verifiedAmount;
-
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ balance: newBalance })
-      .eq("id", user.id);
-
-    if (updateError) return { error: "Failed to update balance" };
-    
-    return { 
-      success: true, 
-      newBalance, 
-      formattedBalance: formatKES(newBalance),
+    return {
+      success: true,
+      newBalance: profile?.balance || 0,
+      formattedBalance: formatKES(profile?.balance || 0),
       message: `Successfully deposited ${formatKES(verifiedAmount)}`
     };
   }
@@ -75,46 +73,38 @@ export async function verifyAndAddFunds(reference: string, amount: number) {
 }
 
 /**
- * WITHDRAWAL: Deduct funds with KES 50 - 50,000 limits
+ * WITHDRAWAL: Request funds for payout
  */
-export async function withdrawFunds(amount: number) {
+export async function requestWithdrawal(amount: number) {
   const supabase = await createClient();
 
-  // 1. Limit Check
-  if (amount < 50) return { error: `Minimum withdrawal is ${formatKES(50)}` };
-  if (amount > 50000) return { error: `Maximum withdrawal is ${formatKES(50000)}` };
+  // 1. Limit Check (Minimum $5, Maximum $500 for demonstration)
+  if (amount < 5) return { error: "Minimum withdrawal is $5.00" };
+  if (amount > 500) return { error: "Maximum withdrawal is $500.00" };
 
-  // 2. Get User & Current Balance
+  // Get current authenticated user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "User not authenticated" };
 
+  // 2. Execute secure request RPC
+  const { error: rpcError } = await supabase.rpc('request_withdrawal', {
+    p_amount: amount
+  });
+
+  if (rpcError) {
+    return { error: rpcError.message || "Failed to register withdrawal request" };
+  }
+
+  // 3. Refetch balance
   const { data: profile } = await supabase
     .from("profiles")
     .select("balance")
     .eq("id", user.id)
     .single();
 
-  const currentBalance = profile?.balance || 0;
-
-  // 3. Check Sufficient Funds
-  if (currentBalance < amount) {
-    return { error: `Insufficient funds. Your current balance is ${formatKES(currentBalance)}` };
-  }
-
-  // 4. Update Balance (Deduct funds)
-  const newBalance = currentBalance - amount;
-
-  const { error: updateError } = await supabase
-    .from("profiles")
-    .update({ balance: newBalance })
-    .eq("id", user.id);
-
-  if (updateError) return { error: "Failed to process withdrawal" };
-
-  return { 
-    success: true, 
-    newBalance, 
-    formattedBalance: formatKES(newBalance),
-    message: `Withdrawal of ${formatKES(amount)} has been initiated.`
+  return {
+    success: true,
+    newBalance: profile?.balance || 0,
+    message: `Withdrawal request for $${amount} submitted for processing.`
   };
 }

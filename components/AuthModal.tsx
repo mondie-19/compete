@@ -33,7 +33,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
       {isOpen && (
         // Increased z-index to z-[100] to sit above navbars (usually z-40 or z-50)
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          
+
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -79,7 +79,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 <input type="password" placeholder="Password" className="w-full rounded-xl bg-white/5 border border-white/10 p-4 pl-12 text-white outline-none focus:border-compete-purple transition-all" />
               </div>
 
-              <button 
+              <button
                 onClick={handleAuth}
                 className="w-full rounded-xl bg-compete-purple py-4 font-black uppercase tracking-[0.2em] text-white shadow-purple-glow hover:scale-[1.02] active:scale-[0.98] transition-all"
               >
@@ -95,11 +95,11 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
               </div>
 
               {/* GOOGLE BUTTON */}
-              <button 
+              <button
                 onClick={handleGoogleSignIn}
                 className="flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white p-4 text-black font-black uppercase tracking-widest text-xs hover:bg-compete-purple hover:text-white transition-all group"
               >
-                <Chrome size={18} className="group-hover:rotate-12 transition-transform" /> 
+                <Chrome size={18} className="group-hover:rotate-12 transition-transform" />
                 Google Account
               </button>
             </div>

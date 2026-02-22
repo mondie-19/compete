@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Zap, Timer, MessageSquare, Trophy, AlertTriangle, CheckCircle2, Upload } from "lucide-react";
 import { createClient } from "@/supabase/client";
 import { toast } from "sonner";
+import { submitMatchReport } from "@/app/actions/challenges";
 
 export default function MatchRoom() {
     const { id } = useParams();
@@ -12,6 +13,73 @@ export default function MatchRoom() {
     const [match, setMatch] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
+
+    // Form State
+    const [proofFiles, setProofFiles] = useState<File[]>([]);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [reportStatus, setReportStatus] = useState<"pending" | "submitted">("pending");
+
+    // File Upload Handler
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const files = Array.from(e.target.files);
+            setProofFiles((prev) => [...prev, ...files]);
+        }
+    };
+
+    const removeFile = (index: number) => {
+        setProofFiles((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    // Submit Report Logic
+    const handleReport = async (outcome: "win" | "loss") => {
+        if (isSubmitting) return;
+
+        if (proofFiles.length < 3) {
+            toast.error("You must upload at least 3 screenshots showing the match results and opponent name.");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            const proofUrls: string[] = [];
+
+            // 1. Upload proofs to Supabase
+            for (const file of proofFiles) {
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${id}-${user?.id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('match-proofs')
+                    .upload(fileName, file);
+
+                if (uploadError) throw new Error(`Failed to upload proof image: ${file.name}`);
+
+                // Get public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('match-proofs')
+                    .getPublicUrl(fileName);
+
+                proofUrls.push(publicUrl);
+            }
+
+            // 2. Call Server Action to execute the RPC
+            const result = await submitMatchReport(id as string, outcome, proofUrls);
+
+            if (result.error) {
+                toast.error(result.error);
+            } else {
+                toast.success(`REPORT LOGGED: ${outcome.toUpperCase()}`);
+                setReportStatus("submitted");
+            }
+
+        } catch (error: any) {
+            toast.error(error.message || "An error occurred");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         const fetchMatch = async () => {
@@ -48,12 +116,12 @@ export default function MatchRoom() {
     return (
         <div className="min-h-screen bg-black text-white pt-24 pb-12 px-6">
             <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
+
                 {/* LEFT: MATCH INTEL */}
                 <div className="lg:col-span-8 space-y-6">
                     <header className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-6 opacity-10"><Shield size={120} /></div>
-                        
+
                         <div className="flex justify-between items-center mb-8">
                             <div className="flex items-center gap-3">
                                 <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
@@ -77,28 +145,92 @@ export default function MatchRoom() {
                         </div>
                     </header>
 
-                    {/* ACTION ZONE */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-neutral-900/50 border border-white/5 p-6 rounded-3xl space-y-4">
-                            <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                                <Upload size={16} className="text-compete-purple" /> Submit Evidence
-                            </h3>
-                            <p className="text-[10px] text-white/40 leading-relaxed">Upload a screenshot of the final scoreboards. Fraudulent claims result in permanent ban.</p>
-                            <button className="w-full py-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest">
-                                Select Image
-                            </button>
+                    {/* ACTION ZONE OR STATUS ZONE */}
+                    {match?.status === 'resolved' ? (
+                        <div className="bg-gradient-to-br from-green-500/20 to-neutral-900 border border-green-500/30 p-8 rounded-3xl text-center space-y-4 shadow-[0_0_30px_rgba(34,197,94,0.1)]">
+                            <Trophy size={48} className="text-green-500 mx-auto" />
+                            <h2 className="text-2xl font-black italic uppercase tracking-tighter text-green-500">Match Concluded</h2>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-green-500/50">
+                                Winner: {match.winner_id === match.host_id ? match.host.username : match.opponent.username} • Winnings Transferred
+                            </p>
                         </div>
+                    ) : match?.status === 'disputed' ? (
+                        <div className="bg-gradient-to-br from-red-500/20 to-neutral-900 border border-red-500/30 p-8 rounded-3xl text-center space-y-4 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
+                            <AlertTriangle size={48} className="text-red-500 mx-auto" />
+                            <h2 className="text-2xl font-black italic uppercase tracking-tighter text-red-500">Match Disputed</h2>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-red-500/50">
+                                Conflict detected. Admin review in progress. Funds frozen in escrow.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-neutral-900/50 border border-white/5 p-6 rounded-3xl space-y-4">
+                                <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                    <Upload size={16} className="text-compete-purple" /> Submit Evidence
+                                </h3>
+                                <p className="text-[10px] text-white/40 leading-relaxed">Upload a screenshot of the final scoreboards. Fraudulent claims result in permanent ban.</p>
 
-                        <div className="bg-neutral-900/50 border border-white/5 p-6 rounded-3xl space-y-4">
-                            <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-                                <Trophy size={16} className="text-yellow-500" /> Result Entry
-                            </h3>
-                            <div className="flex gap-2">
-                                <button className="flex-1 py-4 bg-green-500/10 border border-green-500/20 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest">I Won</button>
-                                <button className="flex-1 py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest">I Lost</button>
+                                <label className={`w-full py-4 border rounded-xl transition-all text-[10px] font-black uppercase tracking-widest flex flex-col items-center justify-center cursor-pointer mb-2 ${proofFiles.length >= 3 ? 'bg-compete-purple/20 border-compete-purple text-compete-purple' : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'}`}>
+                                    {proofFiles.length > 0 ? (
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span>{proofFiles.length} File{proofFiles.length !== 1 ? 's' : ''} Selected</span>
+                                            <span className={`text-[8px] ${proofFiles.length >= 3 ? 'text-green-500' : 'text-yellow-500'}`}>
+                                                {proofFiles.length >= 3 ? "Requirement Met" : `Need ${3 - proofFiles.length} more`}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        "Attach Proof (Min 3)"
+                                    )}
+                                    <input type="file" multiple className="hidden" accept="image/*" onChange={handleFileChange} />
+                                </label>
+
+                                {/* PREVIEW/REMOVE LIST */}
+                                {proofFiles.length > 0 && (
+                                    <div className="grid grid-cols-3 gap-2 mt-2">
+                                        {proofFiles.map((file, idx) => (
+                                            <div key={idx} className="relative group aspect-square bg-white/5 rounded-lg border border-white/10 overflow-hidden">
+                                                <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover" />
+                                                <button
+                                                    onClick={() => removeFile(idx)}
+                                                    className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[8px] font-black uppercase"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="bg-neutral-900/50 border border-white/5 p-6 rounded-3xl space-y-4">
+                                <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                                    <Trophy size={16} className="text-yellow-500" /> Result Entry
+                                </h3>
+                                {reportStatus === "submitted" ? (
+                                    <div className="h-full flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-compete-purple border border-compete-purple/20 bg-compete-purple/5 rounded-xl text-center px-4 leading-relaxed">
+                                        Report Logged.<br />Awaiting Opponent Consensus...
+                                    </div>
+                                ) : (
+                                    <div className="flex gap-2 h-14">
+                                        <button
+                                            disabled={isSubmitting}
+                                            onClick={() => handleReport('win')}
+                                            className="flex-1 bg-green-500/10 border border-green-500/20 text-green-500 rounded-xl hover:bg-green-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                                        >
+                                            {isSubmitting ? "..." : "I Won"}
+                                        </button>
+                                        <button
+                                            disabled={isSubmitting}
+                                            onClick={() => handleReport('loss')}
+                                            className="flex-1 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+                                        >
+                                            {isSubmitting ? "..." : "I Lost"}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* RIGHT: TACTICAL CHAT */}
@@ -116,8 +248,8 @@ export default function MatchRoom() {
                         </div>
                     </div>
                     <div className="p-4 bg-black/40 border-t border-white/5">
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             placeholder="TYPE MESSAGE..."
                             className="w-full bg-transparent text-[10px] font-black uppercase tracking-widest focus:outline-none p-2"
                         />

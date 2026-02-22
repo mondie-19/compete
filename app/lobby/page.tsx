@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Users, Timer, Gamepad2, Search, Wallet, Activity, Zap, Terminal as TerminalIcon, ShieldCheck, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { useState, useEffect } from "react";
-import AuthModal from "@/components/AuthModal";
 import Link from "next/link";
 import { createClient } from "@/supabase/client";
 import { useRouter } from "next/navigation";
@@ -14,35 +13,38 @@ export default function LobbyPage() {
     const supabase = createClient();
 
     // STATES
-    const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [balance, setBalance] = useState(0);
-    const [challenges, setChallenges] = useState<any[]>([]); 
+    const [challenges, setChallenges] = useState<any[]>([]);
     const [activeChallenge, setActiveChallenge] = useState<any>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedPlatform, setSelectedPlatform] = useState("ALL");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [recentActivations, setRecentActivations] = useState<any[]>([]);
 
     // REAL-TIME ENGINE
     useEffect(() => {
         const syncLobby = async () => {
             const { data: { user } } = await supabase.auth.getUser();
-            
+
             if (user) {
                 const { data: profile } = await supabase.from("profiles").select("balance").eq("id", user.id).single();
                 if (profile) setBalance(profile.balance);
             }
 
-            const { data: initial } = await supabase.from("challenges").select("*").eq("status", "open").limit(20);
+            const { data: initial } = await supabase.from("challenges").select("*, host:profiles!challenges_creator_id_fkey(username)").eq("status", "open").order('created_at', { ascending: false }).limit(20);
             if (initial) setChallenges(initial);
+
+            // Fetch recent activations for Global Feed
+            const { data: recent } = await supabase.from("challenges").select("*, host:profiles!challenges_creator_id_fkey(username)").order('created_at', { ascending: false }).limit(5);
+            if (recent) setRecentActivations(recent);
 
             const channel = supabase.channel('lobby-updates')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'challenges' }, (payload) => {
-                    setChallenges(prev => [payload.new, ...prev].slice(0, 20));
+                    // Refresh both
+                    syncLobby();
                 })
                 .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'challenges' }, (payload) => {
-                    if (payload.new.status !== 'open') {
-                        setChallenges(prev => prev.filter(c => c.id !== payload.new.id));
-                    }
+                    syncLobby();
                 })
                 .subscribe();
 
@@ -61,43 +63,35 @@ export default function LobbyPage() {
     // INTERCEPT LOGIC
     const handleJoin = async (challenge: any) => {
         if (isProcessing) return;
-        
+
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-            setIsAuthOpen(true);
-            return;
-        }
-
-        if (balance < challenge.entry_fee) {
-            toast.error("INSUFFICIENT VAULT CREDITS");
+            router.push("/auth");
             return;
         }
 
         setIsProcessing(true);
 
         try {
-            // 1. Deduct balance
-            const { error: balanceError } = await supabase
-                .from("profiles")
-                .update({ balance: balance - challenge.entry_fee })
-                .eq("id", user.id);
+            // Use the secure RPC for atomic join and escrow deduction
+            const { data, error } = await supabase.rpc('join_challenge_with_escrow', {
+                p_challenge_id: challenge.id
+            });
 
-            if (balanceError) throw balanceError;
-
-            // 2. Update challenge to "In Progress"
-            const { error: challengeError } = await supabase
-                .from("challenges")
-                .update({ 
-                    status: "in_progress", 
-                    opponent_id: user.id,
-                    joined_at: new Date().toISOString()
-                })
-                .eq("id", challenge.id);
-
-            if (challengeError) throw challengeError;
+            if (error) {
+                // Handle specific postgres errors raised by the RPC
+                if (error.message.includes('Insufficient vault credits')) {
+                    toast.error("INSUFFICIENT VAULT CREDITS");
+                } else if (error.message.includes('Deployment no longer open')) {
+                    toast.error("DEPLOYMENT NO LONGER OPEN");
+                } else {
+                    throw error;
+                }
+                return;
+            }
 
             toast.success("INTERCEPT SUCCESSFUL. UPLINKING...");
-            
+
             setTimeout(() => {
                 router.push(`/match/${challenge.id}`);
             }, 1500);
@@ -115,10 +109,10 @@ export default function LobbyPage() {
             {/* TERMINAL SCANLINE EFFECT */}
             <div className="fixed inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_3px,3px_100%]" />
 
-            <Navbar onJoinClick={() => setIsAuthOpen(true)} />
+            <Navbar onJoinClick={() => router.push("/auth")} />
 
             <main className="pt-24 px-6 md:px-12 max-w-7xl mx-auto space-y-12 relative z-10">
-                
+
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                     <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
@@ -133,7 +127,7 @@ export default function LobbyPage() {
                     </motion.div>
 
                     <Link href="/wallet">
-                        <motion.button 
+                        <motion.button
                             whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(155,92,255,0.3)" }}
                             whileTap={{ scale: 0.95 }}
                             className="group flex items-center gap-4 bg-white/5 border border-white/10 p-1 pr-8 rounded-2xl hover:bg-compete-purple/10 transition-all shadow-xl backdrop-blur-md"
@@ -182,7 +176,7 @@ export default function LobbyPage() {
                             <div className="flex flex-col md:flex-row gap-4 items-center">
                                 <div className="relative flex-1 w-full">
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
-                                    <input 
+                                    <input
                                         type="text"
                                         placeholder="SEARCH DEPLOYMENTS..."
                                         value={searchQuery}
@@ -195,9 +189,8 @@ export default function LobbyPage() {
                                         <button
                                             key={plat}
                                             onClick={() => setSelectedPlatform(plat)}
-                                            className={`px-4 py-2 rounded-lg text-[9px] font-black tracking-tighter transition-all whitespace-nowrap ${
-                                                selectedPlatform === plat ? 'bg-compete-purple text-white shadow-lg' : 'text-white/30 hover:text-white'
-                                            }`}
+                                            className={`px-4 py-2 rounded-lg text-[9px] font-black tracking-tighter transition-all whitespace-nowrap ${selectedPlatform === plat ? 'bg-compete-purple text-white shadow-lg' : 'text-white/30 hover:text-white'
+                                                }`}
                                         >
                                             {plat}
                                         </button>
@@ -212,13 +205,18 @@ export default function LobbyPage() {
                                 <h2 className="text-xl font-black uppercase italic tracking-widest flex items-center gap-3">
                                     <Zap size={18} className="text-compete-purple" /> New Deployments
                                 </h2>
-                                <Link href="/challenges/create" className="text-[10px] font-black uppercase text-compete-purple hover:text-white transition-colors tracking-[0.2em]">Host Challenge +</Link>
+                                <Link
+                                    href="/deploy"
+                                    className="text-[10px] font-black uppercase text-compete-purple hover:text-white transition-colors tracking-[0.2em]"
+                                >
+                                    Host Challenge +
+                                </Link>
                             </div>
-                            
+
                             <div className="space-y-3 min-h-[400px]">
                                 <AnimatePresence mode="popLayout">
                                     {filteredChallenges.map((c) => (
-                                        <motion.div 
+                                        <motion.div
                                             layout
                                             key={c.id}
                                             initial={{ opacity: 0, scale: 0.95 }}
@@ -250,18 +248,20 @@ export default function LobbyPage() {
                     {/* Terminal Sidebar */}
                     <aside className="lg:col-span-4">
                         <div className="bg-neutral-900/40 border border-white/5 rounded-[2rem] p-6 backdrop-blur-xl sticky top-28">
-                             <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-8 flex items-center gap-2">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-8 flex items-center gap-2">
                                 <TerminalIcon size={14} /> Global Feed
                             </h3>
                             <div className="space-y-8 relative">
                                 <div className="absolute left-[7px] top-0 bottom-0 w-[1px] bg-white/5" />
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                    <div key={i} className="relative pl-6">
+                                {recentActivations.map((c, i) => (
+                                    <div key={c.id} className="relative pl-6">
                                         <div className="absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full bg-black border-2 border-compete-purple shadow-[0_0_10px_#9b5cff]" />
-                                        <p className="text-[11px] leading-relaxed text-white/60 font-medium font-mono">
-                                            USER <span className="text-white font-bold">@GHOST_0{i}</span> DEPLOYED <span className="text-compete-purple italic font-black">ARENA_UPINK</span>.
+                                        <p className="text-[11px] leading-relaxed text-white/60 font-medium font-mono uppercase">
+                                            {c.host?.username || "OPERATIVE"} <span className="text-white font-bold">DEPLOYED</span> <span className="text-compete-purple italic font-black">{c.game_name}</span> ON <span className="text-white font-bold">{c.platform}</span>.
                                         </p>
-                                        <p className="text-[8px] font-black text-white/20 mt-1 uppercase tracking-widest">{i * 2}M AGO</p>
+                                        <p className="text-[8px] font-black text-white/20 mt-1 uppercase tracking-widest">
+                                            ${c.entry_fee} ENTRY • PRIZE POOL ${c.prize_pool}
+                                        </p>
                                     </div>
                                 ))}
                             </div>
@@ -299,12 +299,11 @@ export default function LobbyPage() {
                                         <p className="text-xl font-black italic text-compete-purple">${activeChallenge.prize_pool}</p>
                                     </div>
                                 </div>
-                                <button 
+                                <button
                                     disabled={isProcessing}
                                     onClick={() => handleJoin(activeChallenge)}
-                                    className={`w-full py-5 font-black uppercase tracking-[0.2em] italic rounded-2xl transition-all shadow-purple-glow flex items-center justify-center gap-3 ${
-                                        isProcessing ? "bg-white/10 text-white/20 cursor-wait" : "bg-white text-black hover:bg-compete-purple hover:text-white"
-                                    }`}
+                                    className={`w-full py-5 font-black uppercase tracking-[0.2em] italic rounded-2xl transition-all shadow-purple-glow flex items-center justify-center gap-3 ${isProcessing ? "bg-white/10 text-white/20 cursor-wait" : "bg-white text-black hover:bg-compete-purple hover:text-white"
+                                        }`}
                                 >
                                     {isProcessing ? "SYNCHRONIZING..." : "Authorize Intercept"}
                                 </button>
@@ -313,8 +312,6 @@ export default function LobbyPage() {
                     </div>
                 )}
             </AnimatePresence>
-
-            <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
         </div>
     );
 }

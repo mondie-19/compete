@@ -9,25 +9,25 @@ import PrizePoolTracker from "../components/PrizePoolTracker";
 import MatchHistory from "../components/MatchHistory";
 import Leaderboard from "../components/Leaderboard";
 import Reviews from "../components/Reviews";
-import AuthModal from "../components/AuthModal";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const router = useRouter();
 
   return (
     <div className="relative min-h-screen bg-compete-bg slide-up">
-      <Navbar onJoinClick={() => setIsAuthOpen(true)} />
+      <Navbar onJoinClick={() => router.push("/auth")} />
 
       {/* Add pt-20 to account for the fixed navbar height */}
       <main className="pt-20">
-        <Hero onJoinClick={() => setIsAuthOpen(true)} />
+        <Hero onJoinClick={() => router.push("/auth")} />
         <AboutSection />
         <Tournaments />
         <Leaderboard />
         <Reviews />
       </main>
-
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </div>
   );
 }

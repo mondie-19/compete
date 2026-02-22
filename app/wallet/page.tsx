@@ -1,15 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ArrowUpRight, ArrowDownLeft, CreditCard, History, 
-  ShieldCheck, ChevronRight, Wallet, ArrowLeft, 
-  CheckCircle2, Loader2, Lock 
+import {
+  ArrowUpRight, ArrowDownLeft, CreditCard, History,
+  ShieldCheck, ChevronRight, Wallet, ArrowLeft,
+  CheckCircle2, Loader2, Lock
 } from "lucide-react";
 import Link from "next/link";
 // @ts-ignore
 import { usePaystackPayment } from "react-paystack";
-import { verifyAndAddFunds } from "@/app/actions/wallet";
+import { verifyAndAddFunds, requestWithdrawal } from "@/app/actions/wallet";
 import { createClient } from "@/supabase/client";
 
 export default function WalletPage() {
@@ -17,9 +17,11 @@ export default function WalletPage() {
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState<"idle" | "processing" | "success">("idle");
   const [rememberCard, setRememberCard] = useState(false);
-  
+
   // REAL-TIME STATE
   const [balance, setBalance] = useState<number>(0);
+  const [userEmail, setUserEmail] = useState("player@compete.gg");
+  const [withdrawalHistory, setWithdrawalHistory] = useState<any[]>([]);
   const supabase = createClient();
 
   // 1. INITIAL FETCH & REAL-TIME SUBSCRIPTION
@@ -27,6 +29,14 @@ export default function WalletPage() {
     const fetchAndSubscribe = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      if (user.email) setUserEmail(user.email);
+
+      // Fetch Requests
+      const { data: requests } = await supabase
+        .from("withdrawal_requests")
+        .select("*")
+        .order("created_at", { ascending: false });
+      setWithdrawalHistory(requests || []);
 
       // Initial Fetch
       const { data } = await supabase
@@ -34,7 +44,7 @@ export default function WalletPage() {
         .select("balance")
         .eq("id", user.id)
         .single();
-      
+
       if (data) setBalance(data.balance);
 
       // Subscribe to changes on the profiles table for THIS user
@@ -42,11 +52,11 @@ export default function WalletPage() {
         .channel(`wallet-updates-${user.id}`)
         .on(
           'postgres_changes',
-          { 
-            event: 'UPDATE', 
-            schema: 'public', 
+          {
+            event: 'UPDATE',
+            schema: 'public',
             table: 'profiles',
-            filter: `id=eq.${user.id}` 
+            filter: `id=eq.${user.id}`
           },
           (payload) => {
             setBalance(payload.new.balance);
@@ -65,8 +75,8 @@ export default function WalletPage() {
   // Paystack Config
   const config = {
     reference: (new Date()).getTime().toString(),
-    email: "player@compete.gg", 
-    amount: parseFloat(amount || "0") * 100, 
+    email: userEmail,
+    amount: parseFloat(amount || "0") * 100,
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "pk_test_your_key",
     metadata: { remember_card: rememberCard }
   };
@@ -94,13 +104,23 @@ export default function WalletPage() {
             console.error(err);
           }
         },
-        () => setStatus("idle")
       );
     } else {
-      setTimeout(() => {
-        setStatus("success");
-        setTimeout(() => { setStatus("idle"); setAmount(""); }, 3000);
-      }, 2000);
+      // Withdrawal Logic (New Request System)
+      requestWithdrawal(parseFloat(amount)).then((result) => {
+        if (result.success) {
+          setStatus("success");
+          setTimeout(() => { setStatus("idle"); setAmount(""); }, 3000);
+          // Optimistically update history locally or wait for real-time
+        } else {
+          setStatus("idle");
+          // @ts-ignore
+          alert(result.error || "Withdrawal request failed");
+        }
+      }).catch((err) => {
+        setStatus("idle");
+        console.error(err);
+      });
     }
   };
 
@@ -108,7 +128,7 @@ export default function WalletPage() {
     <main className="min-h-screen bg-black text-white pb-24 overflow-x-hidden font-sans">
       <AnimatePresence>
         {status === "success" && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-2xl"
           >
@@ -165,9 +185,9 @@ export default function WalletPage() {
               <label className="text-[10px] font-black uppercase text-compete-purple mb-4 block tracking-[0.3em]">Amount to {activeTab}</label>
               <div className="relative">
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 text-3xl font-black italic text-white/10">$</span>
-                <input 
-                  type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" 
-                  className="w-full bg-transparent border-b border-white/10 py-4 pl-8 text-6xl font-black italic outline-none focus:border-compete-purple transition-all placeholder:text-white/5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                <input
+                  type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00"
+                  className="w-full bg-transparent border-b border-white/10 py-4 pl-8 text-6xl font-black italic outline-none focus:border-compete-purple transition-all placeholder:text-white/5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -200,6 +220,33 @@ export default function WalletPage() {
                 {status === "idle" ? <motion.span key="id">Execute {activeTab}</motion.span> : <motion.div key="pr" className="flex items-center gap-3"><Loader2 className="animate-spin" size={20} /> Authorizing</motion.div>}
               </AnimatePresence>
             </button>
+          </div>
+        </section>
+        <section className="bg-neutral-900 border border-white/10 rounded-[32px] p-8 shadow-2xl overflow-hidden">
+          <h3 className="text-[10px] font-black uppercase text-white/30 mb-6 tracking-[0.3em] flex items-center gap-2">
+            <History size={14} className="text-compete-purple" /> Request Protocol History
+          </h3>
+          <div className="space-y-4">
+            {withdrawalHistory.length === 0 ? (
+              <div className="py-12 text-center border border-dashed border-white/5 rounded-2xl">
+                <p className="text-[10px] font-black uppercase text-white/10 tracking-widest">No Previous Uplinks</p>
+              </div>
+            ) : (
+              withdrawalHistory.map((req) => (
+                <div key={req.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                  <div>
+                    <p className="text-sm font-black italic uppercase tracking-tighter">${req.amount}</p>
+                    <p className="text-[8px] font-black uppercase text-white/20 tracking-widest">{new Date(req.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${req.status === 'paid' ? 'bg-green-500/10 text-green-400 border border-green-500/20' :
+                      req.status === 'rejected' ? 'bg-red-500/10 text-red-400 border border-red-500/20' :
+                        'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 animate-pulse'
+                    }`}>
+                    {req.status}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </section>
       </div>
