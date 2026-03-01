@@ -1,13 +1,20 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, Chrome, ChevronLeft, Target, Fingerprint } from "lucide-react";
+import { Mail, Lock, User, Chrome, ChevronLeft, Target, Fingerprint, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/supabase/client";
+import { signIn, signUp } from "@/app/actions/auth";
+import { toast } from "sonner";
 import Link from "next/link";
 
 export default function AuthPage() {
     const [isLogin, setIsLogin] = useState(true);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [username, setUsername] = useState("");
+    const [loading, setLoading] = useState(false);
+
     const router = useRouter();
     const supabase = createClient();
 
@@ -16,17 +23,48 @@ export default function AuthPage() {
             provider: 'google',
             options: { redirectTo: `${window.location.origin}/auth/callback` },
         });
-        if (error) console.error("Google Auth Error:", error.message);
+        if (error) {
+            toast.error(error.message);
+        }
     };
 
-    const handleAuth = () => {
-        localStorage.setItem("isLoggedIn", "true");
-        router.push('/lobby');
+    const handleAuth = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            if (isLogin) {
+                const result = await signIn(email, password);
+                if (result.error) {
+                    toast.error(result.error);
+                } else {
+                    toast.success("UPLINK ESTABLISHED");
+                    router.push('/lobby');
+                }
+            } else {
+                if (!username) {
+                    toast.error("OPERATIVE NAME REQUIRED");
+                    setLoading(false);
+                    return;
+                }
+                const result = await signUp(email, password, username);
+                if (result.error) {
+                    toast.error(result.error);
+                } else {
+                    toast.success("OPERATIVE INITIALIZED. CHECK EMAIL.");
+                    router.push('/lobby');
+                }
+            }
+        } catch (err) {
+            toast.error("COMMUNICATION ERROR");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div className="relative min-h-screen bg-[#000000] text-white flex items-center justify-center p-6 overflow-hidden selection:bg-compete-purple selection:text-white">
-            
+
             {/* TACTICAL BACKGROUND GRID */}
             <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#1a1a1a_1px,transparent_1px),linear-gradient(to_bottom,#1a1a1a_1px,transparent_1px)] bg-[size:40px_40px]" />
@@ -52,7 +90,7 @@ export default function AuthPage() {
                 <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-compete-purple/40 rounded-tl-3xl" />
                 <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-compete-purple/40 rounded-br-3xl" />
 
-                <div className="mb-12 text-left">
+                <div className="mb-12 text-left mt-2">
                     <div className="flex items-center gap-2 text-compete-purple mb-4">
                         <Fingerprint size={20} className="animate-pulse" />
                         <span className="text-[8px] font-black uppercase tracking-[0.5em]">Identity Required</span>
@@ -63,7 +101,7 @@ export default function AuthPage() {
                     </h1>
                 </div>
 
-                <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-4" onSubmit={handleAuth}>
                     <AnimatePresence mode="wait">
                         {!isLogin && (
                             <motion.div
@@ -75,6 +113,9 @@ export default function AuthPage() {
                                 <input
                                     type="text"
                                     placeholder="OPERATIVE NAME"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value.toUpperCase())}
+                                    required={!isLogin}
                                     className="w-full bg-black border border-white/10 p-5 pl-6 text-white outline-none focus:border-compete-purple transition-all font-black placeholder:text-white/5 uppercase tracking-widest text-[10px]"
                                 />
                             </motion.div>
@@ -85,6 +126,9 @@ export default function AuthPage() {
                         <input
                             type="email"
                             placeholder="EMAIL ADDRESS"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
                             className="w-full bg-black border border-white/10 p-5 pl-6 text-white outline-none focus:border-compete-purple transition-all font-black placeholder:text-white/5 uppercase tracking-widest text-[10px]"
                         />
                     </div>
@@ -93,22 +137,31 @@ export default function AuthPage() {
                         <input
                             type="password"
                             placeholder="ACCESS KEY"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
                             className="w-full bg-black border border-white/10 p-5 pl-6 text-white outline-none focus:border-compete-purple transition-all font-black placeholder:text-white/5 uppercase tracking-widest text-[10px]"
                         />
                     </div>
 
                     <button
-                        onClick={handleAuth}
-                        className="w-full bg-white text-black py-6 font-black uppercase tracking-[0.3em] italic hover:bg-compete-purple hover:text-white transition-all flex items-center justify-center gap-3 group overflow-hidden relative"
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-white text-black py-6 font-black uppercase tracking-[0.3em] italic hover:bg-compete-purple hover:text-white transition-all flex items-center justify-center gap-3 group overflow-hidden relative disabled:opacity-50"
                     >
-                        <Target size={18} className="group-hover:scale-125 transition-transform" />
-                        <span>{isLogin ? "Authorize" : "Initialize"}</span>
+                        {loading ? (
+                            <Loader2 size={18} className="animate-spin" />
+                        ) : (
+                            <Target size={18} className="group-hover:scale-125 transition-transform" />
+                        )}
+                        <span>{loading ? "AUTHORIZING..." : (isLogin ? "Authorize" : "Initialize")}</span>
                     </button>
                 </form>
 
                 <div className="mt-8 flex items-center gap-4">
                     <button
                         onClick={handleGoogleSignIn}
+                        type="button"
                         className="flex-1 flex items-center justify-center gap-3 py-4 border border-white/5 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all font-black text-[9px] uppercase tracking-widest"
                     >
                         <Chrome size={14} /> Google - ID
@@ -117,6 +170,7 @@ export default function AuthPage() {
                     <div className="flex-1 text-right">
                         <button
                             onClick={() => setIsLogin(!isLogin)}
+                            type="button"
                             className="text-[9px] font-black uppercase tracking-widest text-compete-purple hover:text-white transition-colors"
                         >
                             {isLogin ? "New Operative?" : "Old Guard?"}
@@ -146,6 +200,7 @@ export default function AuthPage() {
                 .animate-scan {
                     position: absolute;
                     animation: scan 4s linear infinite;
+                    width: 100%;
                 }
             `}</style>
         </div>

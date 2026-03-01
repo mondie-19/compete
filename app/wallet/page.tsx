@@ -141,7 +141,7 @@ export default function WalletPage() {
         )}
       </AnimatePresence>
 
-      <header className="fixed top-0 left-0 z-50 p-6 pointer-events-none w-full flex justify-between">
+      <header className="relative mt-4 top-5 left-0 z-50 p-6 pointer-events-none w-full flex justify-between">
         <div className="pointer-events-auto flex flex-col gap-1">
           <Link href="/lobby" className="flex items-center gap-2 text-white/30 hover:text-compete-purple transition-colors mb-2">
             <ArrowLeft size={14} />

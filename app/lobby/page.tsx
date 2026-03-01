@@ -2,7 +2,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Users, Timer, Gamepad2, Search, Wallet, Activity, Zap, Terminal as TerminalIcon, ShieldCheck, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@/supabase/client";
 import { useRouter } from "next/navigation";
@@ -19,7 +19,11 @@ export default function LobbyPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedPlatform, setSelectedPlatform] = useState("ALL");
     const [isProcessing, setIsProcessing] = useState(false);
-    const [recentActivations, setRecentActivations] = useState<any[]>([]);
+    const [messages, setMessages] = useState<any[]>([]);
+    const [newMessage, setNewMessage] = useState("");
+    const [isSending, setIsSending] = useState(false);
+    const [selectedProfile, setSelectedProfile] = useState<any>(null);
+    const chatEndRef = useRef<HTMLDivElement>(null);
 
     // REAL-TIME ENGINE
     useEffect(() => {
@@ -31,27 +35,49 @@ export default function LobbyPage() {
                 if (profile) setBalance(profile.balance);
             }
 
-            const { data: initial } = await supabase.from("challenges").select("*, host:profiles!challenges_creator_id_fkey(username)").eq("status", "open").order('created_at', { ascending: false }).limit(20);
+            const { data: initial } = await supabase.from("challenges").select("*, host:profiles!challenges_creator_id_fkey(username)").eq("status", "open").order('created_at', { ascending: false }).limit(50);
             if (initial) setChallenges(initial);
 
-            // Fetch recent activations for Global Feed
-            const { data: recent } = await supabase.from("challenges").select("*, host:profiles!challenges_creator_id_fkey(username)").order('created_at', { ascending: false }).limit(5);
-            if (recent) setRecentActivations(recent);
+            // Fetch recent messages for World Chat with full profile data
+            const { data: recentMsgs } = await supabase
+                .from("messages")
+                .select("*, profile:profiles(username, avatar_url, level, rank_name, banner_url)")
+                .order('created_at', { ascending: false })
+                .limit(50);
+            if (recentMsgs) setMessages(recentMsgs.reverse());
 
-            const channel = supabase.channel('lobby-updates')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'challenges' }, (payload) => {
-                    // Refresh both
-                    syncLobby();
-                })
-                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'challenges' }, (payload) => {
+            const lobbyChannel = supabase.channel('lobby-updates')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'challenges' }, () => {
                     syncLobby();
                 })
                 .subscribe();
 
-            return () => { supabase.removeChannel(channel); };
+            const chatChannel = supabase.channel('world-chat')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
+                    const { data: msgWithProfile } = await supabase
+                        .from("messages")
+                        .select("*, profile:profiles(username, avatar_url, level, rank_name, banner_url)")
+                        .eq("id", payload.new.id)
+                        .single();
+
+                    if (msgWithProfile) {
+                        setMessages(prev => [...prev.slice(-49), msgWithProfile]);
+                    }
+                })
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(lobbyChannel);
+                supabase.removeChannel(chatChannel);
+            };
         };
         syncLobby();
     }, [supabase]);
+
+    // AUTO-SCROLL
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
     // FILTER LOGIC
     const filteredChallenges = challenges.filter(c => {
@@ -101,6 +127,33 @@ export default function LobbyPage() {
             toast.error("INTERCEPT FAILED: SYSTEM ERROR");
         } finally {
             setIsProcessing(false);
+        }
+    };
+
+    const handleSendMessage = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newMessage.trim() || isSending) return;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            router.push("/auth");
+            return;
+        }
+
+        setIsSending(true);
+        try {
+            const { error } = await supabase.from("messages").insert({
+                user_id: user.id,
+                content: newMessage.trim()
+            });
+
+            if (error) throw error;
+            setNewMessage("");
+        } catch (error) {
+            console.error("Chat Error:", error);
+            toast.error("COMM-LINK ERROR: FAILED TO SEND");
+        } finally {
+            setIsSending(false);
         }
     };
 
@@ -213,7 +266,7 @@ export default function LobbyPage() {
                                 </Link>
                             </div>
 
-                            <div className="space-y-3 min-h-[400px]">
+                            <div className="max-h-[600px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
                                 <AnimatePresence mode="popLayout">
                                     {filteredChallenges.map((c) => (
                                         <motion.div
@@ -247,24 +300,80 @@ export default function LobbyPage() {
 
                     {/* Terminal Sidebar */}
                     <aside className="lg:col-span-4">
-                        <div className="bg-neutral-900/40 border border-white/5 rounded-[2rem] p-6 backdrop-blur-xl sticky top-28">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-8 flex items-center gap-2">
-                                <TerminalIcon size={14} /> Global Feed
+                        <div className="bg-neutral-900/40 border border-white/5 rounded-[2rem] p-6 backdrop-blur-xl sticky top-28 flex flex-col h-[600px]">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-6 flex items-center gap-2 shrink-0">
+                                <TerminalIcon size={14} /> World Chat
                             </h3>
-                            <div className="space-y-8 relative">
-                                <div className="absolute left-[7px] top-0 bottom-0 w-[1px] bg-white/5" />
-                                {recentActivations.map((c, i) => (
-                                    <div key={c.id} className="relative pl-6">
-                                        <div className="absolute left-0 top-1.5 w-3.5 h-3.5 rounded-full bg-black border-2 border-compete-purple shadow-[0_0_10px_#9b5cff]" />
-                                        <p className="text-[11px] leading-relaxed text-white/60 font-medium font-mono uppercase">
-                                            {c.host?.username || "OPERATIVE"} <span className="text-white font-bold">DEPLOYED</span> <span className="text-compete-purple italic font-black">{c.game_name}</span> ON <span className="text-white font-bold">{c.platform}</span>.
-                                        </p>
-                                        <p className="text-[8px] font-black text-white/20 mt-1 uppercase tracking-widest">
-                                            ${c.entry_fee} ENTRY • PRIZE POOL ${c.prize_pool}
-                                        </p>
-                                    </div>
+
+                            {/* Chat Messages */}
+                            <div className="flex-1 overflow-y-auto space-y-4 pr-2 mb-6 custom-scrollbar no-scrollbar-x h-[500px]">
+                                {messages.map((msg, i) => (
+                                    <motion.div
+                                        initial={{ opacity: 0, x: 10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        key={msg.id}
+                                        className="flex gap-3 items-start group/msg"
+                                    >
+                                        <button
+                                            onClick={() => setSelectedProfile(msg.profile)}
+                                            className="shrink-0 mt-1 transition-transform hover:scale-110 active:scale-95"
+                                        >
+                                            <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 overflow-hidden relative">
+                                                {msg.profile?.avatar_url ? (
+                                                    <img src={msg.profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-white/20">
+                                                        <Users size={14} />
+                                                    </div>
+                                                )}
+                                                <div className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border border-black ${msg.profile?.id ? 'bg-green-500' : 'bg-white/20'}`} />
+                                            </div>
+                                        </button>
+
+                                        <div className="flex-1 space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span
+                                                    onClick={() => setSelectedProfile(msg.profile)}
+                                                    className="text-compete-purple text-[10px] font-black uppercase italic tracking-tighter cursor-pointer hover:underline"
+                                                >
+                                                    {msg.profile?.username || "OPERATIVE"}
+                                                </span>
+                                                <span className="text-[8px] text-white/10 font-mono">
+                                                    {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-white/70 font-medium leading-relaxed bg-white/5 p-3 rounded-xl rounded-tl-none border border-white/5 group-hover/msg:border-compete-purple/30 transition-colors">
+                                                {msg.content}
+                                            </p>
+                                        </div>
+                                    </motion.div>
                                 ))}
+                                <div ref={chatEndRef} />
+                                {messages.length === 0 && (
+                                    <div className="h-full flex flex-col items-center justify-center text-center opacity-20">
+                                        <TerminalIcon size={32} className="mb-4" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">Awaiting uplink...</p>
+                                    </div>
+                                )}
                             </div>
+
+                            {/* Chat Input */}
+                            <form onSubmit={handleSendMessage} className="relative shrink-0">
+                                <input
+                                    type="text"
+                                    placeholder="TYPE MESSAGE..."
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-4 px-5 text-[10px] font-black uppercase tracking-widest focus:border-compete-purple outline-none transition-all pr-12"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={!newMessage.trim() || isSending}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-compete-purple hover:text-white transition-colors disabled:opacity-20"
+                                >
+                                    <Zap size={18} />
+                                </button>
+                            </form>
                         </div>
                     </aside>
                 </div>
@@ -306,6 +415,82 @@ export default function LobbyPage() {
                                         }`}
                                 >
                                     {isProcessing ? "SYNCHRONIZING..." : "Authorize Intercept"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            {/* PROFILE IDENTITY CARD */}
+            <AnimatePresence>
+                {selectedProfile && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedProfile(null)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-sm bg-neutral-900 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
+                        >
+                            {/* Banner */}
+                            <div className="h-32 bg-compete-purple/20 relative">
+                                {selectedProfile.banner_url ? (
+                                    <img src={selectedProfile.banner_url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full bg-[linear-gradient(45deg,rgba(155,92,255,0.2)_25%,transparent_25%,transparent_50%,rgba(155,92,255,0.2)_50%,rgba(155,92,255,0.2)_75%,transparent_75%,transparent)] bg-[length:20px_20px]" />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 to-transparent" />
+                            </div>
+
+                            {/* Profile Info */}
+                            <div className="px-8 pb-8 -mt-12 relative z-10 text-center">
+                                <div className="inline-block p-1 bg-neutral-900 rounded-2xl mb-4">
+                                    <div className="w-24 h-24 rounded-xl bg-white/5 border border-white/10 overflow-hidden shadow-2xl">
+                                        {selectedProfile.avatar_url ? (
+                                            <img src={selectedProfile.avatar_url} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-white/10">
+                                                <Users size={40} />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <h3 className="text-2xl font-black italic uppercase tracking-tighter mb-1 text-white">
+                                    {selectedProfile.username || "OPERATIVE"}
+                                </h3>
+                                <div className="flex items-center justify-center gap-2 mb-6">
+                                    <span className="px-3 py-0.5 rounded-full bg-compete-purple/10 border border-compete-purple/20 text-compete-purple text-[10px] font-black uppercase tracking-widest">
+                                        LEVEL {selectedProfile.level || 1}
+                                    </span>
+                                    <span className="px-3 py-0.5 rounded-full bg-white/5 border border-white/10 text-white/40 text-[10px] font-black uppercase tracking-widest">
+                                        {selectedProfile.rank_name || "NOOB"}
+                                    </span>
+                                </div>
+
+                                {/* Stats Mini-Grid */}
+                                <div className="grid grid-cols-2 gap-3 mb-8">
+                                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl">
+                                        <p className="text-[9px] font-black uppercase text-white/20 tracking-widest mb-1">Rank</p>
+                                        <p className="text-sm font-black italic text-compete-purple uppercase">{selectedProfile.rank_name || "NOOB"}</p>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/5 p-4 rounded-2xl">
+                                        <p className="text-[9px] font-black uppercase text-white/20 tracking-widest mb-1">Status</p>
+                                        <p className="text-sm font-black italic text-green-500 uppercase">ONLINE</p>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => setSelectedProfile(null)}
+                                    className="w-full py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all rounded-xl"
+                                >
+                                    Close Intel
                                 </button>
                             </div>
                         </motion.div>

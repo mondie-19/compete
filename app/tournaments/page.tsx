@@ -1,145 +1,73 @@
 "use client";
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Users, Timer, Search, Filter, Gamepad2, Swords } from "lucide-react";
-
-const TOURNAMENTS_DATA = [
-  {
-    id: 1,
-    title: "Valorant Champions Arena",
-    game: "Valorant",
-    prize: "$5,000",
-    status: "Live",
-    players: "128/128",
-    timeLeft: "2h 15m",
-    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=2070",
-    category: "FPS"
-  },
-  {
-    id: 2,
-    title: "League of Legends: Rift Rivals",
-    game: "League of Legends",
-    prize: "$2,500",
-    status: "Upcoming",
-    players: "42/64",
-    timeLeft: "Starts in 5h",
-    image: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&q=80&w=2071",
-    category: "MOBA"
-  },
-  {
-    id: 3,
-    title: "CS2 Global Offensive Elite",
-    game: "CS2",
-    prize: "$10,000",
-    status: "Upcoming",
-    players: "12/16 Teams",
-    timeLeft: "Starts in 1d",
-    image: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&q=80&w=2130",
-    category: "FPS"
-  }
-];
+import { Trophy, Timer, ArrowLeft, Bell } from "lucide-react";
+import Link from "next/link";
 
 export default function TournamentsPage() {
-  const [filter, setFilter] = useState("All");
-
   return (
-    <main className="min-h-screen bg-black text-white">
-      <div className="h-20" /> {/* Navbar Spacer */}
+    <main className="min-h-screen bg-black text-white relative overflow-hidden">
+      {/* Background Glows */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-compete-purple/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-compete-purple/5 blur-[100px] rounded-full pointer-events-none" />
 
-      {/* Hero Header Section */}
-      <section className="relative py-16 px-6 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-64 bg-compete-purple/10 blur-[120px] rounded-full" />
-        
-        <div className="relative z-10 max-w-7xl mx-auto text-center">
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter"
-          >
-            Active <span className="text-compete-purple">Arenas</span>
-          </motion.h1>
-          <p className="text-compete-muted mt-4 max-w-2xl mx-auto">
-            Compete in the world's most prestigious online tournaments. 
-            Prove your skills and climb the global leaderboards.
-          </p>
-        </div>
-      </section>
+      <div className="relative z-10 max-w-7xl mx-auto px-6 min-h-screen flex flex-col items-center justify-center text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          className="space-y-8"
+        >
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-compete-purple text-[10px] font-black uppercase tracking-[0.3em]">
+            <Trophy size={14} />
+            Tournament System
+          </div>
 
-      {/* Filter Bar */}
-      <section className="sticky top-20 z-30 bg-black/80 backdrop-blur-md border-y border-white/5 py-4">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-            {["All", "FPS", "MOBA", "Sports", "Battle Royale"].map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setFilter(cat)}
-                className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${
-                  filter === cat ? "bg-compete-purple text-white shadow-purple-glow" : "bg-white/5 text-compete-muted hover:bg-white/10"
-                }`}
-              >
-                {cat}
-              </button>
+          {/* Title */}
+          <div className="space-y-2">
+            <h1 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter leading-none">
+              Coming <span className="text-compete-purple text-glow">Soon</span>
+            </h1>
+            <p className="text-compete-muted text-lg md:text-xl max-w-2xl mx-auto font-medium">
+              The ultimate arena for competitive excellence is under construction.
+              Prepare your squad for the next generation of staking.
+            </p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+            <Link
+              href="/lobby"
+              className="group flex items-center gap-2 px-8 py-4 bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-compete-purple hover:text-white transition-all rounded-sm"
+            >
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              Back to Lobby
+            </Link>
+            <button className="flex items-center gap-2 px-8 py-4 bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all rounded-sm">
+              <Bell size={16} />
+              Notify Me
+            </button>
+          </div>
+
+          {/* Status Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto border-t border-white/5 pt-12">
+            {[
+              { label: "Systems", value: "Staging", icon: <Timer size={16} /> },
+              { label: "Anti-Cheat", value: "Active", icon: <Trophy size={16} /> },
+              { label: "Prize Pools", value: "$50k+ Locked", icon: <Trophy size={16} /> }
+            ].map((item, idx) => (
+              <div key={idx} className="flex flex-col items-center gap-2">
+                <div className="text-compete-purple mb-1 opacity-50">{item.icon}</div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">{item.label}</span>
+                <span className="text-sm font-bold text-white/80">{item.value}</span>
+              </div>
             ))}
           </div>
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search Tournament..." 
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-sm focus:outline-none focus:border-compete-purple/50 transition-all"
-            />
-          </div>
-        </div>
-      </section>
+        </motion.div>
+      </div>
 
-      {/* Tournaments Grid */}
-      <section className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {TOURNAMENTS_DATA.map((t) => (
-            <motion.div 
-              key={t.id}
-              whileHover={{ y: -5 }}
-              className="bg-compete-card/20 border border-white/5 rounded-2xl overflow-hidden group hover:border-compete-purple/30 transition-all"
-            >
-              <div className="relative h-48 overflow-hidden">
-                <img src={t.image} alt={t.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                <div className="absolute top-4 left-4">
-                  <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest ${
-                    t.status === 'Live' ? 'bg-red-500 animate-pulse' : 'bg-compete-purple'
-                  }`}>
-                    {t.status}
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-black uppercase italic leading-tight">{t.title}</h3>
-                  <div className="flex items-center gap-1 text-compete-purple">
-                    <Trophy size={16} />
-                    <span className="font-bold">{t.prize}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 text-compete-muted text-xs font-bold uppercase tracking-widest mb-6">
-                  <div className="flex items-center gap-1"><Gamepad2 size={14}/> {t.game}</div>
-                  <div className="flex items-center gap-1"><Users size={14}/> {t.players}</div>
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-2 text-compete-muted text-xs">
-                    <Timer size={14} className="text-compete-purple" />
-                    {t.timeLeft}
-                  </div>
-                  <button className="px-6 py-2 bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-compete-purple hover:text-white transition-all">
-                    Register
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+      {/* Grid Pattern overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
     </main>
   );
 }

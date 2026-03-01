@@ -130,44 +130,50 @@ export default function FAQPage() {
         </div>
       </section>
 
-      {/* REFINED CALL TO ACTION */}
-      <section className="max-w-6xl mx-auto py-32 relative">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-compete-purple/10 blur-[120px] rounded-full pointer-events-none" />
-        
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-white/[0.02] border border-white/10 p-12 md:p-20 text-center backdrop-blur-sm">
-          <div className="relative z-10 max-w-3xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-5xl md:text-7xl font-black text-white uppercase italic tracking-tighter mb-8 leading-[0.9]">
-                Ready to <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-compete-purple to-purple-400">
-                  Join the Arena?
-                </span>
-              </h2>
-              
-              <p className="text-compete-muted text-lg md:text-xl font-medium mb-12 leading-relaxed opacity-80">
-                Experience the thrill of victory. Challenge real players, 
-                dominate the leaderboards, and win real money.
-              </p>
-              
-              <div className="flex justify-center">
-                <button className="group relative w-full sm:w-auto px-12 py-5 bg-compete-purple text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 hover:shadow-[0_0_40px_rgba(155,92,255,0.6)] transition-all duration-300 flex items-center justify-center gap-3 overflow-hidden">
-                  <span className="relative z-10">Sign Up Now</span>
-                  <ArrowRight size={22} className="relative z-10 group-hover:translate-x-1 transition-transform" />
-                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                </button>
-              </div>
-            </motion.div>
-          </div>
+      {/* MINIMALIST CALL TO ACTION */}
+<section className="max-w-5xl mx-auto py-32 px-6">
+  <div className="relative group overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.03] to-transparent p-12 md:p-24 text-center">
+    
+    {/* Subtle Background Accent */}
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-compete-purple/50 to-transparent" />
 
-          <div className="absolute top-0 left-0 w-32 h-32 bg-compete-purple/20 blur-3xl -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-32 h-32 bg-compete-purple/20 blur-3xl translate-x-1/2 translate-y-1/2" />
-        </div>
-      </section>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8 }}
+      className="relative z-10"
+    >
+      <span className="text-[10px] font-black uppercase tracking-[0.5em] text-compete-purple mb-6 block">
+        Final Objective
+      </span>
+      
+      <h2 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter mb-6">
+        Enter the <span className="text-glow-sm">Arena.</span>
+      </h2>
+      
+      <p className="max-w-xl mx-auto text-white/40 text-sm md:text-base font-medium mb-12 leading-relaxed tracking-wide">
+        No fluff. Just high-stakes competition. Join thousands of players 
+        dominating the global leaderboards today.
+      </p>
+      
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+        <button className="group relative px-10 py-4 bg-white text-black font-black uppercase text-xs tracking-[0.2em] rounded-full hover:bg-compete-purple hover:text-white transition-all duration-300 flex items-center gap-2">
+          Create Account
+          <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+        </button>
+        
+        <button className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 hover:text-white transition-colors">
+          View Live Matches
+        </button>
+      </div>
+    </motion.div>
+
+    {/* Minimalist Grid Pattern Overlay */}
+    <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[carreaux_10px_10px] [mask-image:radial-gradient(ellipse_at_center,black,transparent)]" 
+         style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
+  </div>
+</section>
     </main>
   );
 }

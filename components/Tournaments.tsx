@@ -35,62 +35,66 @@ const TOURNAMENTS = [
 
 export default function Tournaments() {
   return (
-    <section className="py-24 px-4 max-w-7xl mx-auto">
-      <div className="flex justify-between items-end mb-12">
-        <div>
+    <section className="py-24 px-4 max-w-7xl mx-auto relative overflow-hidden">
+      {/* Background Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-64 bg-compete-purple/10 blur-[100px] rounded-full pointer-events-none" />
+
+      <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-12 gap-6">
+        <div className="text-center md:text-left">
           <h2 className="text-compete-purple font-bold tracking-widest uppercase mb-2">Ongoing Events</h2>
           <h3 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter">
             Active Tournaments
           </h3>
         </div>
         <Link href="/tournaments">
-          <button className="text-compete-purple font-bold flex items-center gap-2 hover:underline">
-            View All <ArrowUpRight size={20} />
+          <button className="text-compete-purple font-bold flex items-center gap-2 hover:underline group">
+            Check Status <ArrowUpRight size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
           </button>
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {TOURNAMENTS.map((t, i) => (
-          <motion.div
-            key={t.id}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -10 }}
-            className="group relative bg-compete-card/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm hover:border-compete-purple/50 transition-all duration-300 card-hover"
-          >
-            {/* Status Badge */}
-            <div className="flex justify-between items-start mb-6">
-              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                t.status === 'Live' ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-compete-purple/20 text-compete-purple'
-              }`}>
-                {t.status}
-              </span>
-              <Trophy className="text-compete-purple/50 group-hover:text-compete-purple transition-colors" />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="relative bg-compete-card/30 border border-white/5 rounded-3xl p-12 md:p-20 overflow-hidden text-center backdrop-blur-sm"
+      >
+        {/* Animated Icon */}
+        <motion.div
+          animate={{
+            rotate: [0, 10, -10, 0],
+            scale: [1, 1.1, 0.9, 1]
+          }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="inline-flex items-center justify-center p-6 rounded-2xl bg-compete-purple/20 text-compete-purple mb-8"
+        >
+          <Trophy size={48} />
+        </motion.div>
+
+        <h4 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter mb-4">
+          Arena Under <span className="text-compete-purple">Construction</span>
+        </h4>
+        <p className="text-compete-muted text-lg max-w-xl mx-auto mb-10">
+          We're engineering a revolutionary tournament experience.
+          High stakes, fair play, and instant rewards are being forged as we speak.
+        </p>
+
+        <div className="flex flex-wrap justify-center gap-8">
+          {[
+            { label: "Phase", value: "Deployment" },
+            { label: "Security", value: "Locked" },
+            { label: "Rewards", value: "$50,000" }
+          ].map((stat, i) => (
+            <div key={i} className="flex flex-col items-center">
+              <span className="text-[10px] font-black uppercase tracking-widest text-compete-purple mb-1">{stat.label}</span>
+              <span className="text-xl font-bold text-white">{stat.value}</span>
             </div>
+          ))}
+        </div>
 
-            <h4 className="text-2xl font-bold text-white mb-1">{t.title}</h4>
-            <p className="text-compete-muted text-sm mb-6">{t.game}</p>
-
-            <div className="space-y-3 border-t border-white/5 pt-6">
-              <div className="flex justify-between text-sm">
-                <span className="flex items-center gap-2 text-compete-muted"><Clock size={16}/> {t.date}</span>
-                <span className="text-white font-bold">{t.prize}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="flex items-center gap-2 text-compete-muted"><Users size={16}/> Registered</span>
-                <span className="text-white font-bold">{t.slots}</span>
-              </div>
-            </div>
-
-            <button className="w-full mt-8 py-3 rounded-xl bg-white/5 text-white font-bold uppercase tracking-widest btn-glow hover:bg-compete-purple hover:text-white">
-              Join Tournament
-            </button>
-          </motion.div>
-        ))}
-      </div>
+        {/* Decorative Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none" />
+      </motion.div>
     </section>
   );
 }

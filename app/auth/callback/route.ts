@@ -1,15 +1,19 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server' // You'll need a server util too eventually
+import { NextResponse } from 'next/server';
+import { createClient } from '@/supabase/server';
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
+  const next = searchParams.get('next') ?? '/lobby';
 
   if (code) {
-    // This is where the code is exchanged for a session
-    // For now, redirecting to home is enough to clear the build error
-    return NextResponse.redirect(`${origin}/lobby`)
+    const supabase = await createClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) {
+      return NextResponse.redirect(`${origin}${next}`);
+    }
   }
 
-  return NextResponse.redirect(`${origin}`)
+  // return the user to an error page with instructions
+  return NextResponse.redirect(`${origin}/auth?error=auth_callback_failed`);
 }
