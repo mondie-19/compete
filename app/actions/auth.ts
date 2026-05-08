@@ -25,7 +25,7 @@ export async function signUp(email: string, password: string, username: string) 
     // For now, we simulate this. In a real scenario, you'd use a service like Resend.
     console.log(`[MAIL TERMINAL]: Welcome Letter sent to ${email} for operative ${username}.`);
 
-    return { success: true, user: data.user };
+    return { success: true, user: data.user, role: 'client' };
 }
 
 /**
@@ -43,7 +43,16 @@ export async function signIn(email: string, password: string) {
         return { error: error.message };
     }
 
-    return { success: true, user: data.user };
+    // Fetch the user's role
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+
+    const role = profile?.role || 'client';
+
+    return { success: true, user: data.user, role };
 }
 
 /**

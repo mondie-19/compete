@@ -1,0 +1,343 @@
+﻿
+> compete@0.1.0 lint
+> eslint
+
+
+C:\Users\USER\Documents\COMPETE\compete\app\admin\page.tsx
+    3:18  warning  'AlertTriangle' is defined but never used                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+    3:33  warning  'Trophy' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    3:60  warning  'XCircle' is defined but never used                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+    3:69  warning  'Search' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    3:77  warning  'Clock' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   11:46  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   66:18  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  134:79  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  150:61  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\USER\Documents\COMPETE\compete\app\auth\page.tsx
+   3:10  warning  'Mail' is defined but never used  @typescript-eslint/no-unused-vars
+   3:16  warning  'Lock' is defined but never used  @typescript-eslint/no-unused-vars
+   3:22  warning  'User' is defined but never used  @typescript-eslint/no-unused-vars
+  59:18  warning  'err' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\USER\Documents\COMPETE\compete\app\challenges\create\page.tsx
+   3:10  warning  'motion' is defined but never used                @typescript-eslint/no-unused-vars
+  61:21  warning  'challengeId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\USER\Documents\COMPETE\compete\app\coming-soon\page.tsx
+  38:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\USER\Documents\COMPETE\compete\app\dashboard\page.tsx
+    4:42   warning  'Star' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    4:98   warning  'Menu' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    4:104  warning  'X' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+    4:107  warning  'ShieldAlert' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+    8:10   warning  'LineChart' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    8:21   warning  'Line' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   39:7    warning  'MATCH_HISTORY' is assigned a value but never used                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   57:42   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   58:52   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   59:42   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  130:19   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  142:51   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  181:21   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\USER\Documents\COMPETE\compete\app\deploy\page.tsx
+    3:38   warning  'Trophy' is defined but never used       @typescript-eslint/no-unused-vars
+    3:89   warning  'Users' is defined but never used        @typescript-eslint/no-unused-vars
+    3:110  warning  'Terminal' is defined but never used     @typescript-eslint/no-unused-vars
+    3:147  warning  'AlertCircle' is defined but never used  @typescript-eslint/no-unused-vars
+   35:18   warning  'err' is defined but never used          @typescript-eslint/no-unused-vars
+  166:18   warning  'err' is defined but never used          @typescript-eslint/no-unused-vars
+
+C:\Users\USER\Documents\COMPETE\compete\app\lobby\page.tsx
+    3:10  warning  'Trophy' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    3:25  warning  'Timer' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+    3:58  warning  'Activity' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   17:50  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   18:60  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   22:46  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   25:60  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   90:42  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  103:21  warning  'data' is assigned a value but never used                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+  310:53  warning  'i' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  323:53  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  444:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  456:45  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\USER\Documents\COMPETE\compete\app\match\[id]\page.tsx
+    4:10  warning  'motion' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    4:18  warning  'AnimatePresence' is defined but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+    5:18  warning  'Zap' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+    5:68  warning  'CheckCircle2' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   13:40  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   15:38  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   53:31  warning  'uploadData' is assigned a value but never used                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   77:25  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   89:27  warning  'error' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  104:33  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  192:49  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\USER\Documents\COMPETE\compete\app\not-found.tsx
+  16:23  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\app\not-found.tsx:16:23
+  14 |             className="absolute w-1 h-1 rounded-full bg-compete-purple"
+  15 |             style={{
+> 16 |               top: `${Math.random() * 100}%`,
+     |                       ^^^^^^^^^^^^^ Cannot call impure function
+  17 |               left: `${Math.random() * 100}%`,
+  18 |             }}
+  19 |             animate={{  react-hooks/purity
+  17:24  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\app\not-found.tsx:17:24
+  15 |             style={{
+  16 |               top: `${Math.random() * 100}%`,
+> 17 |               left: `${Math.random() * 100}%`,
+     |                        ^^^^^^^^^^^^^ Cannot call impure function
+  18 |             }}
+  19 |             animate={{
+  20 |               y: [0, -20, 0],                                           react-hooks/purity
+  24:29  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\app\not-found.tsx:24:29
+  22 |             }}
+  23 |             transition={{
+> 24 |               duration: 3 + Math.random() * 2,
+     |                             ^^^^^^^^^^^^^ Cannot call impure function
+  25 |               repeat: Infinity,
+  26 |               delay: Math.random() * 2,
+  27 |             }}                                             react-hooks/purity
+  26:22  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\app\not-found.tsx:26:22
+  24 |               duration: 3 + Math.random() * 2,
+  25 |               repeat: Infinity,
+> 26 |               delay: Math.random() * 2,
+     |                      ^^^^^^^^^^^^^ Cannot call impure function
+  27 |             }}
+  28 |           />
+  29 |         ))}                                                                    react-hooks/purity
+
+C:\Users\USER\Documents\COMPETE\compete\app\page.tsx
+   2:10  warning  'useState' is defined but never used          @typescript-eslint/no-unused-vars
+   7:8   warning  'StatsDashboard' is defined but never used    @typescript-eslint/no-unused-vars
+   8:8   warning  'PrizePoolTracker' is defined but never used  @typescript-eslint/no-unused-vars
+   9:8   warning  'MatchHistory' is defined but never used      @typescript-eslint/no-unused-vars
+  13:8   warning  'Link' is defined but never used              @typescript-eslint/no-unused-vars
+
+C:\Users\USER\Documents\COMPETE\compete\app\rankings\page.tsx
+    4:22   warning  'TrendingDown' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    4:65   warning  'Filter' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    4:106  warning  'Zap' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   13:44   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   14:40   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  146:37   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\USER\Documents\COMPETE\compete\app\tournaments\[id]\page.tsx
+    4:18  warning  'Users' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+    4:43  warning  'ChevronRight' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    6:45  warning  'params' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   23:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  106:73  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+
+C:\Users\USER\Documents\COMPETE\compete\app\wallet\page.tsx
+    5:3   warning  'ArrowUpRight' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+    5:17  warning  'ArrowDownLeft' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+    6:3   warning  'ShieldCheck' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    6:16  warning  'ChevronRight' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   10:1   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+   24:62  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+   92:21  error    Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  117:11  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+C:\Users\USER\Documents\COMPETE\compete\components\AboutSection.tsx
+   4:42  warning  'Target' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   4:50  warning  'Users' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  54:84  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  71:11  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\USER\Documents\COMPETE\compete\components\Footer.tsx
+  26:23  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Footer.tsx:26:23
+  24 |             className="particle"
+  25 |             style={{
+> 26 |               top: `${Math.random() * 100}%`,
+     |                       ^^^^^^^^^^^^^ Cannot call impure function
+  27 |               left: `${Math.random() * 100}%`,
+  28 |               width: `${Math.random() * 3}px`,
+  29 |               height: `${Math.random() * 3}px`,                                                                  react-hooks/purity
+  27:24  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Footer.tsx:27:24
+  25 |             style={{
+  26 |               top: `${Math.random() * 100}%`,
+> 27 |               left: `${Math.random() * 100}%`,
+     |                        ^^^^^^^^^^^^^ Cannot call impure function
+  28 |               width: `${Math.random() * 3}px`,
+  29 |               height: `${Math.random() * 3}px`,
+  30 |               animationDelay: `${Math.random() * 10}s`,                                          react-hooks/purity
+  28:25  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Footer.tsx:28:25
+  26 |               top: `${Math.random() * 100}%`,
+  27 |               left: `${Math.random() * 100}%`,
+> 28 |               width: `${Math.random() * 3}px`,
+     |                         ^^^^^^^^^^^^^ Cannot call impure function
+  29 |               height: `${Math.random() * 3}px`,
+  30 |               animationDelay: `${Math.random() * 10}s`,
+  31 |               background: i % 2 === 0 ? '#9B5CFF' : 'white'  react-hooks/purity
+  29:26  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Footer.tsx:29:26
+  27 |               left: `${Math.random() * 100}%`,
+  28 |               width: `${Math.random() * 3}px`,
+> 29 |               height: `${Math.random() * 3}px`,
+     |                          ^^^^^^^^^^^^^ Cannot call impure function
+  30 |               animationDelay: `${Math.random() * 10}s`,
+  31 |               background: i % 2 === 0 ? '#9B5CFF' : 'white'
+  32 |             } as any}                         react-hooks/purity
+  30:34  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Footer.tsx:30:34
+  28 |               width: `${Math.random() * 3}px`,
+  29 |               height: `${Math.random() * 3}px`,
+> 30 |               animationDelay: `${Math.random() * 10}s`,
+     |                                  ^^^^^^^^^^^^^ Cannot call impure function
+  31 |               background: i % 2 === 0 ? '#9B5CFF' : 'white'
+  32 |             } as any}
+  33 |           />                                                   react-hooks/purity
+  32:18  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+
+C:\Users\USER\Documents\COMPETE\compete\components\Hero.tsx
+  77:21  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Hero.tsx:77:21
+  75 |           className="particle"
+  76 |           style={{
+> 77 |             top: `${Math.random() * 100}%`,
+     |                     ^^^^^^^^^^^^^ Cannot call impure function
+  78 |             left: `${Math.random() * 100}%`,
+  79 |             width: `${Math.random() * 2.5}px`,
+  80 |             height: `${Math.random() * 2.5}px`,                                                                  react-hooks/purity
+  78:22  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Hero.tsx:78:22
+  76 |           style={{
+  77 |             top: `${Math.random() * 100}%`,
+> 78 |             left: `${Math.random() * 100}%`,
+     |                      ^^^^^^^^^^^^^ Cannot call impure function
+  79 |             width: `${Math.random() * 2.5}px`,
+  80 |             height: `${Math.random() * 2.5}px`,
+  81 |             animationDelay: `${Math.random() * 10}s`,                                          react-hooks/purity
+  79:23  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Hero.tsx:79:23
+  77 |             top: `${Math.random() * 100}%`,
+  78 |             left: `${Math.random() * 100}%`,
+> 79 |             width: `${Math.random() * 2.5}px`,
+     |                       ^^^^^^^^^^^^^ Cannot call impure function
+  80 |             height: `${Math.random() * 2.5}px`,
+  81 |             animationDelay: `${Math.random() * 10}s`,
+  82 |             background: i % 2 === 0 ? '#9B5CFF' : 'white'  react-hooks/purity
+  80:24  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Hero.tsx:80:24
+  78 |             left: `${Math.random() * 100}%`,
+  79 |             width: `${Math.random() * 2.5}px`,
+> 80 |             height: `${Math.random() * 2.5}px`,
+     |                        ^^^^^^^^^^^^^ Cannot call impure function
+  81 |             animationDelay: `${Math.random() * 10}s`,
+  82 |             background: i % 2 === 0 ? '#9B5CFF' : 'white'
+  83 |           } as any}                         react-hooks/purity
+  81:32  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Hero.tsx:81:32
+  79 |             width: `${Math.random() * 2.5}px`,
+  80 |             height: `${Math.random() * 2.5}px`,
+> 81 |             animationDelay: `${Math.random() * 10}s`,
+     |                                ^^^^^^^^^^^^^ Cannot call impure function
+  82 |             background: i % 2 === 0 ? '#9B5CFF' : 'white'
+  83 |           } as any}
+  84 |         />                                                   react-hooks/purity
+  83:16  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+
+C:\Users\USER\Documents\COMPETE\compete\components\Leaderboard.tsx
+   4:24  warning  'Zap' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   9:48  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  75:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\USER\Documents\COMPETE\compete\components\MatchHistory.tsx
+  4:39  warning  'Clock' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\USER\Documents\COMPETE\compete\components\MatchSuccess.tsx
+  3:10  warning  'Zap' is defined but never used     @typescript-eslint/no-unused-vars
+  3:30  warning  'Trophy' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\USER\Documents\COMPETE\compete\components\Navbar.tsx
+   2:10  warning  'motion' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  15:42  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-explicit-any
+  20:5   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\USER\Documents\COMPETE\compete\components\Navbar.tsx:20:5
+  18 |
+  19 |   useEffect(() => {
+> 20 |     setMounted(true);
+     |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  21 |     const fetchUser = async () => {
+  22 |       const { data: { user } } = await supabase.auth.getUser();
+  23 |       if (user) {  react-hooks/set-state-in-effect
+  91:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @next/next/no-img-element
+
+C:\Users\USER\Documents\COMPETE\compete\components\PrizePoolTracker.tsx
+  36:9  warning  'animatedDistributed' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\USER\Documents\COMPETE\compete\components\StatsDashboard.tsx
+  4:54  warning  'Calendar' is defined but never used   @typescript-eslint/no-unused-vars
+  5:10  warning  'LineChart' is defined but never used  @typescript-eslint/no-unused-vars
+  5:21  warning  'Line' is defined but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\USER\Documents\COMPETE\compete\components\Tournaments.tsx
+   3:18  warning  'Users' is defined but never used                                @typescript-eslint/no-unused-vars
+   3:25  warning  'Clock' is defined but never used                                @typescript-eslint/no-unused-vars
+   6:7   warning  'TOURNAMENTS' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+  78:13  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+Ô£û 121 problems (44 errors, 77 warnings)
+

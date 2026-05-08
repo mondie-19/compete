@@ -14,6 +14,21 @@
 
   /* Compete Glow Shadow */
   --shadow-purple-glow: 0 0 40px rgba(155, 92, 255, 0.35);
+
+  /* Radius System & Easing */
+  --radius-container: 2rem;
+  --radius-container-lg: 3rem;
+  --ease-magnetic: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Font mapping */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-chakra), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
 }
 
 /* Add a smooth scroll behavior for the whole site */
@@ -27,7 +42,32 @@ html {
     text-shadow: 0 0 20px rgba(155, 92, 255, 0.5);
   }
 
-  /* Button hover animations */
+  /* Micro-Interactions: Links */
+  .link-hover {
+    @apply transition-transform duration-300;
+    transition-timing-function: var(--ease-magnetic);
+  }
+  .link-hover:hover {
+    transform: translateY(-1px);
+  }
+
+  /* Micro-Interactions: Magnetic Button */
+  .btn-magnetic {
+    @apply relative overflow-hidden transition-all duration-300 z-10;
+    transition-timing-function: var(--ease-magnetic);
+  }
+  .btn-magnetic:hover {
+    transform: scale(1.03);
+  }
+  .btn-magnetic::before {
+    content: '';
+    @apply absolute inset-0 bg-current -left-full transition-all duration-500 ease-in-out z-[-1] opacity-10;
+  }
+  .btn-magnetic:hover::before {
+    @apply left-0;
+  }
+
+  /* Button hover animations (Legacy/Glow) */
   .btn-glow {
     @apply relative transition-all duration-300;
   }

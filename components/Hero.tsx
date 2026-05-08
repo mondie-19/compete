@@ -1,88 +1,90 @@
 "use client";
-import { motion } from "framer-motion";
+import React, { useEffect, useRef } from "react";
 import Link from 'next/link';
+import gsap from "gsap";
+import LiveStars from "./LiveStars";
 
-// Define the interface for the props
 interface HeroProps {
   onJoinClick: () => void;
 }
 
 export default function Hero({ onJoinClick }: HeroProps) {
+  const containerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      // Staggered fade-up for hero elements
+      gsap.fromTo(
+        ".hero-anim",
+        { y: 40, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 1,
+          stagger: 0.15,
+          ease: "power3.out",
+          delay: 0.1
+        }
+      );
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="relative flex h-[calc(100vh-80px)] items-center justify-center px-4">
+    <section 
+      ref={containerRef}
+      className="relative flex h-[100dvh] w-full items-end pb-24 md:pb-32 px-6 md:px-12 xl:px-24 overflow-hidden"
+    >
+      {/* Absolute Black Base Layer */}
+      <div className="absolute inset-0 z-[-1] bg-[#020205]" />
       
-      {/* 10% SIZE INCREASE: max-w-xl -> max-w-2xl, p-12 -> p-14 */}
-      <motion.div 
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="relative z-10 w-full max-w-2xl overflow-hidden rounded-xl border border-white/10 bg-compete-card/30 p-8 md:p-14 backdrop-blur-xl shadow-purple-glow"
-      >
+      {/* Deep Immersive Galaxy Background */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-50 mix-blend-screen"
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?q=80&w=2560&auto=format&fit=crop')" }}
+      />
+      
+      {/* Canvas Layer for live colored stars and shooting stars */}
+      <LiveStars />
+      
+      {/* Heavy primary-to-black gradient overlay */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-compete-bg via-compete-purple/30 to-compete-bg/20" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-r from-compete-bg/90 via-compete-bg/30 to-transparent" />
+      
+      {/* Content - Pushed to bottom-left third */}
+      <div className="relative z-20 flex w-full max-w-3xl flex-col items-start gap-4">
         
-        {/* Hero Text Content */}
-        <div className="mt-1 text-center">
-          {/* FONT INCREASE: text-5xl -> text-6xl */}
-          <motion.h1 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none"
-          >
-            Unleash Your <br /> 
-            <span className="text-compete-purple drop-shadow-[0_0_20px_rgba(155,92,255,0.8)]">Power</span>
-          </motion.h1>
-
-          {/* PARAGRAPH INCREASE: text-sm -> text-base, mt-4 -> mt-6 */}
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mx-auto mt-6 max-w-sm text-base text-compete-muted leading-relaxed"
-          >
-            The world&apos;s premier platform for high-stakes esports. 
-            Join millions of players competing for glory and rewards.
-          </motion.p>
-
-          {/* BUTTON INCREASE: px-6 py-2.5 -> px-8 py-3, text-xs -> text-sm */}
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="mt-8 flex flex-col md:flex-row items-center justify-center gap-5"
-          >
-            <button 
-              onClick={onJoinClick}
-              className="px-8 py-3 bg-compete-purple text-white text-sm font-bold uppercase tracking-widest rounded-full btn-glow shadow-[0_0_25px_rgba(155,92,255,0.5)] cursor-pointer"
-            >
-              Start Your Journey
-            </button>
-            <Link href="/rankings">
-              <button className="text-white text-sm font-bold uppercase tracking-widest hover:text-compete-purple transition-colors cursor-pointer">
-                View Rankings —
-              </button>
-            </Link>
-          </motion.div>
+        {/* Typography Scale Contrast */}
+        <div className="flex flex-col">
+          {/* Authentic, non-generic prefix */}
+          <span className="hero-anim text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tighter text-white leading-[0.9] drop-shadow-md">
+            Dominate The
+          </span>
+          {/* Second part in anime sci-fi oriented font (inherited globally) */}
+          <h1 className="hero-anim text-[6rem] md:text-[9rem] lg:text-[12rem] tracking-tight text-compete-purple leading-[0.7] -ml-2 drop-shadow-[0_10px_35px_rgba(155,92,255,0.4)]">
+            Arena.
+          </h1>
         </div>
 
-        {/* Subtle Decorative Hexagon Grid Overlay */}
-        <div className="absolute inset-0 z-[-1] opacity-15 bg-[url('https://www.transparenttextures.com/patterns/hexellence.png')]" />
-      </motion.div>
+        <p className="hero-anim max-w-lg text-lg md:text-xl text-white/90 font-medium leading-relaxed mt-4 drop-shadow-sm">
+          Zero casual queues. Pure high-stakes brackets. Climb the leaderboards, crush your rivals, and turn mechanical skill into cash payouts.
+        </p>
 
-      {/* Background Floating Particles */}
-      {[...Array(15)].map((_, i) => (
-        <div 
-          key={i}
-          className="particle"
-          style={{
-            top: `${Math.random() * 100}%`,
-            left: `${Math.random() * 100}%`,
-            width: `${Math.random() * 2.5}px`,
-            height: `${Math.random() * 2.5}px`,
-            animationDelay: `${Math.random() * 10}s`,
-            background: i % 2 === 0 ? '#9B5CFF' : 'white'
-          } as any}
-        />
-      ))}
+        {/* Action-oriented CTA */}
+        <div className="hero-anim mt-6 flex flex-col sm:flex-row items-center gap-4">
+          <button 
+            onClick={onJoinClick}
+            className="btn-magnetic rounded-[2rem] bg-compete-purple px-10 py-4 text-sm font-bold uppercase tracking-widest text-white shadow-purple-glow whitespace-nowrap"
+          >
+            Enter Matchmaking
+          </button>
+          
+          <Link href="/rankings" className="btn-magnetic rounded-[2rem] bg-white/5 backdrop-blur-md border border-white/10 px-10 py-4 text-sm font-bold uppercase tracking-widest text-white hover:bg-white/10 transition-colors whitespace-nowrap">
+            View Leaderboards
+          </Link>
+        </div>
+      </div>
     </section>
   );
 }

@@ -1,0 +1,311 @@
+diff --git a/app/globals.css b/app/globals.css
+index 9835001..d7496c8 100644
+--- a/app/globals.css
++++ b/app/globals.css
+@@ -146,10 +146,92 @@ html {
+   scrollbar-color: var(--color-compete-purple) rgba(255, 255, 255, 0.02);
+ }
+ 
+-.no-scrollbar::-webkit-scrollbar {
+-  display: none;
++  .no-scrollbar {
++    -ms-overflow-style: none;
++    scrollbar-width: none;
++  }
++
++/* =======================================
++   GALAXY & NEBULA EFFECTS
++   ======================================= */
++
++@keyframes nebula-drift {
++  0% { transform: scale(1) translate(0, 0); }
++  33% { transform: scale(1.1) translate(-2%, 1%); }
++  66% { transform: scale(1.05) translate(1%, -2%); }
++  100% { transform: scale(1) translate(0, 0); }
++}
++
++@keyframes star-twinkle {
++  0%, 100% { opacity: 0.3; transform: scale(0.8); }
++  50% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+ }
+-.no-scrollbar {
+-  -ms-overflow-style: none;
+-  scrollbar-width: none;
++
++@keyframes shooting-star {
++  0% {
++    transform: translateX(0) translateY(0) rotate(-45deg);
++    opacity: 1;
++    width: 0;
++  }
++  15% {
++    width: 150px;
++    opacity: 1;
++  }
++  30% {
++    transform: translateX(-1000px) translateY(1000px) rotate(-45deg);
++    opacity: 0;
++    width: 0;
++  }
++  100% {
++    opacity: 0;
++  }
++}
++
++.galaxy-bg {
++  background: radial-gradient(circle at 50% 50%, #050508 0%, #020204 100%);
++  position: absolute;
++  inset: 0;
++  overflow: hidden;
++}
++
++.nebula-cloud {
++  position: absolute;
++  border-radius: 50%;
++  filter: blur(80px);
++  mix-blend-mode: screen;
++  opacity: 0.4;
++  animation: nebula-drift var(--duration, 20s) ease-in-out infinite;
++}
++
++.star {
++  position: absolute;
++  background: white;
++  border-radius: 50%;
++  animation: star-twinkle var(--duration, 4s) ease-in-out infinite var(--delay, 0s);
++  pointer-events: none;
++}
++
++.shooting-star {
++  position: absolute;
++  height: 1px;
++  background: linear-gradient(-45deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
++  border-radius: 999px;
++  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 1));
++  animation: shooting-star var(--duration, 6s) linear infinite var(--delay, 0s);
++  opacity: 0;
++  pointer-events: none;
++}
++
++/* Typography Base Overrides */
++h1, h2, h3, h4, .font-orbitron {
++  font-family: var(--font-orbitron), sans-serif !important;
++  letter-spacing: -0.02em;
++}
++
++body, p, span, li, .font-rajdhani {
++  font-family: var(--font-rajdhani), sans-serif !important;
++}
++
++.font-jetbrains {
++  font-family: var(--font-jetbrains), monospace !important;
+ }
+\ No newline at end of file
+diff --git a/components/Hero.tsx b/components/Hero.tsx
+index b22dc20..29ed23b 100644
+--- a/components/Hero.tsx
++++ b/components/Hero.tsx
+@@ -1,88 +1,136 @@
+ "use client";
+-import { motion } from "framer-motion";
++import { useEffect, useRef } from "react";
+ import Link from 'next/link';
++import gsap from "gsap";
+ 
+-// Define the interface for the props
+ interface HeroProps {
+   onJoinClick: () => void;
+ }
+ 
+ export default function Hero({ onJoinClick }: HeroProps) {
++  const containerRef = useRef<HTMLDivElement>(null);
++
++  useEffect(() => {
++    const ctx = gsap.context(() => {
++      // Intro Animations
++      gsap.from(".hero-elem", {
++        y: 40,
++        opacity: 0,
++        duration: 1.2,
++        stagger: 0.15,
++        strokeDashoffset: 100,
++        ease: "power3.out",
++        delay: 0.3
++      });
++
++      // Nebula Drift Animation
++      gsap.to(".nebula-cloud", {
++        x: "random(-50, 50)",
++        y: "random(-30, 30)",
++        duration: "random(15, 25)",
++        repeat: -1,
++        yoyo: true,
++        ease: "sine.inOut"
++      });
++    }, containerRef);
++    return () => ctx.revert();
++  }, []);
++
+   return (
+-    <section className="relative flex h-[calc(100vh-80px)] items-center justify-center px-4">
++    <section ref={containerRef} className="relative flex min-h-screen w-full items-end justify-start px-8 md:px-16 pb-20 overflow-hidden bg-[#020204]">
+       
+-      {/* 10% SIZE INCREASE: max-w-xl -> max-w-2xl, p-12 -> p-14 */}
+-      <motion.div 
+-        initial={{ opacity: 0, y: 30 }}
+-        animate={{ opacity: 1, y: 0 }}
+-        transition={{ duration: 0.8 }}
+-        className="relative z-10 w-full max-w-2xl overflow-hidden rounded-xl border border-white/10 bg-compete-card/30 p-8 md:p-14 backdrop-blur-xl shadow-purple-glow"
+-      >
++      {/* GALAXY ENGINE */}
++      <div className="absolute inset-0 z-0">
++        <div className="galaxy-bg" />
+         
+-        {/* Hero Text Content */}
+-        <div className="mt-1 text-center">
+-          {/* FONT INCREASE: text-5xl -> text-6xl */}
+-          <motion.h1 
+-            initial={{ opacity: 0, scale: 0.9 }}
+-            animate={{ opacity: 1, scale: 1 }}
+-            transition={{ delay: 0.2, duration: 0.5 }}
+-            className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter text-white leading-none"
+-          >
+-            Unleash Your <br /> 
+-            <span className="text-compete-purple drop-shadow-[0_0_20px_rgba(155,92,255,0.8)]">Power</span>
+-          </motion.h1>
++        {/* Layered Nebulas */}
++        <div 
++          className="nebula-cloud bg-compete-purple w-[800px] h-[600px] -top-20 -left-20 opacity-20" 
++          style={{ '--duration': '25s' } as any} 
++        />
++        <div 
++          className="nebula-cloud bg-pink-600 w-[600px] h-[400px] bottom-0 right-0 opacity-10" 
++          style={{ '--duration': '18s' } as any} 
++        />
++        <div 
++          className="nebula-cloud bg-blue-600 w-[500px] h-[500px] top-1/2 left-1/4 opacity-10" 
++          style={{ '--duration': '22s' } as any} 
++        />
+ 
+-          {/* PARAGRAPH INCREASE: text-sm -> text-base, mt-4 -> mt-6 */}
+-          <motion.p 
+-            initial={{ opacity: 0 }}
+-            animate={{ opacity: 1 }}
+-            transition={{ delay: 0.4 }}
+-            className="mx-auto mt-6 max-w-sm text-base text-compete-muted leading-relaxed"
+-          >
+-            The world&apos;s premier platform for high-stakes esports. 
+-            Join millions of players competing for glory and rewards.
+-          </motion.p>
++        {/* Static Twinkling Stars */}
++        {[...Array(80)].map((_, i) => (
++          <div 
++            key={`star-${i}`}
++            className="star"
++            style={{
++              top: `${Math.random() * 100}%`,
++              left: `${Math.random() * 100}%`,
++              width: `${Math.random() * 2 + 0.5}px`,
++              height: `${Math.random() * 2 + 0.5}px`,
++              '--duration': `${Math.random() * 3 + 2}s`,
++              '--delay': `${Math.random() * 5}s`
++            } as any}
++          />
++        ))}
+ 
+-          {/* BUTTON INCREASE: px-6 py-2.5 -> px-8 py-3, text-xs -> text-sm */}
+-          <motion.div 
+-            initial={{ opacity: 0, y: 10 }}
+-            animate={{ opacity: 1, y: 0 }}
+-            transition={{ delay: 0.6 }}
+-            className="mt-8 flex flex-col md:flex-row items-center justify-center gap-5"
+-          >
++        {/* Randomized Shooting Stars */}
++        {[...Array(6)].map((_, i) => (
++          <div 
++            key={`shoot-${i}`}
++            className="shooting-star"
++            style={{
++              top: `${Math.random() * 40}%`,
++              left: `${Math.random() * 80 + 20}%`,
++              '--duration': `${Math.random() * 4 + 4}s`,
++              '--delay': `${Math.random() * 15}s`
++            } as any}
++          />
++        ))}
++      </div>
++
++      {/* Content Container */}
++      <div className="relative z-10 w-full max-w-4xl">
++        <div className="flex flex-col items-start text-left">
++          <div className="hero-elem flex items-center gap-3 mb-6">
++            <div className="h-[1px] w-12 bg-compete-purple shadow-[0_0_10px_#9B5CFF]" />
++            <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.5em] text-compete-muted">
++              Kenyan Elite Circuit
++            </span>
++          </div>
++
++          <h1 className="flex flex-col leading-[0.9] sm:leading-[0.85]">
++            <span className="hero-elem font-orbitron font-black uppercase text-4xl sm:text-6xl md:text-7xl text-white tracking-tight">
++              AMATEUR GAMING
++            </span>
++            <span className="hero-elem font-orbitron italic font-black text-6xl sm:text-8xl md:text-[8rem] lg:text-[10rem] text-transparent bg-clip-text bg-gradient-to-r from-white via-compete-purple to-pink-500 tracking-tighter drop-shadow-[0_0_40px_rgba(155,92,255,0.3)]">
++              redefined.
++            </span>
++          </h1>
++
++          <p className="hero-elem mt-8 sm:mt-12 max-w-2xl text-lg sm:text-xl md:text-2xl text-compete-muted font-rajdhani font-medium leading-relaxed tracking-wide">
++            The proving ground for Kenyan players. Gain rank, challenge selectively, and dominate the boards with secure Kshs wagering.
++          </p>
++
++          <div className="hero-elem mt-12 sm:mt-16 flex flex-col sm:flex-row items-center gap-8 w-full sm:w-auto">
+             <button 
+               onClick={onJoinClick}
+-              className="px-8 py-3 bg-compete-purple text-white text-sm font-bold uppercase tracking-widest rounded-full btn-glow shadow-[0_0_25px_rgba(155,92,255,0.5)] cursor-pointer"
++              className="group relative w-full sm:w-auto overflow-hidden rounded-xl bg-compete-purple px-12 py-5 text-sm font-black uppercase tracking-[0.2em] text-white transition-all hover:scale-[1.02] active:scale-95 shadow-[0_0_20px_rgba(155,92,255,0.4)] hover:shadow-[0_0_40px_rgba(155,92,255,0.6)] font-orbitron"
+             >
+-              Start Your Journey
++              <span className="relative z-10 italic">Weka Wager</span>
++              <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full" />
+             </button>
+-            <Link href="/rankings">
+-              <button className="text-white text-sm font-bold uppercase tracking-widest hover:text-compete-purple transition-colors cursor-pointer">
+-                View Rankings —
+-              </button>
++            
++            <Link href="/rankings" className="group flex items-center justify-center gap-3 text-sm font-black tracking-[0.3em] uppercase text-white font-orbitron transition-all hover:text-compete-purple">
++              <span>View Rankings</span>
++              <div className="w-8 h-[1px] bg-white group-hover:bg-compete-purple group-hover:w-12 transition-all" />
++              <span className="text-compete-purple group-hover:translate-x-1 transition-transform">→</span>
+             </Link>
+-          </motion.div>
++          </div>
+         </div>
+-
+-        {/* Subtle Decorative Hexagon Grid Overlay */}
+-        <div className="absolute inset-0 z-[-1] opacity-15 bg-[url('https://www.transparenttextures.com/patterns/hexellence.png')]" />
+-      </motion.div>
+-
+-      {/* Background Floating Particles */}
+-      {[...Array(15)].map((_, i) => (
+-        <div 
+-          key={i}
+-          className="particle"
+-          style={{
+-            top: `${Math.random() * 100}%`,
+-            left: `${Math.random() * 100}%`,
+-            width: `${Math.random() * 2.5}px`,
+-            height: `${Math.random() * 2.5}px`,
+-            animationDelay: `${Math.random() * 10}s`,
+-            background: i % 2 === 0 ? '#9B5CFF' : 'white'
+-          } as any}
+-        />
+-      ))}
++      </div>
++      
++      {/* Decorative Border Bottom */}
++      <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+     </section>
+   );
+ }
+\ No newline at end of file

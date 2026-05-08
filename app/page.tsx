@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import AboutSection from "@/components/AboutSection";
 import Tournaments from "../components/Tournaments";
@@ -18,7 +17,6 @@ export default function Home() {
 
   return (
     <div className="relative min-h-screen bg-compete-bg slide-up">
-      <Navbar onJoinClick={() => router.push("/auth")} />
 
       {/* Add pt-20 to account for the fixed navbar height */}
       <main className="pt-20">

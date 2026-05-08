@@ -1,12 +1,11 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Users, Timer, Gamepad2, Search, Wallet, Activity, Zap, Terminal as TerminalIcon, ShieldCheck, X } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { createClient } from "@/supabase/client";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner"; // Ensure sonner is installed or use your preferred toast
+import { toast } from "sonner";
 
 export default function LobbyPage() {
     const router = useRouter();
@@ -23,6 +22,7 @@ export default function LobbyPage() {
     const [newMessage, setNewMessage] = useState("");
     const [isSending, setIsSending] = useState(false);
     const [selectedProfile, setSelectedProfile] = useState<any>(null);
+    const [username, setUsername] = useState("COMPETITOR");
     const chatEndRef = useRef<HTMLDivElement>(null);
 
     // REAL-TIME ENGINE
@@ -31,8 +31,11 @@ export default function LobbyPage() {
             const { data: { user } } = await supabase.auth.getUser();
 
             if (user) {
-                const { data: profile } = await supabase.from("profiles").select("balance").eq("id", user.id).single();
-                if (profile) setBalance(profile.balance);
+                const { data: profile } = await supabase.from("profiles").select("balance, username").eq("id", user.id).single();
+                if (profile) {
+                    setBalance(profile.balance);
+                    setUsername(profile.username);
+                }
             }
 
             const { data: initial } = await supabase.from("challenges").select("*, host:profiles!challenges_creator_id_fkey(username)").eq("status", "open").order('created_at', { ascending: false }).limit(50);
@@ -81,8 +84,9 @@ export default function LobbyPage() {
 
     // FILTER LOGIC
     const filteredChallenges = challenges.filter(c => {
-        const matchesSearch = c.game_name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesPlatform = selectedPlatform === "ALL" || c.platform.toUpperCase() === selectedPlatform;
+        const gameAndHostString = `${c.game_name || ""} ${c.host?.username || ""}`.toLowerCase();
+        const matchesSearch = gameAndHostString.includes((searchQuery || "").toLowerCase());
+        const matchesPlatform = selectedPlatform === "ALL" || (c.platform || "").toUpperCase() === selectedPlatform;
         return matchesSearch && matchesPlatform;
     });
 
@@ -160,9 +164,6 @@ export default function LobbyPage() {
     return (
         <div className="min-h-screen bg-black text-white selection:bg-compete-purple relative overflow-hidden font-sans">
             {/* TERMINAL SCANLINE EFFECT */}
-            <div className="fixed inset-0 pointer-events-none z-50 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_3px,3px_100%]" />
-
-            <Navbar onJoinClick={() => router.push("/auth")} />
 
             <main className="pt-24 px-6 md:px-12 max-w-7xl mx-auto space-y-12 relative z-10">
 
@@ -176,7 +177,7 @@ export default function LobbyPage() {
                         <h1 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter mb-2">
                             The <span className="text-compete-purple text-glow">Lobby</span>
                         </h1>
-                        <p className="text-compete-muted font-mono text-xs uppercase tracking-widest">Feed synced. Ready for deployment, NeonSlayer.</p>
+                        <p className="text-compete-muted font-mono text-xs uppercase tracking-widest">Feed synced. Ready for deployment, {username}.</p>
                     </motion.div>
 
                     <Link href="/wallet">
@@ -190,7 +191,7 @@ export default function LobbyPage() {
                             </div>
                             <div className="text-left">
                                 <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mb-1">Vault Sync</p>
-                                <p className="text-xl font-black text-white italic">${balance.toLocaleString()}</p>
+                                <p className="text-xl font-black text-white italic">KSh {balance.toLocaleString()}</p>
                             </div>
                         </motion.button>
                     </Link>
@@ -213,7 +214,7 @@ export default function LobbyPage() {
                                             <span className="text-red-500 text-[10px] font-black uppercase tracking-widest">Live Uplink</span>
                                         </div>
                                         <h3 className="text-4xl md:text-5xl font-black uppercase italic text-white mb-6 leading-tight tracking-tighter">
-                                            NeonSlayer <span className="text-white/20 not-italic">vs</span> Team Liquid
+                                            {username} <span className="text-white/20 not-italic">vs</span> The World
                                         </h3>
                                         <div className="flex gap-4">
                                             <button className="px-8 py-4 bg-white text-black font-black uppercase tracking-widest text-xs rounded-xl hover:bg-compete-purple hover:text-white transition-all">Watch Intel</button>
@@ -279,17 +280,19 @@ export default function LobbyPage() {
                                             className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl flex justify-between items-center hover:bg-white/[0.05] transition-all cursor-pointer group"
                                         >
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-white/20 group-hover:text-compete-purple transition-colors">
-                                                    <Gamepad2 size={20} />
+                                                <div className="w-10 h-10 border border-white/10 rounded-full flex items-center justify-center text-white/40 group-hover:text-compete-purple group-hover:border-compete-purple/30 transition-colors overflow-hidden">
+                                                   <Users size={16} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-white/20">{c.platform}</p>
-                                                    <p className="text-sm font-black italic uppercase tracking-tighter">{c.game_name}</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-0.5">
+                                                        {c.host?.username || "OPERATIVE"} <span className="mx-1 text-white/20">•</span> {c.platform}
+                                                    </p>
+                                                    <p className="text-sm font-black italic uppercase tracking-tighter text-white group-hover:text-compete-purple transition-colors">{c.game_name}</p>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-[10px] font-black text-compete-purple uppercase tracking-widest">${c.prize_pool} Pot</p>
-                                                <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest">Intercept Now →</p>
+                                            <div className="text-right flex flex-col items-end justify-center">
+                                                <p className="text-sm font-black text-compete-purple uppercase tracking-tight mb-0.5">KSh {c.prize_pool.toLocaleString()}</p>
+                                                <span className="inline-block px-2 py-0.5 bg-compete-purple/10 border border-compete-purple/20 rounded-md text-[8px] font-bold text-compete-purple uppercase tracking-widest group-hover:bg-compete-purple group-hover:text-white transition-all">Intercept →</span>
                                             </div>
                                         </motion.div>
                                     ))}
@@ -336,7 +339,7 @@ export default function LobbyPage() {
                                                     onClick={() => setSelectedProfile(msg.profile)}
                                                     className="text-compete-purple text-[10px] font-black uppercase italic tracking-tighter cursor-pointer hover:underline"
                                                 >
-                                                    {msg.profile?.username || "OPERATIVE"}
+                                                    {msg.profile?.username || "COMPETITOR"}
                                                 </span>
                                                 <span className="text-[8px] text-white/10 font-mono">
                                                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -361,10 +364,10 @@ export default function LobbyPage() {
                             <form onSubmit={handleSendMessage} className="relative shrink-0">
                                 <input
                                     type="text"
-                                    placeholder="TYPE MESSAGE..."
+                                    placeholder="Type a message..."
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-4 px-5 text-[10px] font-black uppercase tracking-widest focus:border-compete-purple outline-none transition-all pr-12"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-4 px-5 text-sm font-medium focus:bg-black/80 focus:border-compete-purple outline-none transition-all pr-12 placeholder:text-white/30"
                                 />
                                 <button
                                     type="submit"
@@ -401,11 +404,11 @@ export default function LobbyPage() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-white/5 border border-white/5 p-4 rounded-2xl">
                                         <p className="text-[9px] font-black uppercase text-white/20 tracking-widest mb-1">Entry Fee</p>
-                                        <p className="text-xl font-black italic">${activeChallenge.entry_fee}</p>
+                                        <p className="text-xl font-black italic">KSh {activeChallenge.entry_fee.toLocaleString()}</p>
                                     </div>
                                     <div className="bg-white/5 border border-white/5 p-4 rounded-2xl">
                                         <p className="text-[9px] font-black uppercase text-white/20 tracking-widest mb-1">Prize Pool</p>
-                                        <p className="text-xl font-black italic text-compete-purple">${activeChallenge.prize_pool}</p>
+                                        <p className="text-xl font-black italic text-compete-purple">KSh {activeChallenge.prize_pool.toLocaleString()}</p>
                                     </div>
                                 </div>
                                 <button
@@ -463,7 +466,7 @@ export default function LobbyPage() {
                                 </div>
 
                                 <h3 className="text-2xl font-black italic uppercase tracking-tighter mb-1 text-white">
-                                    {selectedProfile.username || "OPERATIVE"}
+                                    {selectedProfile.username || "COMPETITOR"}
                                 </h3>
                                 <div className="flex items-center justify-center gap-2 mb-6">
                                     <span className="px-3 py-0.5 rounded-full bg-compete-purple/10 border border-compete-purple/20 text-compete-purple text-[10px] font-black uppercase tracking-widest">

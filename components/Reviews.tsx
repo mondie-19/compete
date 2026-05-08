@@ -7,11 +7,11 @@ const REVIEWS = [
   {
     id: 1,
     name: "RazeMaster",
-    title: "Professional Player",
+    title: "High-roller Competitor",
     avatar: "⚡",
     rating: 5,
     bg: "https://images.unsplash.com/photo-1538481143235-5d630e3fbc45?w=400&h=300&fit=crop",
-    text: "This tournament platform is incredible! The interface is intuitive, the matchmaking is fair, and the community is awesome.",
+    text: "The fastest payouts I've ever seen. Pure skill-based matchmaking where I can actually turn my gaming hours into raw cash.",
   },
   {
     id: 2,
@@ -20,7 +20,7 @@ const REVIEWS = [
     avatar: "🌙",
     rating: 5,
     bg: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=300&fit=crop",
-    text: "Best tournament experience I've had. The prize pool is generous, the organization is flawless, and the support team is always helpful.",
+    text: "No amateur hour here. Best wager brackets on the market. The stakes are real, and the competitors are serious.",
   },
   {
     id: 3,
@@ -29,16 +29,16 @@ const REVIEWS = [
     avatar: "🔮",
     rating: 4,
     bg: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=300&fit=crop",
-    text: "Great platform for competitive gaming. The rankings system is transparent, and the leaderboards are always updated in real-time.",
+    text: "I stopped playing for amusement. The transparent leaderboards and rapid matchmaking let me grind cash games all night.",
   },
   {
     id: 4,
     name: "PhantomX",
-    title: "Content Creator",
+    title: "FPS Competitor",
     avatar: "👻",
     rating: 5,
     bg: "https://images.unsplash.com/photo-1516762898749-f1c4e7c51f55?w=400&h=300&fit=crop",
-    text: "Amazing tournaments with fantastic community engagement. This is where competitive gaming meets professional production quality!",
+    text: "High-stakes. Zero latency. Instant payouts. If you want to put your money where your mouth is, this is the only platform you need.",
   },
 ];
 
@@ -59,9 +59,9 @@ export default function Reviews() {
     <section className="py-20 px-4 max-w-5xl mx-auto">
       <div className="text-center mb-12">
         <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">
-          What Players <span className="text-compete-purple">Say</span>
+          What Competitors <span className="text-compete-purple">Say</span>
         </h2>
-        <p className="text-compete-muted mt-2">Hear from real competitors in our community</p>
+        <p className="text-compete-muted mt-2">Hear from real competitors cashing out on the platform</p>
       </div>
 
       <div className="relative h-80">

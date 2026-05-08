@@ -1,8 +1,23 @@
 import type { Metadata } from "next";
+import { Chakra_Petch, Inter } from "next/font/google";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { Toaster } from 'sonner';
+
+const chakraPetch = Chakra_Petch({
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-chakra',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: "Compete",
@@ -15,10 +30,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="relative min-h-screen bg-compete-bg text-compete-text overflow-x-hidden">
+    <html lang="en" className={`${inter.variable} ${chakraPetch.variable}`}>
+      <body className="relative min-h-screen bg-compete-bg text-compete-text overflow-x-hidden font-sans">
         {/* Navbar */}
         <Navbar />
+
+        {/* Global Noise Overlay */}
+        <div className="pointer-events-none fixed inset-0 z-50 h-full w-full opacity-5 mix-blend-overlay">
+          <svg className="h-full w-full">
+            <filter id="noise">
+              <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+            </filter>
+            <rect width="100%" height="100%" filter="url(#noise)" />
+          </svg>
+        </div>
 
         {/* Background Effects */}
         <div className="pointer-events-none fixed inset-0 z-0">

@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, Trophy, Zap, History, Star, BarChart3, TrendingUp, DollarSign, Users, LogOut, Menu, X, ShieldAlert } from "lucide-react";
 import { createClient } from "@/supabase/client";
-import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend, AreaChart, Area } from "recharts";
 
@@ -151,7 +150,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-compete-bg text-white relative">
-      <Navbar />
       <div className="flex">
         <style>{`
         .hide-scrollbar {
@@ -187,7 +185,7 @@ export default function Dashboard() {
               </div>
               <h2 className="text-lg font-black uppercase italic tracking-tighter">{profile?.username}</h2>
               <p className="text-compete-purple text-[8px] font-black tracking-[0.3em] uppercase mt-1">
-                {profile?.is_admin ? "SYSTEM ADMIN" : "Elite Operative"}
+                {profile?.is_admin ? "SYSTEM ADMIN" : "Verified Competitor"}
               </p>
             </div>
 
@@ -587,7 +585,7 @@ export default function Dashboard() {
                               {resultLabel[0]}
                             </div>
                             <div className="text-left">
-                              <p className="text-white font-black italic uppercase tracking-tighter text-lg">vs {opponent || 'UNKNOWN OPERATIVE'}</p>
+                              <p className="text-white font-black italic uppercase tracking-tighter text-lg">vs {opponent || 'UNKNOWN COMPETITOR'}</p>
                               <p className="text-compete-muted text-[10px] font-black uppercase tracking-widest">{match.game_name} • {new Date(match.created_at).toLocaleDateString()}</p>
                             </div>
                           </div>

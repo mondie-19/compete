@@ -1,10 +1,24 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TrendingUp, TrendingDown, Minus, Crown, Award, Search, Filter, ShieldCheck, Globe, ChevronDown, Zap } from "lucide-react";
+import { 
+  TrendingUp, TrendingDown, Minus, Crown, Award, Search, Filter, 
+  ShieldCheck, Globe, ChevronDown, Zap, Map, Landmark, Compass, 
+  Mountain, Snowflake, Waves, User
+} from "lucide-react";
 import { createClient } from "@/supabase/client";
-import Navbar from "@/components/Navbar";
 import Link from "next/link";
+
+const CONTINENTS = [
+  { id: "All", name: "World", icon: <Globe size={14} /> },
+  { id: "AF", name: "Africa", icon: <Map size={14} /> },
+  { id: "AS", name: "Asia", icon: <Zap size={14} /> },
+  { id: "EU", name: "Europe", icon: <Landmark size={14} /> },
+  { id: "NA", name: "N. America", icon: <Compass size={14} /> },
+  { id: "SA", name: "S. America", icon: <Mountain size={14} /> },
+  { id: "OC", name: "Oceania", icon: <Waves size={14} /> },
+  { id: "AN", name: "Antarctica", icon: <Snowflake size={14} /> },
+];
 
 export default function RankingsPage() {
   const supabase = createClient();
@@ -16,6 +30,7 @@ export default function RankingsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       const { data: rankData } = await supabase
         .from("user_rankings")
         .select("*")
@@ -25,7 +40,37 @@ export default function RankingsPage() {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const myData = rankData?.find(r => r.username === (user.user_metadata?.username || user.email?.split('@')[0]));
+        let myData = rankData?.find(r => r.username === (user.user_metadata?.username || user.email?.split('@')[0]));
+        
+        if (!myData) {
+          // Fetch live user stats if not in top rankings
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('username, avatar_url')
+            .eq('id', user.id)
+            .single();
+
+          const { count } = await supabase
+            .from('challenges')
+            .select('*', { count: 'exact', head: true })
+            .or(`host_id.eq.${user.id},opponent_id.eq.${user.id}`)
+            .eq('status', 'completed');
+
+          // Get earnings from a sum if total_earnings isn't a direct field
+          const { data: payments } = await supabase
+            .from('profiles')
+            .select('balance')
+            .eq('id', user.id)
+            .single();
+
+          myData = {
+            username: profile?.username || user.email?.split('@')[0],
+            avatar_url: profile?.avatar_url,
+            rank: ">99",
+            total_earnings: payments?.balance || 0,
+            total_matches: count || 0
+          };
+        }
         setMyRank(myData);
       }
 
@@ -35,27 +80,24 @@ export default function RankingsPage() {
     fetchData();
   }, [supabase]);
 
-  const countries = ["All", "USA", "KOR", "GER", "JPN", "CAN"]; // Mock countries for now as they aren't in the DB view yet
 
   const filteredPlayers = useMemo(() => {
     return rankings.filter(player => {
       const matchesSearch = player.username.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesSearch;
+      const matchesRegion = selectedCountry === "All" || player.region === selectedCountry;
+      return matchesSearch && matchesRegion;
     });
-  }, [searchTerm, rankings]);
+  }, [searchTerm, selectedCountry, rankings]);
 
   return (
-    <main className="relative min-h-screen bg-black text-white overflow-hidden">
-      <Navbar />
+    <main className="relative min-h-screen bg-black text-white overflow-hidden pt-32">
       <div className="px-6">
         {/* Visual Background - Consistent with your particles */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-compete-purple/10 blur-[120px] rounded-full pointer-events-none" />
 
-        <div className="h-24" />
-
         <div className="relative z-10 max-w-7xl mx-auto">
           {/* Header Section */}
-          <section className="py-12 flex flex-col md:flex-row justify-between items-center gap-6 mb-12">
+          <section className="py-8 flex flex-col md:flex-row justify-between items-end gap-6 mb-8">
             <div className="text-center md:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-compete-purple/10 border border-compete-purple/20 text-compete-purple text-[10px] font-black uppercase tracking-widest mb-4">
                 <ShieldCheck size={12} /> Live Standings • Season 04
@@ -64,36 +106,37 @@ export default function RankingsPage() {
                 The <span className="text-compete-purple text-glow">Elite</span> List
               </h1>
             </div>
-
-            <div className="flex bg-white/5 border border-white/10 rounded-2xl p-1">
-              <button className="px-6 py-2 bg-compete-purple text-[10px] font-black uppercase tracking-widest rounded-xl shadow-purple-glow">Global</button>
-              <button className="px-6 py-2 text-[10px] font-black uppercase tracking-widest text-compete-muted hover:text-white transition-colors">Friends</button>
-            </div>
           </section>
 
-          {/* Search and Filters - Redesigned for better UX */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-12">
-            <div className="md:col-span-8 relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-compete-purple transition-colors" size={18} />
+          <div className="flex flex-col lg:flex-row items-center gap-6 mb-10">
+            {/* Reduced Search Input */}
+            <div className="relative group flex-1 w-full lg:max-w-xs">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-compete-purple transition-colors" size={16} />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Find an operative..."
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-12 pr-4 focus:bg-white/10 focus:border-compete-purple/50 outline-none transition-all font-bold placeholder:text-white/10"
+                placeholder="Search players..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 focus:bg-white/10 focus:border-compete-purple/50 outline-none transition-all font-bold placeholder:text-white/10 text-sm"
               />
             </div>
 
-            <div className="md:col-span-4 relative group">
-              <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-hover:text-compete-purple transition-colors" size={18} />
-              <select
-                value={selectedCountry}
-                onChange={(e) => setSelectedCountry(e.target.value)}
-                className="w-full appearance-none bg-white/5 border border-white/10 px-12 py-5 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] outline-none hover:bg-white/10 cursor-pointer transition-all"
-              >
-                {countries.map(c => <option key={c} value={c} className="bg-neutral-900">{c} Region</option>)}
-              </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" size={16} />
+            {/* Continent Icon Tiles */}
+            <div className="flex flex-wrap items-center gap-2 p-1 bg-white/5 border border-white/10 rounded-2xl">
+              {CONTINENTS.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedCountry(c.id)}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    selectedCountry === c.id 
+                    ? "bg-compete-purple text-white shadow-purple-glow" 
+                    : "text-compete-muted hover:text-white hover:bg-white/5"
+                  }`}
+                >
+                  {c.icon}
+                  <span className="hidden sm:inline">{c.name}</span>
+                </button>
+              ))}
             </div>
           </div>
 
@@ -192,7 +235,7 @@ export default function RankingsPage() {
                         <td colSpan={6} className="p-32 text-center">
                           <div className="text-white/10 flex flex-col items-center gap-4">
                             <Globe size={48} />
-                            <p className="font-black uppercase italic tracking-widest">No Gladiators Found</p>
+                            <p className="font-black uppercase italic tracking-widest">No Competitors Found</p>
                           </div>
                         </td>
                       </motion.tr>
@@ -203,35 +246,44 @@ export default function RankingsPage() {
             </div>
           </section>
 
-          {/* PERSONAL RANK STICKY BANNER - Smoother Styling */}
-          <div className="sticky bottom-8 z-40 max-w-4xl mx-auto px-4">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              className="bg-compete-purple/90 backdrop-blur-2xl border border-white/30 rounded-[24px] p-5 shadow-[0_20px_50px_rgba(155,92,255,0.3)] flex items-center justify-between"
-            >
-              <div className="flex items-center gap-5">
-                <div className="w-12 h-12 rounded-xl bg-black border border-white/10 flex items-center justify-center font-black italic text-xl">
-                  {myRank ? `#${myRank.rank}` : "???"}
+          {/* PERSONAL RANK STICKY BANNER - Optimized View */}
+          {myRank && (
+            <div className="sticky bottom-8 z-40 max-w-4xl mx-auto px-4">
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                initial={{ y: 100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="bg-compete-purple/90 backdrop-blur-2xl border border-white/30 rounded-[24px] p-5 shadow-[0_20px_50px_rgba(155,92,255,0.3)] flex items-center justify-between"
+              >
+                <div className="flex items-center gap-5">
+                  <div className="w-12 h-12 rounded-xl bg-black border border-white/10 flex items-center justify-center overflow-hidden">
+                    {myRank.avatar_url ? (
+                      <img src={myRank.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={24} className="text-white/20" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase text-black/50 tracking-tighter mb-0.5">
+                      Your Global Rank {myRank.rank !== ">99" ? `#${myRank.rank}` : ""}
+                    </p>
+                    <p className="font-black text-white uppercase italic text-lg leading-none">
+                      {myRank.username}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-black uppercase text-black/50 tracking-tighter mb-0.5">Your Global Rank</p>
-                  <p className="font-black text-white uppercase italic text-lg leading-none">
-                    {myRank?.username || "OPERATIVE"}
-                    <span className="text-black/40 text-sm not-italic ml-2">(${myRank?.total_earnings?.toLocaleString() || "0"})</span>
-                  </p>
+                <div className="flex items-center gap-8">
+                  <div className="hidden md:block text-right">
+                    <p className="text-[10px] font-black uppercase text-black/50 tracking-tighter mb-0.5">Total Deployments</p>
+                    <p className="font-mono font-black text-white leading-none">{myRank.total_matches || "0"} Matches</p>
+                  </div>
+                  <Link href="/dashboard" className="bg-black text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] italic hover:bg-white hover:text-black transition-all shadow-xl">
+                    View Intelligence
+                  </Link>
                 </div>
-              </div>
-              <div className="flex items-center gap-8">
-                <div className="hidden md:block text-right">
-                  <p className="text-[10px] font-black uppercase text-black/50 tracking-tighter mb-0.5">Total Deployments</p>
-                  <p className="font-mono font-black text-white leading-none">{myRank?.total_matches || "0"} Matches</p>
-                </div>
-                <Link href="/dashboard" className="bg-black text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] italic hover:bg-white hover:text-black transition-all shadow-xl">
-                  View Intelligence
-                </Link>
-              </div>
-            </motion.div>
-          </div>
+              </motion.div>
+            </div>
+          )}
         </div>
         <div className="h-20" />
       </div>

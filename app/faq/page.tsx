@@ -1,19 +1,21 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Plus, Minus, Mail, MessageCircle, PhoneCall, 
-  ArrowRight 
+import {
+  Plus, Minus, Mail, MessageCircle, PhoneCall,
+  ArrowRight
 } from "lucide-react";
+import Link from "next/link";
 
 // --- FAQ COMPONENT ---
 function FAQ() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  
+
   const faqs = [
     {
       question: "How do I start winning money on Compete?",
-      answer: "It costs zero to create your account! Jump onto our web platform to dive into sports, shooters, and mobile hits instantly. We match you against opponents at your exact skill level for a fair fight for glory.",
+      answer: "It costs zero to create your account! Jump onto our web platform to dive into sports, shooters, and mobile hits instantly. We match you against opponents at your exact skill level for a fair fight for cash payouts.",
     },
     {
       question: "What games does Compete offer?",
@@ -28,7 +30,7 @@ function FAQ() {
       answer: "The grind never stops with tournaments running every single day! Prove your dominance on Xbox or PlayStation in our free-to-enter events to earn cash without spending a dime. For the elite, the Compete+ Subscription offers exclusive access to premium monthly tournaments with massive prize pools.",
     },
     {
-      question: "What if my favorite game isn't listed?",
+      question: "What if my favorite game is not listed?",
       answer: "If your favorite title isn't on the list yet, tell us! We are always looking for the next big competitive hit to add to the Compete library.",
     }
   ];
@@ -46,8 +48,8 @@ function FAQ() {
       <div className="space-y-4">
         {faqs.map((faq, index) => (
           <div key={index} className="rounded-xl border border-white/5 bg-compete-card/20 overflow-hidden">
-            <button 
-              onClick={() => setActiveIndex(activeIndex === index ? null : index)} 
+            <button
+              onClick={() => setActiveIndex(activeIndex === index ? null : index)}
               className="w-full flex items-center justify-between p-5 text-left transition-colors hover:bg-white/5"
             >
               <span className="font-bold text-white uppercase tracking-tight">{faq.question}</span>
@@ -55,10 +57,10 @@ function FAQ() {
             </button>
             <AnimatePresence>
               {activeIndex === index && (
-                <motion.div 
-                  initial={{ height: 0, opacity: 0 }} 
-                  animate={{ height: "auto", opacity: 1 }} 
-                  exit={{ height: 0, opacity: 0 }} 
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
                   className="px-5 pb-5 text-compete-muted text-sm border-t border-white/5 pt-4 leading-relaxed"
                 >
                   {faq.answer}
@@ -74,10 +76,19 @@ function FAQ() {
 
 // --- MAIN PAGE ---
 export default function FAQPage() {
+  const supabase = createClient();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user);
+    });
+  }, [supabase]);
+
   const supportMethods = [
     {
       title: "Direct Helpline",
-      contact: "+1 (800) COMPETE",
+      contact: "+254 (721776014) COMPETE",
       desc: "Instant connection for urgent tournament disputes or account lockouts.",
       workflow: "Live Agent → Verification → Resolution",
       icon: <PhoneCall className="text-green-400" />,
@@ -85,7 +96,7 @@ export default function FAQPage() {
     },
     {
       title: "Email Support",
-      contact: "support@compete.gg",
+      contact: "competehq@gmail.com",
       desc: "Best for technical bugs, partnership inquiries, or general feedback.",
       workflow: "Ticket Issued → Dev Review → Detailed Response",
       icon: <Mail className="text-blue-400" />,
@@ -102,10 +113,9 @@ export default function FAQPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-black px-4">
-      <div className="h-20" /> 
+    <main className="min-h-screen bg-black px-4 pt-32">
       <FAQ />
-      
+
       <section className="max-w-7xl mx-auto py-24 border-y border-white/5">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter">
@@ -131,49 +141,55 @@ export default function FAQPage() {
       </section>
 
       {/* MINIMALIST CALL TO ACTION */}
-<section className="max-w-5xl mx-auto py-32 px-6">
-  <div className="relative group overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.03] to-transparent p-12 md:p-24 text-center">
-    
-    {/* Subtle Background Accent */}
-    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-compete-purple/50 to-transparent" />
+      <section className="max-w-5xl mx-auto py-32 px-6">
+        <div className="relative group overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.03] to-transparent p-12 md:p-24 text-center">
 
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.8 }}
-      className="relative z-10"
-    >
-      <span className="text-[10px] font-black uppercase tracking-[0.5em] text-compete-purple mb-6 block">
-        Final Objective
-      </span>
-      
-      <h2 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter mb-6">
-        Enter the <span className="text-glow-sm">Arena.</span>
-      </h2>
-      
-      <p className="max-w-xl mx-auto text-white/40 text-sm md:text-base font-medium mb-12 leading-relaxed tracking-wide">
-        No fluff. Just high-stakes competition. Join thousands of players 
-        dominating the global leaderboards today.
-      </p>
-      
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-        <button className="group relative px-10 py-4 bg-white text-black font-black uppercase text-xs tracking-[0.2em] rounded-full hover:bg-compete-purple hover:text-white transition-all duration-300 flex items-center gap-2">
-          Create Account
-          <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-        </button>
-        
-        <button className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 hover:text-white transition-colors">
-          View Live Matches
-        </button>
-      </div>
-    </motion.div>
+          {/* Subtle Background Accent */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-compete-purple/50 to-transparent" />
 
-    {/* Minimalist Grid Pattern Overlay */}
-    <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[carreaux_10px_10px] [mask-image:radial-gradient(ellipse_at_center,black,transparent)]" 
-         style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-  </div>
-</section>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="relative z-10"
+          >
+            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-compete-purple mb-6 block">
+              Final Objective
+            </span>
+
+            <h2 className="text-4xl md:text-6xl font-black text-white uppercase italic tracking-tighter mb-6">
+              Enter the <span className="text-glow-sm">Arena.</span>
+            </h2>
+
+            <p className="max-w-xl mx-auto text-white/40 text-sm md:text-base font-medium mb-12 leading-relaxed tracking-wide">
+              No fluff. Just high-stakes competition. Join thousands of players
+              dominating the global leaderboards today.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <Link
+                href="/auth"
+                className="group relative px-10 py-4 bg-white text-black font-black uppercase text-xs tracking-[0.2em] rounded-full hover:bg-compete-purple hover:text-white transition-all duration-300 flex items-center gap-2"
+              >
+                Create Account
+                <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+
+              <Link
+                href={isLoggedIn ? "/lobby" : "/"}
+                className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 hover:text-white transition-colors"
+              >
+                View Live Matches
+              </Link>
+            </div>
+          </motion.div>
+
+          {/* Minimalist Grid Pattern Overlay */}
+          <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[carreaux_10px_10px] [mask-image:radial-gradient(ellipse_at_center,black,transparent)]"
+            style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
+        </div>
+      </section>
     </main>
   );
 }

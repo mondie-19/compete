@@ -1,0 +1,188 @@
+diff --git a/app/page.tsx b/app/page.tsx
+index 907461e..7732a2e 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -1,32 +1,23 @@
+ "use client";
+-import { useState } from "react";
+ import Navbar from "../components/Navbar";
+ import Hero from "../components/Hero";
+-import AboutSection from "@/components/AboutSection";
+-import Tournaments from "../components/Tournaments";
+-import StatsDashboard from "../components/StatsDashboard";
+-import PrizePoolTracker from "../components/PrizePoolTracker";
+-import MatchHistory from "../components/MatchHistory";
+-import Leaderboard from "../components/Leaderboard";
+-import Reviews from "../components/Reviews";
+-
+-import Link from "next/link";
++import Features from "../components/landing/Features";
++import Philosophy from "../components/landing/Philosophy";
++import Protocol from "../components/landing/Protocol";
+ import { useRouter } from "next/navigation";
+ 
+ export default function Home() {
+   const router = useRouter();
+ 
+   return (
+-    <div className="relative min-h-screen bg-compete-bg slide-up">
++    <div className="relative min-h-screen bg-compete-bg text-compete-text selection:bg-compete-purple/30 selection:text-white">
+       <Navbar onJoinClick={() => router.push("/auth")} />
+ 
+-      {/* Add pt-20 to account for the fixed navbar height */}
+-      <main className="pt-20">
++      <main className="flex flex-col relative w-full overflow-hidden pb-32">
+         <Hero onJoinClick={() => router.push("/auth")} />
+-        <AboutSection />
+-        <Tournaments />
+-        <Leaderboard />
+-        <Reviews />
++        <Features />
++        <Philosophy />
++        <Protocol />
+       </main>
+     </div>
+   );
+diff --git a/components/Navbar.tsx b/components/Navbar.tsx
+index ab65d95..94c92b0 100644
+--- a/components/Navbar.tsx
++++ b/components/Navbar.tsx
+@@ -1,20 +1,24 @@
+ "use client";
+-import { motion } from "framer-motion";
++import { useEffect, useRef, useState } from "react";
+ import Link from "next/link";
+-import { useState, useEffect } from "react";
+ import { usePathname, useRouter } from "next/navigation";
+ import { createClient } from "@/supabase/client";
++import gsap from "gsap";
++import { ScrollTrigger } from "gsap/ScrollTrigger";
++
++gsap.registerPlugin(ScrollTrigger);
+ 
+ interface NavbarProps {
+   onJoinClick?: () => void;
+ }
+ 
+ export default function Navbar({ onJoinClick }: NavbarProps) {
+-  const router = useRouter(); // New instance for internal redirect
++  const router = useRouter();
+   const supabase = createClient();
+   const [profile, setProfile] = useState<any>(null);
+   const [mounted, setMounted] = useState(false);
+   const pathname = usePathname();
++  const navRef = useRef<HTMLElement>(null);
+ 
+   useEffect(() => {
+     setMounted(true);
+@@ -42,66 +46,84 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
+     return () => subscription.unsubscribe();
+   }, [supabase]);
+ 
+-  // 3. Hide completely on coming-soon route
++  useEffect(() => {
++    if (!mounted || !navRef.current) return;
++
++    const ctx = gsap.context(() => {
++      ScrollTrigger.create({
++        start: "top -50",
++        end: 99999,
++        toggleClass: { className: "scrolled", targets: navRef.current },
++      });
++    }, navRef);
++
++    return () => ctx.revert();
++  }, [mounted, pathname]);
++
+   if (pathname === "/coming-soon") return null;
+ 
+-  // Placeholder check (also hiding for coming-soon)
+   if (!mounted) return (
+-    <nav className="fixed top-0 left-0 right-0 z-50 h-20 bg-compete-bg/80 backdrop-blur-md border-b border-white/5 px-6 md:px-12 flex items-center justify-between">
++    <nav className="fixed top-8 left-1/2 -translate-x-1/2 z-50 h-14 rounded-full bg-transparent px-6 flex items-center justify-between w-[90%] max-w-4xl">
+       <div className="flex items-center gap-3">
+-        <div className="h-5 w-5 rounded-sm bg-compete-purple rotate-45" />
+-        <span className="text-xl font-black tracking-tighter text-white">COMPETE</span>
++        <span className="text-xl font-black tracking-tighter text-white font-orbitron">COMPETE</span>
+       </div>
+     </nav>
+   );
+ 
+-  // Handle onJoinClick if it's not provided, redirect to /auth
+   const handleJoinClick = onJoinClick || (() => router.push("/auth"));
+ 
+   return (
+-    <nav className="fixed top-0 left-0 right-0 z-50 h-20 bg-compete-bg/80 backdrop-blur-md border-b border-white/5 px-6 md:px-12 flex items-center justify-between">
++    <nav 
++      ref={navRef}
++      className="fixed top-8 left-1/2 -translate-x-1/2 z-50 h-[60px] rounded-[2rem] transition-all duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] px-6 flex items-center justify-between w-[90%] max-w-4xl border border-transparent 
++      [&.scrolled]:bg-[#0B0B10]/60 [&.scrolled]:backdrop-blur-xl [&.scrolled]:border-white/10 [&.scrolled]:shadow-2xl [&.scrolled]:shadow-compete-purple/20"
++    >
+       {/* Logo */}
+-      <Link href="/" className="flex items-center gap-3 group">
+-        <div className="h-5 w-5 rounded-sm bg-compete-purple rotate-45 shadow-[0_0_10px_#9B5CFF] group-hover:scale-110 transition-transform" />
+-        <span className="text-xl font-black tracking-tighter text-white">COMPETE</span>
++      <Link href="/" className="flex items-center gap-2 group">
++        <div className="h-4 w-4 rounded-[4px] bg-compete-purple rotate-45 shadow-[0_0_10px_#9B5CFF] group-hover:scale-110 transition-transform" />
++        <span className="text-lg font-black tracking-tighter text-white font-orbitron">COMPETE</span>
+       </Link>
+ 
+       {/* Nav Links */}
+-      <div className="hidden md:flex items-center gap-10 text-xs font-bold uppercase tracking-[0.2em] text-compete-muted">
+-        <Link href="/" className="hover:text-compete-purple transition-all">Home</Link>
+-        <Link href="/tournaments" className="hover:text-compete-purple transition-all">Tournaments</Link>
+-        <Link href="/rankings" className="hover:text-compete-purple text-white transition-all">
+-          Rankings
+-        </Link>
+-        <Link href="/faq" className="hover:text-compete-purple transition-all">FAQ/SUPPORT</Link>
++      <div className="hidden md:flex items-center gap-8 text-[11px] font-bold uppercase tracking-[0.2em] text-compete-muted font-jetbrains">
++        <Link href="/" className="hover:text-compete-purple transition-all hover:-translate-y-[1px]">Home</Link>
++        <Link href="/tournaments" className="hover:text-compete-purple transition-all hover:-translate-y-[1px]">Matches</Link>
++        <Link href="/rankings" className="hover:text-compete-purple transition-all hover:-translate-y-[1px]">Rankings</Link>
++        <Link href="/faq" className="hover:text-compete-purple transition-all hover:-translate-y-[1px]">FAQ</Link>
++        {profile?.is_admin && (
++          <Link href="/moderator" className="hover:text-pink-500 text-pink-500/70 transition-all hover:-translate-y-[1px]">
++            Mod
++          </Link>
++        )}
+       </div>
+ 
+       {/* Auth Button / Player Badge */}
+       {profile ? (
+         <Link href="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+           <div className="text-right hidden md:block">
+-            <p className="text-xs font-bold text-white uppercase tracking-widest leading-none mb-1">{profile.username}</p>
+-            <p className="text-[10px] text-compete-purple font-black uppercase tracking-widest leading-none">
+-              {profile.is_admin ? "ADMIN ACCESS" : "Elite Operative"}
++            <p className="text-[11px] font-bold text-white uppercase tracking-widest leading-none mb-1 font-jetbrains">{profile.username}</p>
++            <p className="text-[9px] text-compete-purple font-black uppercase tracking-widest leading-none">
++              {profile.is_admin ? "ADMIN" : "Player"}
+             </p>
+           </div>
+-          <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-br from-compete-purple to-pink-500 p-[2px]">
+-            <div className="w-full h-full bg-black rounded-[8px] flex items-center justify-center text-sm overflow-hidden">
++          <div className="relative w-8 h-8 rounded-xl bg-gradient-to-br from-compete-purple to-pink-500 p-[2px]">
++            <div className="w-full h-full bg-black rounded-[10px] flex items-center justify-center text-xs overflow-hidden">
+               {profile.avatar_url ? (
+                 <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+               ) : (
+                 <span className="font-black italic text-compete-purple">{profile.username[0]}</span>
+               )}
+             </div>
+-            <div className="absolute -bottom-1 -right-1 bg-green-500 w-3 h-3 rounded-full border-2 border-black" />
++            <div className="absolute -bottom-1 -right-1 bg-green-500 w-2.5 h-2.5 rounded-full border border-black" />
+           </div>
+         </Link>
+       ) : (
+         <button
+-          onClick={handleJoinClick} // Use the handler here
+-          className="rounded-xl border border-compete-purple/50 px-8 py-2 text-xs font-bold uppercase tracking-widest text-compete-purple hover:bg-compete-purple hover:text-white transition-all shadow-sm hover:shadow-purple-glow"
++          onClick={handleJoinClick}
++          className="relative overflow-hidden rounded-full bg-compete-purple/10 border border-compete-purple/30 px-6 py-2 text-[11px] font-bold uppercase tracking-widest text-white transition-all shadow-sm hover:scale-[1.03] active:scale-95 group font-jetbrains"
+         >
+-          Authorize
++          <span className="relative z-10">Auth</span>
++          <span className="absolute inset-0 bg-compete-purple transform scale-x-0 origin-left transition-transform duration-300 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] group-hover:scale-x-100" />
+         </button>
+       )}
+     </nav>

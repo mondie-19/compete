@@ -8,9 +8,22 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+    const { error, data: sessionData } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && sessionData?.user) {
+      // Determine user role
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', sessionData.user.id)
+        .single();
+
+      const role = profile?.role || 'client';
+      let redirectPath = '/lobby';
+
+      if (role === 'admin') redirectPath = '/admin';
+      else if (role === 'moderator') redirectPath = '/moderator';
+
+      return NextResponse.redirect(`${origin}${searchParams.get('next') ?? redirectPath}`);
     }
   }
 

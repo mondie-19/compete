@@ -1,322 +1,279 @@
 "use client";
-import { motion, AnimatePresence } from "framer-motion";
-import { Zap, ChevronLeft, Gamepad2, Trophy, ShieldAlert, FileText, LayoutGrid, Share2, Users, ChevronRight, Terminal, Globe, ShieldCheck, Check, AlertCircle, Wallet, X, AlertTriangle } from "lucide-react";
-import { useState } from "react";
+import { motion } from "framer-motion";
+import { Zap, ChevronLeft, Gamepad2, ShieldAlert, AlertTriangle, Monitor, Smartphone } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createChallenge } from "@/app/actions/challenges";
+import { createClient } from "@/supabase/client";
 import { toast } from "sonner";
 import Link from "next/link";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-// --- SUCCESS & AUTHORIZATION MODAL ---
-function MatchSuccess({ 
-    challengeId, 
-    gameName, 
-    entryFee, 
-    finalPrize, 
-    onClose 
-}: { 
-    challengeId: string, 
-    gameName: string, 
-    entryFee: number, 
-    finalPrize: number,
-    onClose: () => void 
-}) {
-    const [copied, setCopied] = useState(false);
-    const [isConfirmed, setIsConfirmed] = useState(false);
+const PLATFORMS = [
+    { id: "PC",     icon: <Monitor size={18} />,    color: "hover:border-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]" },
+    {
+        id: "PS5",
+        icon: (
+            <svg width="18" height="18" viewBox="0 0 640 640" fill="currentColor">
+                <path d="M603 436.3C591.7 450.5 564.2 460.6 564.2 460.6L359.1 534.2L359.1 479.9L510 426.1C527.1 420 529.8 411.3 515.8 406.7C501.9 402.1 476.7 403.4 459.6 409.6L359.1 445.1L359.1 388.7C382.3 380.9 406.2 375.1 434.8 371.9C475.7 367.4 525.7 372.5 565 387.4C609.2 401.4 614.2 422.1 603 436.3zM378.6 343.8L378.6 204.8C378.6 188.5 375.6 173.5 360.3 169.2C348.6 165.4 341.3 176.3 341.3 192.6L341.3 540.5L247.5 510.7L247.5 96C287.4 103.4 345.5 120.9 376.7 131.4C456.2 158.7 483.1 192.7 483.1 269.2C483.1 343.7 437.1 372 378.6 343.8zM75.3 474.2C29.9 461.4 22.3 434.7 43 419.4C62.1 405.2 94.7 394.5 94.7 394.5L229.2 346.7L229.2 401.2L132.4 435.8C115.3 441.9 112.7 450.6 126.6 455.2C140.5 459.8 165.7 458.5 182.8 452.3L229.2 435.4L229.2 484.2C177.6 493.5 127.8 491.5 75.3 474.2z" />
+            </svg>
+        ),
+        color: "hover:border-[#0037AE] hover:shadow-[0_0_20px_rgba(0,55,174,0.6)] hover:text-[#0037AE]"
+    },
+    {
+        id: "XBOX",
+        icon: (
+            <svg width="18" height="18" viewBox="0 0 640 640" fill="currentColor">
+                <path d="M433.9 382.2C478.2 436.5 498.6 481 488.3 500.9C480.4 516 431.6 545.5 395.7 556.8C366.1 566.1 327.3 570.1 295.3 567C257.1 563.3 218.4 549.6 185.2 528C157.3 509.8 151 502.3 151 487.4C151 457.5 183.9 405.1 240.2 345.3C272.2 311.4 316.7 271.6 321.6 272.7C331 274.8 405.9 347.8 433.9 382.2zM252.6 207.8C222.9 180.9 194.5 153.9 166.2 144.4C151 139.3 149.9 139.6 137.5 152.5C108.3 182.9 84 232.2 77.2 274.9C71.8 309.1 71.1 318.7 73 335.4C78.6 385.9 90.3 420.8 113.5 456.3C123 470.9 125.6 473.6 122.8 466.2C118.6 455.2 122.5 428.7 132.3 402.2C146.6 363.2 186.2 289.3 252.6 207.8zM564.2 271.3C547.3 191.3 496.7 141 489.6 141C482.3 141 465.4 147.5 453.6 154.9C430.3 169.4 412.6 186.3 389.3 207.7C431.7 261 491.5 347.1 512.2 410C519 430.7 521.9 451.1 519.6 462.3C517.9 470.8 517.9 470.8 521 466.9C527.1 459.2 540.9 435.6 546.4 423.4C553.8 407.2 561.4 383.2 565 364.7C569.3 342.2 568.9 293.9 564.2 271.3zM205.3 107C253 104.5 315 141.5 319.6 142.4C320.3 142.5 330 138.2 341.2 132.7C405.1 101.6 435.2 106.9 448.6 107.5C384.7 68.2 295.9 57.5 214.7 95.8C191.3 106.9 190.7 107.7 205.3 107z" />
+            </svg>
+        ),
+        color: "hover:border-[#107C10] hover:shadow-[0_0_20px_rgba(16,124,16,0.6)] hover:text-[#107C10]"
+    },
+    { id: "MOBILE",   icon: <Smartphone size={18} />, color: "hover:border-compete-purple hover:shadow-[0_0_15px_rgba(155,92,255,0.3)]" },
+    {
+        id: "NINTENDO",
+        icon: (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7.823 0C3.5 0 0 3.5 0 7.823v8.354C0 20.5 3.5 24 7.823 24h8.354C20.5 24 24 20.5 24 16.177V7.823C24 3.5 20.5 0 16.177 0H7.823zm.52 3.568h1.73v16.864H8.343V3.568zm3.461 0h.868c2.4 0 4.347 1.947 4.347 4.347v8.17c0 2.4-1.947 4.348-4.347 4.348h-.868V3.568zM9.204 6.17v4.173h-.001a2.087 2.087 0 1 0 .001-4.173z" />
+            </svg>
+        ),
+        color: "hover:border-[#E4000F] hover:shadow-[0_0_20px_rgba(228,0,15,0.6)] hover:text-[#E4000F]"
+    },
+];
 
-    const handleCopy = async () => {
-        const url = `${window.location.origin}/match/${challengeId}`;
-        try {
-            await navigator.clipboard.writeText(url);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-            toast.error("LINK EXTRACTION FAILED");
-        }
-    };
-
-    return (
-        <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6"
-        >
-            <div className="absolute inset-0 opacity-20 pointer-events-none bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]" />
-            
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="max-w-2xl w-full bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-8 md:p-12 relative overflow-hidden shadow-[0_0_100px_rgba(155,92,255,0.2)]">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-compete-purple to-transparent animate-scan" />
-                
-                <button onClick={onClose} className="absolute top-8 right-8 text-white/20 hover:text-white transition-colors">
-                    <X size={24} />
-                </button>
-
-                <div className="flex flex-col items-center text-center space-y-8">
-                    <div className={`w-20 h-20 rounded-full flex items-center justify-center border transition-all duration-700 ${isConfirmed ? 'bg-green-500/20 border-green-500 text-green-500' : 'bg-compete-purple/20 border-compete-purple/40 text-compete-purple'}`}>
-                        {isConfirmed ? <ShieldCheck size={40} /> : <Zap size={40} className="animate-pulse" />}
-                    </div>
-
-                    <div className="space-y-2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-compete-purple">
-                            {isConfirmed ? "Uplink Established" : "Authorization Required"}
-                        </p>
-                        <h2 className="text-4xl md:text-5xl font-black italic uppercase tracking-tighter text-white">
-                            {isConfirmed ? "Match " : "Confirm "} 
-                            <span className="text-transparent stroke-text">{isConfirmed ? "Live" : "Stakes"}</span>
-                        </h2>
-                        {!isConfirmed && (
-                            <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-2">
-                                Deployment requires ${entryFee.toFixed(2)} to be locked in escrow.
-                            </p>
-                        )}
-                    </div>
-
-                    <div className="grid grid-cols-3 w-full gap-4 py-6 border-y border-white/5">
-                        <div className="space-y-1">
-                            <p className="text-[8px] font-black text-white/40 uppercase">Target</p>
-                            <p className="text-xs font-black uppercase truncate text-white">{gameName}</p>
-                        </div>
-                        <div className="space-y-1 border-x border-white/5">
-                            <p className="text-[8px] font-black text-white/40 uppercase">Entry</p>
-                            <p className="text-xs font-black uppercase text-white">${entryFee}</p>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-[8px] font-black text-white/40 uppercase">Net Prize</p>
-                            <p className="text-xs font-black uppercase text-compete-purple">${finalPrize.toFixed(2)}</p>
-                        </div>
-                    </div>
-
-                    <div className="w-full space-y-4">
-                        {!isConfirmed ? (
-                            <button 
-                                onClick={() => { setIsConfirmed(true); toast.success("FUNDS SECURED IN ESCROW"); }}
-                                className="w-full py-6 bg-white text-black font-black uppercase tracking-[0.2em] italic rounded-2xl flex items-center justify-center gap-3 hover:bg-compete-purple hover:text-white transition-all shadow-xl active:scale-95"
-                            >
-                                Confirm & Initialize
-                            </button>
-                        ) : (
-                            <>
-                                <Link href={`/match/${challengeId}`} className="w-full py-5 bg-white text-black font-black uppercase tracking-[0.2em] italic rounded-2xl flex items-center justify-center gap-3 hover:bg-compete-purple hover:text-white transition-all group">
-                                    <span>Enter Battle Room</span><ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                </Link>
-                                <button onClick={handleCopy} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${copied ? "bg-green-500/20 border-green-500 text-green-500" : "bg-white/5 border-white/10 text-white"}`}>
-                                    {copied ? <Check size={14} /> : <Share2 size={14} />} {copied ? "Uplink Copied" : "Copy Invite Link"}
-                                </button>
-                            </>
-                        )}
-                    </div>
-                </div>
-            </motion.div>
-        </motion.div>
-    );
-}
-
-// --- MAIN PAGE COMPONENT ---
 export default function DeployPage() {
     const [gameName, setGameName] = useState("");
-    const [genre, setGenre] = useState("");
     const [platform, setPlatform] = useState("PC");
-    const [entryFee, setEntryFee] = useState(5);
-    const [rules, setRules] = useState("");
+    const [entryFee, setEntryFee] = useState(1000);
+    const [engagements, setEngagements] = useState("");
+    const [balance, setBalance] = useState<number | null>(null);
     const [isDeploying, setIsDeploying] = useState(false);
-    const [showSuccess, setShowSuccess] = useState(false);
-    const [challengeId, setChallengeId] = useState("");
-
-    // Mock wallet balance
-    const walletBalance = 150.00; 
-
     const router = useRouter();
+    const supabase = createClient();
 
-    const PLATFORM_FEE_PERCENT = 15;
-    const totalPool = entryFee * 2;
-    const feeAmount = (totalPool * PLATFORM_FEE_PERCENT) / 100;
-    const finalPrize = totalPool - feeAmount;
-
-    const isHighStakes = entryFee >= 500;
-    const hasInsufficientFunds = walletBalance < entryFee;
+    useEffect(() => {
+        const fetchBalance = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                const { data } = await supabase.from('profiles').select('balance').eq('id', user.id).single();
+                if (data) setBalance(data.balance);
+            }
+        }
+        fetchBalance();
+    }, []);
 
     const handleDeploy = async () => {
-        if (hasInsufficientFunds) {
-            toast.error("DEPLOYMENT REJECTED", {
-                description: "Hey, can't create due to lack of funds. Please top up.",
-                icon: <AlertTriangle className="text-red-500" />
-            });
+        if (!gameName || entryFee <= 0) {
+            toast.error("Invalid parameters");
             return;
         }
 
-        if (entryFee < 1 || entryFee > 2000) {
-            toast.error("STAKES MUST BE $1 - $2,000");
-            return;
-        }
-
-        if (!gameName || !genre || !rules) {
-            toast.error("INVALID PARAMETERS"); 
-            return;
-        }
+        const fullGameName = engagements ? `${gameName} - ${engagements.substring(0, 50)}` : gameName;
 
         setIsDeploying(true);
         try {
-            const result = await createChallenge(gameName, platform, entryFee, genre, rules);
+            const result = await createChallenge(fullGameName, platform, entryFee);
             if (result.success && result.challengeId) {
-                setChallengeId(result.challengeId);
-                setShowSuccess(true);
+                toast.success("Match deployed successfully");
+                router.push(`/match/${result.challengeId}`);
             } else {
-                toast.error(result.error || "DEPLOYMENT REJECTED");
+                toast.error(result.error || "Deployment rejected");
             }
         } catch (err) {
-            toast.error("DEPLOYMENT FAILED");
+            toast.error("Deployment failed");
         } finally {
             setIsDeploying(false);
         }
     };
 
-    return (
-        <div className="min-h-screen bg-black text-white relative overflow-hidden font-sans flex flex-col">
-            <Navbar onJoinClick={() => router.push("/auth")} />
-            
-            <AnimatePresence>
-                {showSuccess && (
-                    <MatchSuccess 
-                        challengeId={challengeId} 
-                        gameName={gameName} 
-                        entryFee={entryFee} 
-                        finalPrize={finalPrize}
-                        onClose={() => setShowSuccess(false)}
-                    />
-                )}
-            </AnimatePresence>
+    const isInsufficientFunds = balance !== null && entryFee > balance;
 
-            <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className={`absolute top-0 right-0 w-[800px] h-[800px] blur-[150px] rounded-full -translate-y-1/2 translate-x-1/2 transition-colors duration-1000 ${isHighStakes ? 'bg-amber-500/10' : 'bg-compete-purple/5'}`} />
+    const getWagerDesign = () => {
+        if (entryFee >= 10000) {
+            return {
+                label: "Premium Wager",
+                colorClass: "text-[#E5E4E2]",
+                bgClass: "bg-[#E5E4E2]/5",
+                borderClass: "border-[#E5E4E2]/20",
+                focusBorderClass: "focus:border-[#E5E4E2]/40",
+                accentClass: "bg-[#E5E4E2]",
+                shadowStyle: "0 0 20px rgba(229, 228, 226, 0.05)"
+            };
+        }
+        if (entryFee >= 5000) {
+            return {
+                label: "High Wager",
+                colorClass: "text-[#FFD700]",
+                bgClass: "bg-[#FFD700]/5",
+                borderClass: "border-[#FFD700]/20",
+                focusBorderClass: "focus:border-[#FFD700]/40",
+                accentClass: "bg-[#FFD700]",
+                shadowStyle: "0 0 20px rgba(255, 215, 0, 0.05)"
+            };
+        }
+        return {
+            label: "Standard Wager",
+            colorClass: "text-[#9B5CFF]",
+            bgClass: "bg-[#9B5CFF]/5",
+            borderClass: "border-[#9B5CFF]/20",
+            focusBorderClass: "focus:border-[#9B5CFF]/40",
+            accentClass: "bg-[#9B5CFF]",
+            shadowStyle: "0 0 20px rgba(155, 92, 255, 0.05)"
+        };
+    };
+
+    const wager = getWagerDesign();
+
+    return (
+        <div className="min-h-screen bg-[#0A0A0A] text-white relative font-sans flex flex-col selection:bg-compete-purple/30">
+
+            {/* SUBTLE BACKGROUND */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-compete-purple/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/5 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20" />
             </div>
 
             <main className="flex-1 relative z-10 pt-32 pb-20 px-6 max-w-5xl mx-auto w-full">
-                <Link href="/lobby" className="inline-flex items-center gap-2 text-compete-muted hover:text-white transition-colors mb-12 group">
-                    <ChevronLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Abort Deployment</span>
+                <Link href="/lobby" className="inline-flex items-center gap-2 text-white/40 hover:text-white transition-colors mb-12 text-sm font-medium">
+                    <ChevronLeft size={16} className="-ml-1" />
+                    Back to Lobby
                 </Link>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                    <div className="lg:col-span-4 space-y-6">
-                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between backdrop-blur-sm">
-                            <div className="flex items-center gap-3">
-                                <Wallet size={18} className="text-compete-purple" />
-                                <span className="text-[10px] font-black uppercase text-white/40 tracking-widest">Available Credits</span>
-                            </div>
-                            <span className="font-black italic text-sm">${walletBalance.toFixed(2)}</span>
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+                    {/* INFO SIDE */}
+                    <div className="lg:col-span-5 space-y-8 sticky top-32">
+                        <div>
+                            <h1 className="text-4xl lg:text-5xl font-medium tracking-tight mb-4 text-compete-purple">
+                                Deploy Match
+                            </h1>
+                            <p className="text-white/50 text-base leading-relaxed max-w-sm">
+                                Create a custom match layout. Your stake is secured in escrow and released upon valid verification.
+                            </p>
                         </div>
 
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className={`p-2 rounded-lg border animate-pulse transition-colors duration-500 ${isHighStakes ? 'bg-amber-500/20 border-amber-500/30 text-amber-500' : 'bg-compete-purple/20 border-compete-purple/30 text-compete-purple'}`}>
-                                <Zap size={20} />
-                            </div>
-                            <span className={`text-[10px] font-black uppercase tracking-[0.4em] text-glow ${isHighStakes ? 'text-amber-500' : 'text-compete-purple'}`}>
-                                {isHighStakes ? 'High Stakes Protocol' : 'Initialization Phase'}
-                            </span>
-                        </div>
-                        <h1 className="text-5xl font-black italic uppercase tracking-tighter leading-none mb-6">Host <br /> <span className="text-transparent stroke-text">Challenge</span></h1>
-                        
-                        <div className="space-y-4">
-                            {/* --- GLOBAL VISIBILITY CARD --- */}
-                            <div className="flex items-start gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                                <Globe size={18} className="text-compete-purple shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="text-[10px] font-black uppercase text-white/60 mb-1">Global Visibility</p>
-                                    <p className="text-[10px] text-compete-muted leading-relaxed uppercase font-bold">Your match will be broadcasted to all active operatives.</p>
+                        <div className="space-y-6">
+                            {balance !== null && (
+                                <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center justify-between shadow-sm">
+                                    <span className="text-sm font-medium text-white/50">Available Balance</span>
+                                    <span className="text-xl font-semibold tracking-tight">KSh {balance.toLocaleString()}</span>
                                 </div>
-                            </div>
+                            )}
 
-                            <div className="flex items-start gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                                <ShieldAlert size={18} className="text-yellow-500 shrink-0 mt-0.5" />
-                                <div><p className="text-[10px] font-black uppercase text-white/60 mb-1">Escrow Protocol</p><p className="text-[10px] text-compete-muted leading-relaxed uppercase font-bold">Entry fees are locked until result verification.</p></div>
-                            </div>
-
-                            <div className={`p-5 rounded-2xl border transition-all duration-700 ${isHighStakes ? 'bg-amber-500/5 border-amber-500/20' : 'bg-compete-purple/5 border-compete-purple/20'}`}>
-                                <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-4 ${isHighStakes ? 'text-amber-500' : 'text-compete-purple'}`}>Payout Schematic</p>
-                                <div className="space-y-2 text-[11px] font-bold uppercase">
-                                    <div className="flex justify-between"><span className="text-white/40">Total Stakes:</span><span>${totalPool.toFixed(2)}</span></div>
-                                    <div className="flex justify-between text-red-500"><span className="text-white/40">Tax (15%):</span><span>-${feeAmount.toFixed(2)}</span></div>
-                                    <div className="h-px bg-white/10 my-1" />
-                                    <div className={`flex justify-between ${isHighStakes ? 'text-amber-500' : 'text-compete-purple'}`}>
-                                        <span>Winner Payout:</span>
-                                        <span className="text-glow">${finalPrize.toFixed(2)}</span>
-                                    </div>
+                            <div className="flex items-start gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
+                                <ShieldAlert size={20} className="text-white/40 shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-medium text-white mb-1">Escrow Protocol</p>
+                                    <p className="text-sm text-white/40 leading-relaxed">Funds remain locked in the system until conclusive match results are submitted and verified.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="lg:col-span-8">
-                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-compete-card/40 border border-white/10 rounded-[2.5rem] p-8 md:p-10 backdrop-blur-2xl shadow-2xl">
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-3">
-                                        <label className="flex items-center gap-2 text-[10px] font-black uppercase text-white/40 ml-1"><Gamepad2 size={12} /> Target Game</label>
-                                        <input type="text" placeholder="E.G. WARZONE" value={gameName} onChange={(e) => setGameName(e.target.value.toUpperCase())} className="w-full bg-black/40 border border-white/5 rounded-2xl py-5 px-6 text-sm font-black uppercase outline-none focus:border-compete-purple/50 transition-colors" />
-                                    </div>
-                                    <div className="space-y-3">
-                                        <label className="flex items-center gap-2 text-[10px] font-black uppercase text-white/40 ml-1"><LayoutGrid size={12} /> Genre</label>
-                                        <input type="text" placeholder="E.G. FPS / MOBA" value={genre} onChange={(e) => setGenre(e.target.value.toUpperCase())} className="w-full bg-black/40 border border-white/5 rounded-2xl py-5 px-6 text-sm font-black uppercase outline-none focus:border-compete-purple/50 transition-colors" />
+                    {/* FORM SIDE */}
+                    <div className="lg:col-span-7">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-[#121212] border border-white/10 rounded-3xl p-8 shadow-2xl relative"
+                            style={{ boxShadow: wager.shadowStyle }}
+                        >
+                            <div className="space-y-6 relative z-10">
+                                <div className="space-y-2">
+                                    <label className="flex items-center gap-2 text-sm font-medium text-white/60 ml-1">
+                                        <Gamepad2 size={16} /> Game Title
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Warzone, EA FC 24"
+                                        value={gameName}
+                                        onChange={(e) => setGameName(e.target.value)}
+                                        className={`w-full bg-black/50 border ${wager.borderClass} rounded-2xl py-4 px-5 text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all placeholder:text-white/20`}
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-white/60 ml-1">Platform</label>
+                                    <div className="grid grid-cols-5 gap-2">
+                                        {PLATFORMS.map((p) => (
+                                            <button
+                                                key={p.id}
+                                                type="button"
+                                                onClick={() => setPlatform(p.id)}
+                                                className={`flex flex-col items-center gap-2 py-3 px-2 rounded-xl border transition-all duration-300 ${
+                                                    platform === p.id
+                                                        ? 'bg-white text-black border-white shadow-xl scale-105'
+                                                        : `bg-black/40 border-white/10 text-white/40 ${p.color}`
+                                                }`}
+                                            >
+                                                {p.icon}
+                                                <span className="text-[7px] font-black uppercase tracking-tighter">{p.id}</span>
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase text-white/40 ml-1">Platform</label>
-                                        <select value={platform} onChange={(e) => setPlatform(e.target.value)} className="w-full bg-black/40 border border-white/5 rounded-2xl py-5 px-6 text-sm font-black uppercase outline-none cursor-pointer appearance-none">
-                                            <option value="PC">PC / STEALTH</option>
-                                            <option value="PS5">PLAYSTATION 5</option>
-                                            <option value="XBOX">XBOX SERIES</option>
-                                            <option value="MOBILE">MOBILE </option>
-                                        </select>
-                                    </div>
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-center text-[10px] font-black uppercase ml-1">
-                                            <span className="text-white/40">Entry Fee ($)</span>
-                                            <span className={hasInsufficientFunds ? "text-red-500 animate-pulse" : "text-white/20"}>
-                                                {hasInsufficientFunds ? "INSUFFICIENT FUNDS" : "$1 - $2K"}
-                                            </span>
-                                        </div>
-                                        <input 
-                                            type="number" 
-                                            value={entryFee} 
-                                            onChange={(e) => setEntryFee(Number(e.target.value))} 
-                                            onBlur={() => {
-                                                if (entryFee < 1) setEntryFee(1);
-                                                if (entryFee > 2000) setEntryFee(2000);
-                                            }}
-                                            className={`w-full bg-black/40 border rounded-2xl py-5 px-6 text-sm font-black uppercase outline-none transition-colors no-spinner ${hasInsufficientFunds ? 'border-red-500 text-red-500' : 'border-white/5 focus:border-compete-purple/50'}`} 
-                                        />
-                                    </div>
+                                <div className="space-y-2">
+                                    <label className={`text-sm font-medium ml-1 ${isInsufficientFunds ? "text-red-400" : "text-white/60"}`}>
+                                        Stake (KSh)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={entryFee}
+                                        step={50}
+                                        onChange={(e) => setEntryFee(Math.max(0, Number(e.target.value)))}
+                                        className={`w-full bg-black/50 border ${isInsufficientFunds ? "border-red-500/50" : wager.borderClass} rounded-2xl py-4 px-5 text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+                                    />
                                 </div>
 
-                                <div className="space-y-3">
-                                    <label className="flex items-center gap-2 text-[10px] font-black uppercase text-white/40 ml-1"><FileText size={12} /> Engagement Rules</label>
-                                    <textarea rows={4} placeholder="DEFINE WIN CONDITIONS, MAPS, AND RESTRICTIONS..." value={rules} onChange={(e) => setRules(e.target.value.toUpperCase())} className="w-full bg-black/40 border border-white/5 rounded-2xl py-5 px-6 text-sm font-black uppercase outline-none focus:border-compete-purple/50 transition-colors resize-none" />
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-white/60 ml-1">
+                                        Rules & Engagements
+                                    </label>
+                                    <textarea
+                                        placeholder="Optional: Match rules, server region, playing style..."
+                                        value={engagements}
+                                        onChange={(e) => setEngagements(e.target.value)}
+                                        className={`w-full bg-black/50 border ${wager.borderClass} rounded-2xl py-4 px-5 text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all placeholder:text-white/20 h-28 resize-none`}
+                                    />
                                 </div>
 
-                                <button 
-                                    disabled={isDeploying || !gameName || !genre || !rules} 
-                                    onClick={handleDeploy} 
-                                    className={`w-full py-6 font-black uppercase italic rounded-2xl transition-all flex items-center justify-center gap-3 relative overflow-hidden ${hasInsufficientFunds ? 'bg-red-500/10 text-red-500 border border-red-500/20' : isDeploying ? "bg-white/5 text-white/20" : "bg-white text-black hover:bg-compete-purple hover:text-white active:scale-95"}`}
+                                <div className={`p-6 mt-2 ${wager.bgClass} border ${wager.borderClass} rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-300`}>
+                                    <p className={`text-xs font-semibold tracking-widest uppercase mb-1 ${wager.colorClass} opacity-80`}>{wager.label}</p>
+                                    <p className={`text-4xl font-semibold tracking-tight ${wager.colorClass}`}>KSh {(entryFee * 2).toLocaleString()}</p>
+                                    <p className="text-xs text-white/40 mt-1 font-medium">Total Prize Pool (1:1 Ratio)</p>
+                                </div>
+
+                                <button
+                                    disabled={isDeploying || !gameName || isInsufficientFunds}
+                                    onClick={handleDeploy}
+                                    className={`w-full py-5 text-sm font-bold tracking-wide rounded-2xl transition-all flex items-center justify-center gap-2 mt-4 ${isInsufficientFunds
+                                        ? "bg-red-500/10 text-red-400 border border-red-500/30 cursor-not-allowed"
+                                        : isDeploying || !gameName
+                                            ? "bg-white/5 text-white/30 cursor-wait"
+                                            : "bg-white text-black hover:bg-white/90 active:scale-[0.98]"
+                                        }`}
                                 >
-                                    <Zap size={18} className={isDeploying ? "animate-spin" : ""} />
-                                    <span>{hasInsufficientFunds ? "LACK OF FUNDS" : isDeploying ? "ESTABLISHING UPLINK..." : "Initialize Deployment"}</span>
+                                    {isInsufficientFunds ? (
+                                        <AlertTriangle size={18} />
+                                    ) : (
+                                        <Zap size={18} className={isDeploying ? "animate-pulse" : ""} />
+                                    )}
+
+                                    <span>
+                                        {isInsufficientFunds
+                                            ? "Insufficient Funds"
+                                            : isDeploying
+                                                ? "Deploying..."
+                                                : "Deploy Match"}
+                                    </span>
                                 </button>
                             </div>
                         </motion.div>
                     </div>
                 </div>
             </main>
-            <Footer />
-            <style jsx>{`
-                .stroke-text { -webkit-text-stroke: 1px rgba(155, 92, 255, 0.5); }
-                .no-spinner::-webkit-inner-spin-button, .no-spinner::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-                .no-spinner { -moz-appearance: textfield; }
-                .text-glow { text-shadow: 0 0 10px currentColor; }
-                @keyframes scan { 0% { transform: translateY(-100px); opacity: 0; } 50% { opacity: 1; } 100% { transform: translateY(600px); opacity: 0; } }
-                .animate-scan { animation: scan 3s linear infinite; }
-            `}</style>
+
         </div>
     );
 }

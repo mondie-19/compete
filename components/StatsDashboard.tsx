@@ -1,49 +1,83 @@
-"use client";
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { TrendingUp, Trophy, Target, Zap, BarChart3, Calendar } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
-
-const PLAYER_STATS = {
-  username: "NeonSlayer",
-  level: 42,
-  rank: 1,
-  totalMatches: 487,
-  winRate: 78.5,
-  mainGame: "Valorant",
-  joinDate: "2023-03-15",
-};
-
-const PERFORMANCE_DATA = [
-  { month: "Jan", wins: 24, losses: 8 },
-  { month: "Feb", wins: 28, losses: 6 },
-  { month: "Mar", wins: 35, losses: 7 },
-  { month: "Apr", wins: 32, losses: 9 },
-  { month: "May", wins: 38, losses: 5 },
-  { month: "Jun", wins: 42, losses: 8 },
-];
-
-const WIN_LOSS_DATA = [
-  { name: "Wins", value: 383, fill: "#9B5CFF" },
-  { name: "Losses", value: 104, fill: "rgba(155, 92, 255, 0.2)" },
-];
-
-const SKILL_METRICS = [
-  { skill: "Aim", value: 92 },
-  { skill: "Strategy", value: 88 },
-  { skill: "Teamwork", value: 85 },
-  { skill: "Reflexes", value: 90 },
-  { skill: "Game Sense", value: 87 },
-];
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { TrendingUp, Trophy, Target, Zap, BarChart3, Loader2 } from "lucide-react";
+import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { createClient } from "@/supabase/client";
 
 export default function StatsDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<any>(null);
   const [timeframe, setTimeframe] = useState<"week" | "month" | "all">("month");
+  const supabase = createClient();
 
-  const stats = [
-    { icon: Trophy, label: "Total Matches", value: PLAYER_STATS.totalMatches, color: "text-yellow-500" },
-    { icon: TrendingUp, label: "Win Rate", value: `${PLAYER_STATS.winRate}%`, color: "text-compete-purple" },
-    { icon: Zap, label: "Current Rank", value: `#${PLAYER_STATS.rank}`, color: "text-red-500" },
-    { icon: Target, label: "Level", value: PLAYER_STATS.level, color: "text-blue-500" },
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      // 1. Fetch Profile Data
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username, level, rank_name, created_at")
+        .eq("id", user.id)
+        .single();
+
+      // 2. Fetch Ranking/Win Rate Data
+      const { data: ranking } = await supabase
+        .from("user_rankings")
+        .select("*")
+        .eq("username", profile?.username)
+        .single();
+
+      setStats({
+        username: profile?.username || "COMPETITOR",
+        level: profile?.level || 1,
+        rank: ranking?.rank || "-",
+        totalMatches: ranking?.total_matches || 0,
+        winRate: ranking?.win_rate || 0,
+        joinDate: profile?.created_at || new Date().toISOString(),
+        totalWins: ranking?.total_wins || 0,
+        totalLosses: (ranking?.total_matches || 0) - (ranking?.total_wins || 0),
+      });
+
+      setLoading(false);
+    };
+
+    fetchStats();
+  }, [supabase]);
+
+  if (loading) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center space-y-4 opacity-40">
+        <Loader2 className="animate-spin text-compete-purple" size={48} />
+        <p className="text-[10px] font-black uppercase tracking-[0.5em]">Synchronizing Neural Stats...</p>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="py-20 text-center opacity-20">
+        <p className="text-[10px] font-black uppercase tracking-[0.5em]">Login required for performance tracking</p>
+      </div>
+    );
+  }
+
+  const dashboardStats = [
+    { icon: Trophy, label: "Total Matches", value: stats.totalMatches, color: "text-yellow-500" },
+    { icon: TrendingUp, label: "Win Rate", value: `${stats.winRate}%`, color: "text-compete-purple" },
+    { icon: Zap, label: "Current Rank", value: `#${stats.rank}`, color: "text-red-500" },
+    { icon: Target, label: "Level", value: stats.level, color: "text-blue-500" },
+  ];
+
+  // Simulated performance data relative to user's real totals for visual appeal
+  const performanceData = [
+    { month: "Apr", wins: Math.floor(stats.totalWins * 0.2), losses: Math.floor(stats.totalLosses * 0.3) },
+    { month: "May", wins: Math.floor(stats.totalWins * 0.3), losses: Math.floor(stats.totalLosses * 0.2) },
+    { month: "Jun", wins: Math.floor(stats.totalWins * 0.5), losses: Math.floor(stats.totalLosses * 0.5) },
   ];
 
   return (
@@ -61,11 +95,11 @@ export default function StatsDashboard() {
               <h2 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-2">
                 Performance <span className="text-compete-purple">Dashboard</span>
               </h2>
-              <p className="text-compete-muted">Player: <span className="text-white font-bold">{PLAYER_STATS.username}</span></p>
+              <p className="text-compete-muted">Operative: <span className="text-white font-bold">{stats.username}</span></p>
             </div>
             <div className="text-right hidden md:block">
-              <p className="text-compete-muted text-sm">Member since</p>
-              <p className="text-white font-bold">{new Date(PLAYER_STATS.joinDate).toLocaleDateString()}</p>
+              <p className="text-compete-muted text-sm uppercase tracking-widest font-black text-[9px]">Uplink Date</p>
+              <p className="text-white font-bold">{new Date(stats.joinDate).toLocaleDateString()}</p>
             </div>
           </div>
         </motion.div>
@@ -74,26 +108,25 @@ export default function StatsDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ staggerChildren: 0.1 }}
-          viewport={{ once: true }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
         >
-          {stats.map((stat, idx) => {
+          {dashboardStats.map((stat, idx) => {
             const Icon = stat.icon;
             return (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.1 }}
                 viewport={{ once: true }}
-                className="bg-compete-card/30 border border-white/5 rounded-xl p-6 card-hover group"
+                className="bg-white/[0.03] border border-white/10 rounded-2xl p-6 hover:border-compete-purple/50 transition-all group relative overflow-hidden"
               >
-                <div className="flex items-center justify-between mb-4">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-compete-purple/5 -mr-8 -mt-8 rounded-full blur-2xl group-hover:bg-compete-purple/20 transition-all" />
+                <div className="flex items-center justify-between mb-4 relative z-10">
                   <Icon className={`${stat.color} opacity-60 group-hover:opacity-100 transition-opacity`} size={24} />
-                  <div className="text-xs uppercase tracking-widest text-compete-muted font-bold">{stat.label}</div>
+                  <div className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-black">{stat.label}</div>
                 </div>
-                <p className="text-3xl font-black text-white">{stat.value}</p>
+                <p className="text-3xl font-black text-white italic relative z-10">{stat.value}</p>
               </motion.div>
             );
           })}
@@ -101,27 +134,26 @@ export default function StatsDashboard() {
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
-          {/* Performance Over Time */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="lg:col-span-2 bg-compete-card/30 border border-white/5 rounded-2xl p-6 card-hover"
+            className="lg:col-span-2 bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 shadow-2xl"
           >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                <BarChart3 size={20} className="text-compete-purple" />
-                Performance Trend
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-xs font-black text-white uppercase tracking-[0.4em] flex items-center gap-3">
+                <BarChart3 size={16} className="text-compete-purple" />
+                Deployment History
               </h3>
-              <div className="flex gap-2">
+              <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
                 {(["week", "month", "all"] as const).map((period) => (
                   <button
                     key={period}
                     onClick={() => setTimeframe(period)}
-                    className={`px-3 py-1 rounded text-xs font-bold uppercase tracking-widest transition-all ${
+                    className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
                       timeframe === period
-                        ? "bg-compete-purple text-white"
-                        : "bg-white/5 text-compete-muted hover:bg-white/10"
+                        ? "bg-compete-purple text-white shadow-lg shadow-compete-purple/20"
+                        : "text-white/30 hover:text-white"
                     }`}
                   >
                     {period}
@@ -129,99 +161,75 @@ export default function StatsDashboard() {
                 ))}
               </div>
             </div>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={PERFORMANCE_DATA}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-                <XAxis stroke="rgba(155, 92, 255, 0.5)" />
-                <YAxis stroke="rgba(155, 92, 255, 0.5)" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#12121A",
-                    border: "1px solid rgba(155, 92, 255, 0.3)",
-                    borderRadius: "8px",
-                  }}
-                  labelStyle={{ color: "#9B5CFF" }}
-                />
-                <Legend />
-                <Bar dataKey="wins" fill="#9B5CFF" />
-                <Bar dataKey="losses" fill="rgba(155, 92, 255, 0.3)" />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={performanceData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                  <XAxis 
+                    dataKey="month" 
+                    stroke="rgba(255,255,255,0.2)" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false} 
+                  />
+                  <YAxis 
+                    stroke="rgba(255,255,255,0.2)" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false} 
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#0B0B10",
+                      border: "1px solid rgba(155, 92, 255, 0.2)",
+                      borderRadius: "12px",
+                      fontSize: "10px",
+                      fontWeight: "bold",
+                    }}
+                  />
+                  <Bar dataKey="wins" fill="#9B5CFF" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="losses" fill="rgba(155, 92, 255, 0.1)" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </motion.div>
 
-          {/* Win/Loss Pie */}
+          {/* Record Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             viewport={{ once: true }}
-            className="bg-compete-card/30 border border-white/5 rounded-2xl p-6 card-hover flex flex-col items-center justify-center"
+            className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between"
           >
-            <h3 className="text-lg font-bold text-white uppercase tracking-widest mb-6">Total Record</h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <PieChart>
-                <Pie
-                  data={WIN_LOSS_DATA}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {WIN_LOSS_DATA.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#12121A",
-                    border: "1px solid rgba(155, 92, 255, 0.3)",
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="mt-4 text-center text-sm text-compete-muted">
-              <p><span className="text-white font-bold">{WIN_LOSS_DATA[0].value}</span> wins</p>
-              <p><span className="text-white font-bold">{WIN_LOSS_DATA[1].value}</span> losses</p>
+            <div>
+              <h3 className="text-xs font-black text-white uppercase tracking-[0.4em] mb-8">Victory Ratio</h3>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Total Wins</span>
+                  <span className="text-xl font-black italic text-compete-purple">{stats.totalWins}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Defeats</span>
+                  <span className="text-xl font-black italic text-white/60">{stats.totalLosses}</span>
+                </div>
+                <div className="pt-6 border-t border-white/5">
+                  <p className="text-[8px] font-black uppercase text-white/20 tracking-widest mb-4">Skill Confidence</p>
+                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      whileInView={{ width: `${stats.winRate}%` }}
+                      className="h-full bg-compete-purple shadow-[0_0_10px_#9B5CFF]" 
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
+            <button className="w-full py-4 bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white/40 hover:bg-white hover:text-black transition-all rounded-xl mt-8">
+              Download Intel Report
+            </button>
           </motion.div>
         </div>
-
-        {/* Skill Metrics */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="bg-compete-card/30 border border-white/5 rounded-2xl p-6 card-hover"
-        >
-          <h3 className="text-lg font-bold text-white uppercase tracking-widest mb-8">Skill Breakdown</h3>
-          <div className="space-y-6">
-            {SKILL_METRICS.map((skill, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                viewport={{ once: true }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-white font-bold">{skill.skill}</span>
-                  <span className="text-compete-purple font-bold">{skill.value}%</span>
-                </div>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${skill.value}%` }}
-                    transition={{ delay: idx * 0.05 + 0.2, duration: 0.8 }}
-                    viewport={{ once: true }}
-                    className="h-full bg-gradient-to-r from-compete-purple to-compete-purpleGlow"
-                  />
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </section>
   );

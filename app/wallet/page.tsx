@@ -24,11 +24,17 @@ export default function WalletPage() {
   const [withdrawalHistory, setWithdrawalHistory] = useState<any[]>([]);
   const supabase = createClient();
 
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
   // 1. INITIAL FETCH & REAL-TIME SUBSCRIPTION
   useEffect(() => {
     const fetchAndSubscribe = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setIsLoggedIn(false);
+        return;
+      }
+      setIsLoggedIn(true);
       if (user.email) setUserEmail(user.email);
 
       // Fetch Requests
@@ -124,8 +130,30 @@ export default function WalletPage() {
     }
   };
 
+  if (isLoggedIn === false) {
+    return (
+      <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-6 text-center">
+         <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 shadow-2xl">
+            <Lock size={40} className="text-compete-purple" />
+         </div>
+         <h1 className="text-4xl font-black italic uppercase tracking-tighter mb-4">
+           Uplink <span className="text-compete-purple">Required</span>
+         </h1>
+         <p className="text-white/40 text-sm max-w-sm mb-12 uppercase font-bold tracking-widest leading-relaxed">
+           You must establish a neural connection to access the global vault system.
+         </p>
+         <Link href="/auth" className="px-12 py-5 bg-white text-black text-xs font-black uppercase tracking-[0.3em] italic hover:bg-compete-purple hover:text-white transition-all rounded-sm shadow-xl">
+           Establish Uplink
+         </Link>
+         <Link href="/lobby" className="fixed top-28 left-[7%] md:left-[calc(50%-512px+24px)] lg:left-[calc(50%-512px+32px)] flex items-center gap-2 text-white/20 hover:text-white transition-colors text-[10px] font-black uppercase tracking-widest z-50">
+            <ArrowLeft size={16} /> Exit Terminal
+         </Link>
+      </main>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-black text-white pb-24 overflow-x-hidden font-sans">
+    <main className="min-h-screen bg-black text-white pb-24 overflow-x-hidden font-sans pt-32">
       <AnimatePresence>
         {status === "success" && (
           <motion.div
@@ -141,7 +169,7 @@ export default function WalletPage() {
         )}
       </AnimatePresence>
 
-      <header className="relative mt-4 top-5 left-0 z-50 p-6 pointer-events-none w-full flex justify-between">
+      <header className="fixed top-28 left-[7%] md:left-[calc(50%-512px+24px)] lg:left-[calc(50%-512px+32px)] z-50 pointer-events-none w-full">
         <div className="pointer-events-auto flex flex-col gap-1">
           <Link href="/lobby" className="flex items-center gap-2 text-white/30 hover:text-compete-purple transition-colors mb-2">
             <ArrowLeft size={14} />
@@ -155,13 +183,13 @@ export default function WalletPage() {
               <h1 className="text-xl font-black uppercase italic tracking-tighter leading-none">
                 Compete <span className="text-compete-purple">Vault</span>
               </h1>
-              <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">Auth Required</p>
+              <p className="text-[8px] font-black uppercase tracking-[0.3em] text-white/20">Authorized Terminal</p>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="pt-32 px-4 space-y-6 max-w-2xl mx-auto">
+      <div className="px-4 space-y-6 max-w-2xl mx-auto">
         {/* UPDATED BALANCE CARD WITH REAL DATA */}
         <section className="relative overflow-hidden bg-gradient-to-br from-compete-purple to-purple-900 p-8 rounded-[32px] shadow-purple-glow border border-white/5">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60 mb-1">Total Available</p>
