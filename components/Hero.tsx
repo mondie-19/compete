@@ -58,11 +58,11 @@ export default function Hero({ onJoinClick }: HeroProps) {
         {/* Typography Scale Contrast */}
         <div className="flex flex-col">
           {/* Authentic, non-generic prefix */}
-          <span className="hero-anim text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tighter text-white leading-[0.9] drop-shadow-md">
+          <span className="hero-anim text-3xl md:text-5xl lg:text-6xl font-black tracking-tighter text-white leading-[0.9] drop-shadow-md">
             Dominate The
           </span>
           {/* Second part in anime sci-fi oriented font (inherited globally) */}
-          <h1 className="hero-anim text-[6rem] md:text-[9rem] lg:text-[12rem] tracking-tight text-compete-purple leading-[0.7] -ml-2 drop-shadow-[0_10px_35px_rgba(155,92,255,0.4)]">
+          <h1 className="hero-anim text-[4.5rem] sm:text-[6rem] md:text-[9rem] lg:text-[12rem] tracking-tight text-compete-purple leading-[0.7] -ml-2 drop-shadow-[0_10px_35px_rgba(155,92,255,0.4)]">
             Arena.
           </h1>
         </div>
@@ -75,12 +75,12 @@ export default function Hero({ onJoinClick }: HeroProps) {
         <div className="hero-anim mt-6 flex flex-col sm:flex-row items-center gap-4">
           <button 
             onClick={onJoinClick}
-            className="btn-magnetic rounded-[2rem] bg-compete-purple px-10 py-4 text-sm font-bold uppercase tracking-widest text-white shadow-purple-glow whitespace-nowrap"
+            className="btn-magnetic rounded-[2rem] bg-compete-purple px-10 py-4 text-sm font-bold tracking-widest text-white shadow-purple-glow whitespace-nowrap"
           >
             Enter Matchmaking
           </button>
           
-          <Link href="/rankings" className="btn-magnetic rounded-[2rem] bg-white/5 backdrop-blur-md border border-white/10 px-10 py-4 text-sm font-bold uppercase tracking-widest text-white hover:bg-white/10 transition-colors whitespace-nowrap">
+          <Link href="/rankings" className="btn-magnetic rounded-[2rem] bg-white/5 backdrop-blur-md border border-white/10 px-10 py-4 text-sm font-bold tracking-widest text-white hover:bg-white/10 transition-colors whitespace-nowrap">
             View Leaderboards
           </Link>
         </div>

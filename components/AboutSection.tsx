@@ -139,10 +139,10 @@ export default function AboutSection() {
           viewport={{ once: true }}
           onViewportEnter={() => setInView(true)}
         >
-          <h2 className="text-xs font-black tracking-[0.4em] text-compete-purple uppercase mb-4">
+          <h2 className="text-xs font-black tracking-[0.4em] text-compete-purple mb-4">
             The New Standard
           </h2>
-          <h3 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none mb-6">
+          <h3 className="text-4xl md:text-6xl font-black italic tracking-tighter leading-none mb-6">
             We are the <span className="text-compete-purple text-glow">Frontier</span> of Cash Bouts.
           </h3>
           <p className="text-compete-muted text-lg leading-relaxed mb-8">
@@ -155,7 +155,7 @@ export default function AboutSection() {
               <p className="text-3xl font-black italic tabular-nums">
                 {formatUsers(animatedUsers)}
               </p>
-              <p className="text-xs uppercase font-bold text-compete-muted tracking-widest mt-1">
+              <p className="text-xs font-bold text-compete-muted tracking-widest mt-1">
                 Registered Competitors
               </p>
             </div>
@@ -164,7 +164,7 @@ export default function AboutSection() {
               <p className="text-3xl font-black italic tabular-nums">
                 {formatPrize(animatedPrize, currencyCfg)}
               </p>
-              <p className="text-xs uppercase font-bold text-compete-muted tracking-widest mt-1">
+              <p className="text-xs font-bold text-compete-muted tracking-widest mt-1">
                 Prizes Paid Out
               </p>
             </div>
@@ -185,7 +185,7 @@ export default function AboutSection() {
       <section className="max-w-7xl mx-auto px-6 py-24 border-t border-white/5">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div className="max-w-xl">
-            <h3 className="text-3xl md:text-5xl font-black uppercase italic tracking-tighter">
+            <h3 className="text-3xl md:text-5xl font-black italic tracking-tighter">
               Why competitors <span className="text-compete-purple">Choose Us</span>
             </h3>
           </div>
@@ -206,10 +206,10 @@ export default function AboutSection() {
                 <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center mb-6 border border-white/10 group-hover:border-compete-purple/50 transition-colors">
                   {perk.icon}
                 </div>
-                <h4 className="text-2xl font-bold uppercase italic mb-3">{perk.title}</h4>
+                <h4 className="text-2xl font-bold italic mb-3">{perk.title}</h4>
                 <p className="text-compete-muted text-sm leading-relaxed">{perk.desc}</p>
               </div>
-              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/20 group-hover:text-compete-purple transition-colors">
+              <div className="flex items-center gap-2 text-[10px] font-black tracking-widest text-white/20 group-hover:text-compete-purple transition-colors">
                 System Active <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
               </div>
             </motion.div>

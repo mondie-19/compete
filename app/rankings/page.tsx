@@ -7,6 +7,7 @@ import {
   Mountain, Snowflake, Waves, User
 } from "lucide-react";
 import { createClient } from "@/supabase/client";
+import { useHeartbeat } from "@/lib/useHeartbeat";
 import Link from "next/link";
 
 const CONTINENTS = [
@@ -22,6 +23,7 @@ const CONTINENTS = [
 
 export default function RankingsPage() {
   const supabase = createClient();
+  useHeartbeat();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("All");
   const [rankings, setRankings] = useState<any[]>([]);
@@ -102,7 +104,7 @@ export default function RankingsPage() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-compete-purple/10 border border-compete-purple/20 text-compete-purple text-[10px] font-black uppercase tracking-widest mb-4">
                 <ShieldCheck size={12} /> Live Standings • Season 04
               </div>
-              <h1 className="text-5xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">
+              <h1 className="text-4xl md:text-7xl font-black uppercase italic tracking-tighter leading-none">
                 The <span className="text-compete-purple text-glow">Elite</span> List
               </h1>
             </div>
@@ -122,27 +124,28 @@ export default function RankingsPage() {
             </div>
 
             {/* Continent Icon Tiles */}
-            <div className="flex flex-wrap items-center gap-2 p-1 bg-white/5 border border-white/10 rounded-2xl">
+            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1.5 lg:gap-2 p-1 bg-white/5 border border-white/10 rounded-2xl w-full lg:w-auto">
               {CONTINENTS.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => setSelectedCountry(c.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                  className={`flex items-center gap-1.5 lg:gap-2 px-3 lg:px-4 py-2 lg:py-2.5 rounded-xl text-[9px] lg:text-[10px] font-black uppercase tracking-widest transition-all ${
                     selectedCountry === c.id 
                     ? "bg-compete-purple text-white shadow-purple-glow" 
                     : "text-compete-muted hover:text-white hover:bg-white/5"
                   }`}
                 >
                   {c.icon}
-                  <span className="hidden sm:inline">{c.name}</span>
+                  <span className="hidden min-[480px]:inline sm:inline">{c.name}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Full Detailed Table */}
-          <section className="bg-white/[0.02] border border-white/5 rounded-[32px] overflow-hidden mb-16 backdrop-blur-xl shadow-2xl">
-            <div className="overflow-x-auto">
+          {/* Detailed View - Table for Desktop, Cards for Mobile */}
+          <section className="bg-white/[0.02] border border-white/5 rounded-2xl lg:rounded-[32px] overflow-hidden mb-16 backdrop-blur-xl shadow-2xl">
+            {/* Desktop Table View */}
+            <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30 border-b border-white/5">
@@ -155,94 +158,155 @@ export default function RankingsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.03]">
-                  <AnimatePresence mode="popLayout">
-                    {loading ? (
-                      <tr>
-                        <td colSpan={6} className="p-32 text-center text-white/20 italic font-black uppercase tracking-widest animate-pulse">
-                          Synchronizing Global Standings...
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="p-32 text-center text-white/20 italic font-black uppercase tracking-widest animate-pulse">
+                        Synchronizing Global Standings...
+                      </td>
+                    </tr>
+                  ) : filteredPlayers.length > 0 ? (
+                    filteredPlayers.map((player, idx) => (
+                      <motion.tr
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        key={player.username}
+                        className="hover:bg-compete-purple/[0.03] transition-all group cursor-default"
+                      >
+                        <td className="p-8">
+                          <div className="flex items-center gap-4">
+                            <span className={`text-2xl font-black italic tracking-tighter ${player.rank === 1 ? 'text-compete-purple text-glow' : 'text-white/10 group-hover:text-white/40'}`}>
+                              #{player.rank.toString().padStart(2, '0')}
+                            </span>
+                            {player.rank === 1 && <Crown size={18} className="text-yellow-500 animate-bounce" />}
+                          </div>
                         </td>
-                      </tr>
-                    ) : filteredPlayers.length > 0 ? (
-                      filteredPlayers.map((player, idx) => (
-                        <motion.tr
-                          layout
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          transition={{ delay: idx * 0.05 }}
-                          key={player.username}
-                          className="hover:bg-compete-purple/[0.03] transition-all group cursor-default"
-                        >
-                          <td className="p-8">
-                            <div className="flex items-center gap-4">
-                              <span className={`text-2xl font-black italic tracking-tighter ${player.rank === 1 ? 'text-compete-purple text-glow' : 'text-white/10 group-hover:text-white/40'}`}>
-                                #{player.rank.toString().padStart(2, '0')}
-                              </span>
-                              {player.rank === 1 && <Crown size={18} className="text-yellow-500 animate-bounce" />}
-                            </div>
-                          </td>
-                          <td className="p-8">
-                            <div className="flex items-center gap-4">
-                              <div className="relative">
-                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform overflow-hidden">
-                                  {player.avatar_url ? (
-                                    <img src={player.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                                  ) : (
-                                    <span className="font-black italic text-compete-purple">{player.username[0]}</span>
-                                  )}
-                                </div>
-                                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg bg-black border border-white/10 flex items-center justify-center text-[10px] font-black text-compete-purple">
-                                  {Math.min(99, Math.floor(player.total_matches / 10) + 1)}
-                                </div>
+                        <td className="p-8">
+                          <div className="flex items-center gap-4">
+                            <div className="relative">
+                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform overflow-hidden">
+                                {player.avatar_url ? (
+                                  <img src={player.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="font-black italic text-compete-purple">{player.username[0]}</span>
+                                )}
                               </div>
-                              <div>
-                                <p className="font-black uppercase tracking-tight text-white flex items-center gap-2">
-                                  {player.username}
-                                  {player.total_earnings > 1000 && <Award size={14} className="text-compete-purple" />}
-                                </p>
-                                <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">{player.total_matches} Deployments</p>
+                              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg bg-black border border-white/10 flex items-center justify-center text-[10px] font-black text-compete-purple">
+                                {Math.min(99, Math.floor(player.total_matches / 10) + 1)}
                               </div>
                             </div>
-                          </td>
-                          <td className="p-8 text-center text-2xl filter saturate-50 group-hover:saturate-100 transition-all opacity-20">🌍</td>
-                          <td className="p-8">
-                            <div className="space-y-2">
-                              <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter">
-                                <span className="text-white/40">Win Rate</span>
-                                <span className="text-compete-purple">{player.win_rate}%</span>
-                              </div>
-                              <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
-                                <div className="h-full bg-compete-purple shadow-[0_0_8px_#9B5CFF]" style={{ width: `${player.win_rate}%` }} />
-                              </div>
+                            <div>
+                              <p className="font-black uppercase tracking-tight text-white flex items-center gap-2">
+                                {player.username}
+                                {player.total_earnings > 1000 && <Award size={14} className="text-compete-purple" />}
+                              </p>
+                              <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest">{player.total_matches} Deployments</p>
                             </div>
-                          </td>
-                          <td className="p-8">
-                            <div className="font-mono font-black text-lg group-hover:text-compete-purple transition-colors">
-                              ${player.total_earnings.toLocaleString()}
-                              <span className="text-[10px] text-white/20 ml-1 uppercase font-sans">USD</span>
+                          </div>
+                        </td>
+                        <td className="p-8 text-center text-2xl filter saturate-50 group-hover:saturate-100 transition-all opacity-20">🌍</td>
+                        <td className="p-8">
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-[10px] font-black uppercase tracking-tighter">
+                              <span className="text-white/40">Win Rate</span>
+                              <span className="text-compete-purple">{player.win_rate}%</span>
                             </div>
-                          </td>
-                          <td className="p-8 text-right">
-                            <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 transition-colors ${player.rank <= 3 ? "group-hover:border-green-500/50" : "group-hover:border-white/20"
-                              }`}>
-                              {player.rank <= 3 ? <TrendingUp className="text-green-400" size={18} /> : <Minus className="text-white/20" size={18} />}
+                            <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                              <div className="h-full bg-compete-purple shadow-[0_0_8px_#9B5CFF]" style={{ width: `${player.win_rate}%` }} />
                             </div>
-                          </td>
-                        </motion.tr>
-                      ))
-                    ) : (
-                      <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                        <td colSpan={6} className="p-32 text-center">
-                          <div className="text-white/10 flex flex-col items-center gap-4">
-                            <Globe size={48} />
-                            <p className="font-black uppercase italic tracking-widest">No Competitors Found</p>
+                          </div>
+                        </td>
+                        <td className="p-8">
+                          <div className="font-mono font-black text-lg group-hover:text-compete-purple transition-colors">
+                            ${player.total_earnings.toLocaleString()}
+                            <span className="text-[10px] text-white/20 ml-1 uppercase font-sans">USD</span>
+                          </div>
+                        </td>
+                        <td className="p-8 text-right">
+                          <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 transition-colors ${player.rank <= 3 ? "group-hover:border-green-500/50" : "group-hover:border-white/20"
+                            }`}>
+                            {player.rank <= 3 ? <TrendingUp className="text-green-400" size={18} /> : <Minus className="text-white/20" size={18} />}
                           </div>
                         </td>
                       </motion.tr>
-                    )}
-                  </AnimatePresence>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="p-32 text-center text-white/20 font-black uppercase italic tracking-widest">
+                        No Competitors Found
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="lg:hidden divide-y divide-white/[0.03]">
+              {loading ? (
+                <div className="p-16 text-center text-white/20 italic font-black uppercase tracking-widest animate-pulse text-xs">
+                  Synchronizing Global Standings...
+                </div>
+              ) : filteredPlayers.length > 0 ? (
+                filteredPlayers.map((player, idx) => (
+                  <motion.div
+                    key={player.username}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="p-5 space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xl font-black italic tracking-tighter ${player.rank === 1 ? 'text-compete-purple' : 'text-white/10'}`}>
+                          #{player.rank.toString().padStart(2, '0')}
+                        </span>
+                        <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                          {player.avatar_url ? (
+                            <img src={player.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="font-black italic text-compete-purple text-xs">{player.username[0]}</span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-black uppercase tracking-tight text-white text-xs flex items-center gap-1">
+                            {player.username}
+                            {player.total_earnings > 1000 && <Award size={10} className="text-compete-purple" />}
+                          </p>
+                          <p className="text-[8px] font-bold text-white/20 uppercase tracking-widest">{player.total_matches} Deployments</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono font-black text-white text-xs">${player.total_earnings.toLocaleString()}</p>
+                        <p className="text-[8px] font-black uppercase text-white/20 tracking-widest">Earnings</p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 pt-2">
+                       <div className="space-y-1">
+                          <div className="flex justify-between text-[8px] font-black uppercase tracking-tighter">
+                            <span className="text-white/20">Win Rate</span>
+                            <span className="text-compete-purple">{player.win_rate}%</span>
+                          </div>
+                          <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-full bg-compete-purple" style={{ width: `${player.win_rate}%` }} />
+                          </div>
+                       </div>
+                       <div className="flex justify-end items-center gap-2">
+                          <span className="text-[8px] font-black uppercase text-white/20 tracking-widest">Trend</span>
+                          <div className="w-6 h-6 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                            {player.rank <= 3 ? <TrendingUp className="text-green-400" size={12} /> : <Minus className="text-white/20" size={12} />}
+                          </div>
+                       </div>
+                    </div>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="p-16 text-center text-white/20 font-black uppercase italic tracking-widest text-xs">
+                  No Competitors Found
+                </div>
+              )}
             </div>
           </section>
 

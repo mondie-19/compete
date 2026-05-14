@@ -2,12 +2,14 @@
 import { useState, useEffect } from "react";
 import { Shield, Eye, CheckCircle2, ChevronRight, Clock } from "lucide-react";
 import { createClient } from "@/supabase/client";
+import { useHeartbeat } from "@/lib/useHeartbeat";
 import { resolveMatchAsModerator } from "@/app/actions/moderator";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export default function ModeratorDashboard() {
     const supabase = createClient();
+    useHeartbeat();
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isMod, setIsMod] = useState(false);

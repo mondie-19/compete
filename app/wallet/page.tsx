@@ -11,6 +11,7 @@ import Link from "next/link";
 import { usePaystackPayment } from "react-paystack";
 import { verifyAndAddFunds, requestWithdrawal } from "@/app/actions/wallet";
 import { createClient } from "@/supabase/client";
+import { useHeartbeat } from "@/lib/useHeartbeat";
 
 export default function WalletPage() {
   const [activeTab, setActiveTab] = useState<"deposit" | "withdraw">("deposit");
@@ -23,6 +24,7 @@ export default function WalletPage() {
   const [userEmail, setUserEmail] = useState("player@compete.gg");
   const [withdrawalHistory, setWithdrawalHistory] = useState<any[]>([]);
   const supabase = createClient();
+  useHeartbeat();
 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 

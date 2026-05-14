@@ -21,7 +21,7 @@ export const MatchConfirmedEmail = ({
   const potentialWin = (wagerAmount * 2) - fee;
 
   return (
-    <CompeteLayout previewText={`Match Locked: ${gameName} for $${wagerAmount}`}>
+    <CompeteLayout previewText={`Match Locked: ${gameName} for KES ${wagerAmount}`}>
       {/* Header Section */}
       <div style={{ textAlign: 'center', marginBottom: '30px' }}>
         <h2 style={{ color: CompeteTheme.text, fontSize: '22px', margin: '0 0 10px 0' }}>
@@ -48,13 +48,13 @@ export const MatchConfirmedEmail = ({
           <tr>
             <td style={{ color: CompeteTheme.muted, paddingBottom: '10px', fontSize: '14px' }}>Your Stake</td>
             <td style={{ color: CompeteTheme.text, textAlign: 'right', paddingBottom: '10px', fontWeight: 'bold' }}>
-              ${wagerAmount.toFixed(2)}
+              KES {wagerAmount.toLocaleString('en-KE', { minimumFractionDigits: 2 })}
             </td>
           </tr>
           <tr>
             <td style={{ color: CompeteTheme.muted, paddingBottom: '10px', fontSize: '14px' }}>Platform Fee (15%)</td>
             <td style={{ color: '#f43f5e', textAlign: 'right', paddingBottom: '10px' }}>
-              -${fee.toFixed(2)}
+              -KES {fee.toLocaleString('en-KE', { minimumFractionDigits: 2 })}
             </td>
           </tr>
           <tr style={{ borderTop: `1px solid ${CompeteTheme.border}` }}>
@@ -62,7 +62,7 @@ export const MatchConfirmedEmail = ({
               Potential Payout
             </td>
             <td style={{ color: CompeteTheme.purpleGlow, textAlign: 'right', paddingTop: '15px', fontWeight: 'bold', fontSize: '18px' }}>
-              ${potentialWin.toFixed(2)}
+              KES {potentialWin.toLocaleString('en-KE', { minimumFractionDigits: 2 })}
             </td>
           </tr>
         </table>

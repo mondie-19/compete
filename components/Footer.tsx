@@ -110,7 +110,7 @@ export default function Footer() {
 
           {/* Platform Links */}
           <div className="flex flex-col gap-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30 mb-1">Platform</p>
+            <p className="text-[9px] font-black tracking-[0.35em] text-white/30 mb-1">Platform</p>
             <FooterLink href="/">Home</FooterLink>
             <FooterLink href="/tournaments">Tournaments</FooterLink>
             <FooterLink href="/rankings">Rankings</FooterLink>
@@ -121,7 +121,7 @@ export default function Footer() {
 
           {/* Account Links */}
           <div className="flex flex-col gap-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30 mb-1">Account</p>
+            <p className="text-[9px] font-black tracking-[0.35em] text-white/30 mb-1">Account</p>
             {!isLoggedIn ? (
               <FooterLink href="/auth">Sign In</FooterLink>
             ) : (
@@ -134,7 +134,7 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div className="flex flex-col gap-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30 mb-1">Legal</p>
+            <p className="text-[9px] font-black tracking-[0.35em] text-white/30 mb-1">Legal</p>
             <FooterLink href="/terms-of-use">Terms of Use</FooterLink>
             <FooterLink href="/terms-of-agreement">User Agreement</FooterLink>
           </div>
@@ -146,12 +146,12 @@ export default function Footer() {
             Compete is not affiliated with, endorsed by, or sponsored by any game publisher, platform holder, or hardware manufacturer. All referenced game titles, trademarks, and associated imagery remain the property of their respective rights holders.
           </p>
           <div className="flex items-center gap-6 shrink-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-white/20">
+            <p className="text-[10px] font-bold tracking-widest text-white/20">
               © {new Date().getFullYear()} Compete
             </p>
             <button
               onClick={scrollToTop}
-              className="group flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/30 hover:text-compete-purple transition-all"
+              className="group flex items-center gap-2 text-[10px] font-black tracking-[0.3em] text-white/30 hover:text-compete-purple transition-all"
             >
               Top
               <div className="p-1.5 rounded bg-white/5 border border-white/10 group-hover:border-compete-purple group-hover:shadow-purple-glow transition-all">

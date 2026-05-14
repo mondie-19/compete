@@ -83,7 +83,7 @@ export default function AuthPage() {
 
             <Link href="/" className="fixed top-28 left-[7%] md:left-[calc(50%-512px+24px)] lg:left-[calc(50%-512px+32px)] flex items-center gap-3 text-white/40 hover:text-white transition-all group z-30">
                 <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] italic">Abort Uplink</span>
+                <span className="text-[10px] font-black tracking-[0.4em] italic">Abort Uplink</span>
             </Link>
 
             <motion.div
@@ -98,9 +98,9 @@ export default function AuthPage() {
                 <div className="mb-8 text-left mt-2">
                     <div className="flex items-center gap-2 text-compete-purple mb-4">
                         <Fingerprint size={20} className="animate-pulse" />
-                        <span className="text-[8px] font-black uppercase tracking-[0.5em]">Identity Required</span>
+                        <span className="text-[8px] font-black tracking-[0.5em]">Identity Required</span>
                     </div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter leading-none">
+                    <h1 className="text-3xl font-black italic tracking-tighter leading-none">
                         {isLogin ? "Neural" : "New Competitor"}<br />
                         <span className="text-transparent stroke-text">{isLogin ? "Uplink" : "Protocol"}</span>
                     </h1>
@@ -119,7 +119,7 @@ export default function AuthPage() {
                                     id="username"
                                     name="username"
                                     type="text"
-                                    placeholder="COMPETITOR NAME"
+                                    placeholder="Competitor Name"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     required={!isLogin}
@@ -135,7 +135,7 @@ export default function AuthPage() {
                             id="email"
                             name="email"
                             type="email"
-                            placeholder="EMAIL ADDRESS"
+                            placeholder="Email Address"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
@@ -149,7 +149,7 @@ export default function AuthPage() {
                             id="password"
                             name="password"
                             type="password"
-                            placeholder="ACCESS KEY"
+                            placeholder="Access Key"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
@@ -172,12 +172,12 @@ export default function AuthPage() {
                                     <div className="w-1.5 h-1.5 bg-white rounded-full scale-0 peer-checked:scale-100 transition-transform delay-100" />
                                 </div>
                             </div>
-                            <span className="text-[9px] font-black uppercase tracking-widest text-white/40 group-hover/check:text-white transition-colors">
+                            <span className="text-[9px] font-black tracking-widest text-white/40 group-hover/check:text-white transition-colors">
                                 Remember Access
                             </span>
                         </label>
                         {isLogin && (
-                            <Link href="/auth/forgot" className="text-[9px] font-black uppercase tracking-widest text-compete-purple hover:text-white transition-colors">
+                            <Link href="/auth/forgot" className="text-[9px] font-black tracking-widest text-compete-purple hover:text-white transition-colors">
                                 Lost Password?
                             </Link>
                         )}
@@ -186,14 +186,14 @@ export default function AuthPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-white text-black py-4 font-black uppercase tracking-[0.3em] italic hover:bg-compete-purple hover:text-white transition-all flex items-center justify-center gap-3 group overflow-hidden relative disabled:opacity-50"
+                        className="w-full bg-white text-black py-4 font-black tracking-[0.3em] italic hover:bg-compete-purple hover:text-white transition-all flex items-center justify-center gap-3 group overflow-hidden relative disabled:opacity-50"
                     >
                         {loading ? (
                             <Loader2 size={18} className="animate-spin" />
                         ) : (
                             <Target size={18} className="group-hover:scale-125 transition-transform" />
                         )}
-                        <span>{loading ? "AUTHORIZING..." : (isLogin ? "Authorize" : "Initialize")}</span>
+                        <span>{loading ? "Authorizing..." : (isLogin ? "Authorize" : "Initialize")}</span>
                     </button>
                 </form>
 
@@ -201,7 +201,7 @@ export default function AuthPage() {
                     <button
                         onClick={handleGoogleSignIn}
                         type="button"
-                        className="flex-1 flex items-center justify-center gap-3 py-4 border border-white/5 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all font-black text-[9px] uppercase tracking-widest"
+                        className="flex-1 flex items-center justify-center gap-3 py-4 border border-white/5 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all font-black text-[9px] tracking-widest"
                     >
                         <Globe size={14} /> Google - ID
                     </button>
@@ -210,7 +210,7 @@ export default function AuthPage() {
                         <button
                             onClick={() => setIsLogin(!isLogin)}
                             type="button"
-                            className="text-[9px] font-black uppercase tracking-widest text-compete-purple hover:text-white transition-colors"
+                            className="text-[9px] font-black tracking-widest text-compete-purple hover:text-white transition-colors"
                         >
                             {isLogin ? "New Competitor?" : "Already Registered?"}
                         </button>
@@ -224,7 +224,7 @@ export default function AuthPage() {
                         <div className="w-1 h-1 bg-compete-purple rounded-full animate-pulse" />
                         <div className="w-1 h-1 bg-compete-purple rounded-full" />
                     </div>
-                    <span className="text-[7px] font-black uppercase tracking-[0.4em]">Encrypted Connection Active</span>
+                    <span className="text-[7px] font-black tracking-[0.4em]">Encrypted Connection Active</span>
                 </div>
             </motion.div>
 

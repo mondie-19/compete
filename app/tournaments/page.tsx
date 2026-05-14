@@ -4,6 +4,7 @@ import { Trophy, Timer, ArrowLeft, Bell, Check, X, Loader2, Mail } from "lucide-
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { createClient } from "@/supabase/client";
+import { useHeartbeat } from "@/lib/useHeartbeat";
 import { toast } from "sonner";
 
 const CURRENCY_CONFIG: Record<string, { symbol: string; rate: number }> = {
@@ -53,6 +54,7 @@ function useCountUp(target: number, enabled: boolean) {
 
 export default function TournamentsPage() {
   const supabase = createClient();
+  useHeartbeat();
 
   const [prizeUSD, setPrizeUSD]       = useState(10000);
   const [inView, setInView]           = useState(false);

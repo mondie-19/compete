@@ -58,7 +58,7 @@ export default function RootLayout({
         </div>
 
         {/* App Content */}
-        <main className="relative z-10">
+        <main className="relative">
           {children}
         </main>
 

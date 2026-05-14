@@ -58,7 +58,11 @@ export default function PrizePoolTracker() {
     return (
       <div className="py-20 flex flex-col items-center justify-center opacity-30">
         <Loader2 className="animate-spin text-compete-purple mb-4" size={40} />
-        <p className="text-[10px] font-black uppercase tracking-[0.4em]">Synching Prize Matrix...</p>
+  if (loading) {
+    return (
+      <div className="py-20 flex flex-col items-center justify-center opacity-30">
+        <Loader2 className="animate-spin text-compete-purple mb-4" size={40} />
+        <p className="text-[10px] font-black tracking-[0.4em]">Synching Prize Matrix...</p>
       </div>
     );
   }
@@ -73,10 +77,10 @@ export default function PrizePoolTracker() {
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <h2 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-4">
+          <h2 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter mb-4">
             Global <span className="text-compete-purple">Vault</span>
           </h2>
-          <p className="text-compete-muted max-w-2xl mx-auto text-sm font-mono uppercase tracking-widest">
+          <p className="text-compete-muted max-w-2xl mx-auto text-sm font-mono tracking-widest">
             Live distribution tracker for competitive rewards and ecosystem payouts
           </p>
         </motion.div>
@@ -91,11 +95,11 @@ export default function PrizePoolTracker() {
             className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-10 text-center relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-compete-purple opacity-20" />
-            <p className="text-white/20 uppercase tracking-[0.3em] text-[10px] font-black mb-6">Aggregate Stakes</p>
+            <p className="text-white/20 tracking-[0.3em] text-[10px] font-black mb-6">Aggregate Stakes</p>
             <div className="text-5xl md:text-6xl font-black text-white italic tracking-tighter mb-2">
               KSh{(stats.total / 1000).toFixed(1)}K
             </div>
-            <p className="text-compete-purple font-black text-[10px] uppercase tracking-widest">Lifetime Liquidity</p>
+            <p className="text-compete-purple font-black text-[10px] tracking-widest">Lifetime Liquidity</p>
           </motion.div>
 
           {/* Distributed */}
@@ -107,11 +111,11 @@ export default function PrizePoolTracker() {
             className="bg-green-500/5 border border-green-500/20 rounded-[2.5rem] p-10 text-center relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-green-500 opacity-20" />
-            <p className="text-green-500/30 uppercase tracking-[0.3em] text-[10px] font-black mb-6">Paid to Victors</p>
+            <p className="text-green-500/30 tracking-[0.3em] text-[10px] font-black mb-6">Paid to Victors</p>
             <div className="text-5xl md:text-6xl font-black text-green-500 italic tracking-tighter mb-2">
               KSh{(stats.distributed / 1000).toFixed(1)}K
             </div>
-            <p className="text-white font-black text-[10px] uppercase tracking-widest">Transferred to Wallets</p>
+            <p className="text-white font-black text-[10px] tracking-widest">Transferred to Wallets</p>
           </motion.div>
 
           {/* Upcoming */}
@@ -123,11 +127,11 @@ export default function PrizePoolTracker() {
             className="bg-compete-purple/10 border border-compete-purple/30 rounded-[2.5rem] p-10 text-center relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-compete-purple animate-pulse" />
-            <p className="text-compete-purple/40 uppercase tracking-[0.3em] text-[10px] font-black mb-6">Active Bounties</p>
+            <p className="text-compete-purple/40 tracking-[0.3em] text-[10px] font-black mb-6">Active Bounties</p>
             <div className="text-5xl md:text-6xl font-black text-white italic tracking-tighter mb-2">
               KSh{(stats.upcoming / 1000).toFixed(1)}K
             </div>
-            <p className="text-compete-purple font-black text-[10px] uppercase tracking-widest">In Play / Escrow</p>
+            <p className="text-compete-purple font-black text-[10px] tracking-widest">In Play / Escrow</p>
           </motion.div>
         </div>
 
@@ -140,7 +144,7 @@ export default function PrizePoolTracker() {
             viewport={{ once: true }}
             className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8"
           >
-            <h3 className="text-xs font-black text-white uppercase tracking-[0.4em] mb-10 flex items-center gap-3">
+            <h3 className="text-xs font-black text-white tracking-[0.4em] mb-10 flex items-center gap-3">
               <Zap size={18} className="text-compete-purple" />
               Strategic Yield Breakdown
             </h3>
@@ -152,7 +156,7 @@ export default function PrizePoolTracker() {
               ].map((tier, idx) => (
                 <div key={idx}>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[10px] font-black uppercase text-white/40 tracking-widest">{tier.label}</p>
+                    <p className="text-[10px] font-black text-white/40 tracking-widest">{tier.label}</p>
                     <span className="text-white font-black italic">{tier.percent}%</span>
                   </div>
                   <div className="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -177,7 +181,7 @@ export default function PrizePoolTracker() {
             viewport={{ once: true }}
             className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8"
           >
-            <h3 className="text-xs font-black text-white uppercase tracking-[0.4em] mb-10 flex items-center gap-3">
+            <h3 className="text-xs font-black text-white tracking-[0.4em] mb-10 flex items-center gap-3">
               <TrendingUp size={18} className="text-compete-purple" />
               Live Deployment Feed
             </h3>
@@ -189,8 +193,8 @@ export default function PrizePoolTracker() {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-black text-white uppercase text-xs italic tracking-tight">{tournament.game_name}</p>
-                      <p className="text-[9px] text-white/20 font-black tracking-widest uppercase mt-1">
+                      <p className="font-black text-white text-xs italic tracking-tight">{tournament.game_name}</p>
+                      <p className="text-[9px] text-white/20 font-black tracking-widest mt-1">
                         Deployed {new Date(tournament.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -213,7 +217,7 @@ export default function PrizePoolTracker() {
           viewport={{ once: true }}
           className="bg-white/[0.02] border border-white/5 rounded-[3rem] p-12 text-center"
         >
-          <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.5em] mb-10">Liquidity Distribution Index</h3>
+          <h3 className="text-[10px] font-black text-white/30 tracking-[0.5em] mb-10">Liquidity Distribution Index</h3>
           <div className="max-w-3xl mx-auto">
             <div className="h-6 bg-white/5 rounded-full overflow-hidden mb-6 p-1 border border-white/5">
               <motion.div
@@ -224,8 +228,8 @@ export default function PrizePoolTracker() {
                 className="h-full bg-gradient-to-r from-compete-purple via-compete-purpleGlow to-white rounded-full shadow-[0_0_20px_rgba(155,92,255,0.4)]"
               />
             </div>
-            <p className="text-[11px] font-black tracking-widest uppercase text-white/40">
-              <span className="text-white">KSh{stats.distributed.toLocaleString()}</span> DISTRIBUTED FROM <span className="text-white">KSh{stats.total.toLocaleString()}</span> GLOBAL POOL
+            <p className="text-[11px] font-black tracking-widest text-white/40">
+              <span className="text-white">KSh{stats.distributed.toLocaleString()}</span> distributed from <span className="text-white">KSh{stats.total.toLocaleString()}</span> global pool
             </p>
           </div>
         </motion.div>

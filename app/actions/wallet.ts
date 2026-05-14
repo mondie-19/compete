@@ -78,9 +78,9 @@ export async function verifyAndAddFunds(reference: string, amount: number) {
 export async function requestWithdrawal(amount: number) {
   const supabase = await createClient();
 
-  // 1. Limit Check (Minimum $5, Maximum $500 for demonstration)
-  if (amount < 5) return { error: "Minimum withdrawal is $5.00" };
-  if (amount > 500) return { error: "Maximum withdrawal is $500.00" };
+  // 1. Limit Check (Minimum KES 500, Maximum KES 50,000 for demonstration)
+  if (amount < 500) return { error: `Minimum withdrawal is ${formatKES(500)}` };
+  if (amount > 50000) return { error: `Maximum withdrawal is ${formatKES(50000)}` };
 
   // Get current authenticated user
   const { data: { user } } = await supabase.auth.getUser();
@@ -105,6 +105,6 @@ export async function requestWithdrawal(amount: number) {
   return {
     success: true,
     newBalance: profile?.balance || 0,
-    message: `Withdrawal request for $${amount} submitted for processing.`
+    message: `Withdrawal request for ${formatKES(amount)} submitted for processing.`
   };
 }

@@ -10,7 +10,7 @@ import { toast } from "sonner";
 const PLATFORMS = [
   { id: "PC", icon: <Monitor size={18} />, color: "hover:border-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]" },
   {
-    id: "PS5",
+    id: "PS",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
         <path d="M12.215 15.36c-1.353-.36-2.65-.67-3.924-.925v-3.714c1.274-.255 2.57-.565 3.924-.925v5.564zm0-6.852c2.14.547 4.14 1.144 5.924 1.765v3.424c-1.784.62-3.784 1.218-5.924 1.765V8.508zM1.464 12c0 5.818 4.717 10.536 10.536 10.536S22.536 17.818 22.536 12 17.818 1.464 12 1.464 1.464 6.182 1.464 12z" />

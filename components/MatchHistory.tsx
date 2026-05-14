@@ -79,7 +79,7 @@ export default function MatchHistory() {
     return (
       <div className="py-20 flex flex-col items-center justify-center space-y-4 opacity-40">
         <Loader2 className="animate-spin text-compete-purple" size={48} />
-        <p className="text-[10px] font-black uppercase tracking-[0.5em]">Retrieving Combat Logs...</p>
+        <p className="text-[10px] font-black  tracking-[0.5em]">Retrieving Combat Logs...</p>
       </div>
     );
   }
@@ -87,7 +87,7 @@ export default function MatchHistory() {
   if (matches.length === 0) {
     return (
       <div className="py-20 text-center opacity-20">
-        <p className="text-[10px] font-black uppercase tracking-[0.5em]">No deployment history detected</p>
+        <p className="text-[10px] font-black  tracking-[0.5em]">No deployment history detected</p>
       </div>
     );
   }
@@ -102,7 +102,7 @@ export default function MatchHistory() {
           viewport={{ once: true }}
           className="mb-12"
         >
-          <h2 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-8">
+          <h2 className="text-4xl md:text-5xl font-black text-white italic  tracking-tighter mb-8">
             Match <span className="text-compete-purple">History</span>
           </h2>
 
@@ -121,7 +121,7 @@ export default function MatchHistory() {
                 viewport={{ once: true }}
                 className="bg-white/[0.03] border border-white/5 rounded-2xl p-6 text-center"
               >
-                <p className="text-white/20 text-[9px] font-black uppercase tracking-widest mb-2">{stat.label}</p>
+                <p className="text-white/20 text-[9px] font-black  tracking-widest mb-2">{stat.label}</p>
                 <p className={`text-3xl font-black italic ${stat.color}`}>{stat.value}</p>
               </motion.div>
             ))}
@@ -133,7 +133,7 @@ export default function MatchHistory() {
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                className={`px-6 py-2 rounded-xl text-[10px] font-black  tracking-widest transition-all ${
                   filter === f
                     ? "bg-compete-purple text-white shadow-lg shadow-compete-purple/20"
                     : "bg-white/5 text-white/30 hover:bg-white/10"
@@ -175,14 +175,14 @@ export default function MatchHistory() {
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1">Combatant</p>
+                        <p className="text-[10px] font-black  tracking-widest text-white/20 mb-1">Combatant</p>
                         <p className="text-white font-bold text-lg">vs {match.opponent}</p>
                         <p className="text-xs text-compete-muted font-mono">{match.game} • {match.date}</p>
                       </div>
                     </div>
 
                     <div className="text-right flex-shrink-0">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-1">Payout</p>
+                      <p className="text-[10px] font-black  tracking-widest text-white/20 mb-1">Payout</p>
                       <p className="text-2xl font-black text-compete-purple italic">KSh {match.prize?.toLocaleString()}</p>
                     </div>
 
@@ -214,7 +214,7 @@ export default function MatchHistory() {
                             <div key={i} className="bg-black/40 border border-white/5 p-5 rounded-2xl">
                               <div className="flex items-center gap-3 mb-3">
                                 <Icon size={16} className="text-compete-purple" />
-                                <span className="text-[9px] font-black uppercase text-white/20 tracking-widest">{stat.label}</span>
+                                <span className="text-[9px] font-black  text-white/20 tracking-widest">{stat.label}</span>
                               </div>
                               <p className="text-lg font-black text-white italic">{stat.value}</p>
                             </div>

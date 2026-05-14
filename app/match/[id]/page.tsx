@@ -111,7 +111,13 @@ export default function MatchRoom() {
             });
 
         if (error) {
-            toast.error("Failed to transmit comms.");
+            console.error("Match Chat Error Details:", {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
+            toast.error(`TRANSMISSION ERROR: ${error.message.toUpperCase()} (${error.code})`);
         } else {
             setNewMessage("");
         }
@@ -189,30 +195,30 @@ export default function MatchRoom() {
             <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                 {/* LEFT: MATCH INTEL */}
-                <div className="lg:col-span-8 space-y-6">
-                    <header className="bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none"><Shield size={120} /></div>
+                <div className="lg:col-span-8 space-y-4 lg:space-y-6">
+                    <header className="bg-white/[0.03] border border-white/10 rounded-2xl lg:rounded-[2.5rem] p-4 lg:p-8 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none hidden lg:block"><Shield size={120} /></div>
 
-                        <div className="flex justify-between items-center mb-12">
-                            <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-red-500">Live Combat Session</span>
+                        <div className="flex justify-between items-center mb-6 lg:mb-12">
+                            <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                                <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-red-500">Live Combat</span>
                             </div>
-                            <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/10">
-                                <Timer size={14} className="text-compete-purple" />
-                                <span className="font-mono text-xs text-white/60">SESSION ACTIVE</span>
+                            <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-full border border-white/10">
+                                <Timer size={12} className="text-compete-purple" />
+                                <span className="font-mono text-[9px] text-white/60">ACTIVE</span>
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between relative z-10 px-4">
-                            <PlayerCard profile={match?.host} side="Host" />
-                            <div className="text-center">
-                                <div className="text-4xl font-black italic text-white/10 mb-4 tracking-tighter">VS</div>
-                                <div className="bg-compete-purple/10 text-compete-purple px-6 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-compete-purple/20 shadow-purple-glow">
+                        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10 px-2 lg:px-4">
+                            <div className="w-full lg:w-auto"><PlayerCard profile={match?.host} side="Host" /></div>
+                            <div className="text-center flex flex-row lg:flex-col items-center gap-4 lg:gap-0">
+                                <div className="text-xl lg:text-4xl font-black italic text-white/10 tracking-tighter">VS</div>
+                                <div className="bg-compete-purple/10 text-compete-purple px-4 lg:px-6 py-1.5 lg:py-2 rounded-xl lg:rounded-2xl text-[9px] lg:text-[11px] font-black uppercase tracking-widest border border-compete-purple/20 shadow-purple-glow whitespace-nowrap">
                                     ${match?.prize_pool} POT
                                 </div>
                             </div>
-                            <PlayerCard profile={match?.opponent} side="Interceptor" />
+                            <div className="w-full lg:w-auto"><PlayerCard profile={match?.opponent} side="Interceptor" /></div>
                         </div>
                     </header>
 
@@ -248,23 +254,23 @@ export default function MatchRoom() {
                                 </p>
                             </motion.div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] space-y-6">
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 text-white/40">
-                                        <Upload size={14} className="text-compete-purple" /> Intelligence Feed
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
+                                <div className="bg-white/[0.02] border border-white/5 p-5 lg:p-8 rounded-2xl lg:rounded-[2.5rem] space-y-4 lg:space-y-6">
+                                    <h3 className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 text-white/40">
+                                        <Upload className="text-compete-purple w-3 h-3 lg:w-3.5 lg:h-3.5" /> Intelligence Feed
                                     </h3>
-                                    <p className="text-xs text-white/60 leading-relaxed font-medium">Upload clear screenshots of the scoreboard and player names. Fraud will result in a permanent ban.</p>
+                                    <p className="text-[10px] lg:text-xs text-white/60 leading-relaxed font-medium">Upload 3 clear screenshots showing the scoreboard and player names.</p>
 
-                                    <label className={`w-full py-6 border-2 border-dashed rounded-3xl transition-all text-[11px] font-black uppercase tracking-widest flex flex-col items-center justify-center cursor-pointer mb-2 ${proofFiles.length >= 3 ? 'bg-compete-purple/10 border-compete-purple text-white shadow-purple-glow' : 'bg-white/5 border-white/10 hover:border-white/20 text-white/40'}`}>
+                                    <label className={`w-full py-4 lg:py-6 border-2 border-dashed rounded-xl lg:rounded-3xl transition-all text-[9px] lg:text-[11px] font-black uppercase tracking-widest flex flex-col items-center justify-center cursor-pointer mb-2 ${proofFiles.length >= 3 ? 'bg-compete-purple/10 border-compete-purple text-white shadow-purple-glow' : 'bg-white/5 border-white/10 hover:border-white/20 text-white/40'}`}>
                                         {proofFiles.length > 0 ? (
                                             <div className="flex flex-col items-center gap-2">
-                                                <CheckCircle2 size={24} className={proofFiles.length >= 3 ? "text-green-500" : "text-yellow-500"} />
-                                                <span>{proofFiles.length} Evidence Logs</span>
+                                                <CheckCircle2 className={`${proofFiles.length >= 3 ? "text-green-500" : "text-yellow-500"} w-[18px] h-[18px] lg:w-6 lg:h-6`} />
+                                                <span>{proofFiles.length} Logs</span>
                                             </div>
                                         ) : (
                                             <>
-                                                <Upload size={24} className="mb-2" />
-                                                <span>Upload Evidence (Min 3)</span>
+                                                <Upload className="mb-2 w-[18px] h-[18px] lg:w-6 lg:h-6" />
+                                                <span>Upload Evidence</span>
                                             </>
                                         )}
                                         <input type="file" multiple className="hidden" accept="image/*" onChange={handleFileChange} />
@@ -272,13 +278,13 @@ export default function MatchRoom() {
 
                                     {/* PREVIEW/REMOVE LIST */}
                                     {proofFiles.length > 0 && (
-                                        <div className="grid grid-cols-3 gap-3">
+                                        <div className="grid grid-cols-3 gap-2">
                                             {proofFiles.map((file, idx) => (
-                                                <div key={idx} className="relative group aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+                                                <div key={idx} className="relative group aspect-square bg-white/5 rounded-lg lg:rounded-2xl border border-white/10 overflow-hidden">
                                                     <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
                                                     <button
                                                         onClick={() => removeFile(idx)}
-                                                        className="absolute inset-0 bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[9px] font-black uppercase text-red-500"
+                                                        className="absolute inset-0 bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[8px] font-black uppercase text-red-500"
                                                     >
                                                         Purge
                                                     </button>
@@ -288,37 +294,36 @@ export default function MatchRoom() {
                                     )}
                                 </div>
 
-                                <div className="bg-white/[0.02] border border-white/5 p-8 rounded-[2.5rem] flex flex-col justify-between">
-                                    <div className="space-y-4">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 text-white/40">
-                                            <Trophy size={14} className="text-yellow-500" /> Resolution Matrix
+                                <div className="bg-white/[0.02] border border-white/5 p-5 lg:p-8 rounded-2xl lg:rounded-[2.5rem] flex flex-col justify-between">
+                                    <div className="space-y-3 lg:space-y-4">
+                                        <h3 className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-2 text-white/40">
+                                            <Trophy className="text-yellow-500 w-3 h-3 lg:w-3.5 lg:h-3.5" /> Resolution Matrix
                                         </h3>
-                                        <p className="text-xs text-white/60 leading-relaxed font-medium">Verify the bout outcome. Consensus between both players enables instant payout.</p>
+                                        <p className="text-[10px] lg:text-xs text-white/60 leading-relaxed font-medium">Verify the outcome. Consensus enables instant payout.</p>
                                     </div>
                                     
                                     {reportStatus === "submitted" ? (
-                                        <div className="bg-compete-purple/5 border border-compete-purple/20 rounded-3xl p-8 text-center mt-6">
+                                        <div className="bg-compete-purple/5 border border-compete-purple/20 rounded-2xl lg:rounded-3xl p-6 lg:p-8 text-center mt-4 lg:mt-6">
                                             <div className="flex flex-col items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full border-2 border-compete-purple border-t-transparent animate-spin" />
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-compete-purple">Awaiting Signal...</p>
-                                                <p className="text-[8px] text-white/20 uppercase font-black tracking-widest">Waiting for opponent to report</p>
+                                                <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full border-2 border-compete-purple border-t-transparent animate-spin" />
+                                                <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-compete-purple">Waiting...</p>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col gap-3 mt-8">
+                                        <div className="flex flex-col gap-2 lg:gap-3 mt-6 lg:mt-8">
                                             <button
                                                 disabled={isSubmitting}
                                                 onClick={() => handleReport('win')}
-                                                className="w-full py-5 bg-green-500/10 border border-green-500/30 text-green-500 rounded-[1.5rem] hover:bg-green-500 hover:text-white transition-all text-xs font-black uppercase tracking-widest disabled:opacity-50 shadow-[0_0_20px_rgba(34,197,94,0.1)]"
+                                                className="w-full py-4 lg:py-5 bg-green-500/10 border border-green-500/30 text-green-500 rounded-xl lg:rounded-[1.5rem] hover:bg-green-500 hover:text-white transition-all text-[10px] lg:text-xs font-black uppercase tracking-widest disabled:opacity-50 shadow-[0_0_20px_rgba(34,197,94,0.1)]"
                                             >
-                                                {isSubmitting ? "TRANSMITTING..." : "Victory Confirmed"}
+                                                {isSubmitting ? "TRANSMITTING..." : "Victory"}
                                             </button>
                                             <button
                                                 disabled={isSubmitting}
                                                 onClick={() => handleReport('loss')}
-                                                className="w-full py-5 bg-white/5 border border-white/10 text-white/40 rounded-[1.5rem] hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-500 transition-all text-xs font-black uppercase tracking-widest disabled:opacity-50"
+                                                className="w-full py-4 lg:py-5 bg-white/5 border border-white/10 text-white/40 rounded-xl lg:rounded-[1.5rem] hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-500 transition-all text-[10px] lg:text-xs font-black uppercase tracking-widest disabled:opacity-50"
                                             >
-                                                Defeat Acknowledged
+                                                Defeat
                                             </button>
                                         </div>
                                     )}
@@ -329,10 +334,10 @@ export default function MatchRoom() {
                 </div>
 
                 {/* RIGHT: TACTICAL CHAT */}
-                <div className="lg:col-span-4 flex flex-col h-[650px] bg-[#0A0A0F] border border-white/5 rounded-[2.5rem] overflow-hidden backdrop-blur-xl shadow-2xl">
-                    <div className="p-6 border-b border-white/5 bg-white/[0.02]">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 flex items-center gap-2">
-                            <MessageSquare size={14} /> Tactical Comms
+                <div className="lg:col-span-4 flex flex-col h-[450px] lg:h-[650px] bg-[#0A0A0F] border border-white/5 rounded-2xl lg:rounded-[2.5rem] overflow-hidden backdrop-blur-xl shadow-2xl">
+                    <div className="p-4 lg:p-6 border-b border-white/5 bg-white/[0.02]">
+                        <h3 className="text-[8px] lg:text-[10px] font-black uppercase tracking-[0.4em] text-white/30 flex items-center gap-2">
+                            <MessageSquare className="w-3 h-3 lg:w-3.5 lg:h-3.5" /> Tactical Comms
                         </h3>
                     </div>
 
@@ -394,10 +399,10 @@ export default function MatchRoom() {
 
 function PlayerCard({ profile, side }: { profile: any, side: string }) {
     return (
-        <div className={`flex items-center gap-5 ${side === 'Interceptor' ? 'flex-row-reverse text-right' : ''}`}>
-            <div className="relative group">
-                <div className="w-16 h-16 rounded-[1.5rem] bg-gradient-to-br from-compete-purple to-blue-600 p-[2px] transition-transform group-hover:scale-105 duration-500">
-                    <div className="w-full h-full bg-black rounded-[1.4rem] flex items-center justify-center font-black text-2xl italic uppercase overflow-hidden">
+        <div className={`flex items-center gap-3 lg:gap-5 ${side === 'Interceptor' ? 'flex-row-reverse text-right' : ''}`}>
+            <div className="relative group shrink-0">
+                <div className="w-10 h-10 lg:w-16 lg:h-16 rounded-xl lg:rounded-[1.5rem] bg-gradient-to-br from-compete-purple to-blue-600 p-[1.5px] transition-transform group-hover:scale-105 duration-500">
+                    <div className="w-full h-full bg-black rounded-[0.9rem] lg:rounded-[1.4rem] flex items-center justify-center font-black text-sm lg:text-2xl italic uppercase overflow-hidden">
                         {profile?.avatar_url ? (
                             <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
                         ) : (
@@ -405,19 +410,19 @@ function PlayerCard({ profile, side }: { profile: any, side: string }) {
                         )}
                     </div>
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-black border border-white/10 px-2 py-0.5 rounded-lg text-[8px] font-black text-compete-purple">
-                    LVL {profile?.level || 1}
+                <div className="absolute -bottom-1 -right-1 bg-black border border-white/10 px-1.5 py-0.5 rounded-md text-[6px] lg:text-[8px] font-black text-compete-purple">
+                    L{profile?.level || 1}
                 </div>
             </div>
-            <div>
-                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-1">{side}</p>
-                <p className="text-xl font-black italic uppercase tracking-tighter leading-none mb-2">{profile?.username || "AWAITING..."}</p>
-                <div className="flex items-center gap-2">
-                    <div className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-md text-[8px] font-black text-white/40 uppercase tracking-widest">
+            <div className="min-w-0">
+                <p className="text-[8px] lg:text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-0.5 lg:mb-1">{side}</p>
+                <p className="text-sm lg:text-xl font-black italic uppercase tracking-tighter leading-none mb-1 lg:mb-2 truncate">{profile?.username || "AWAITING..."}</p>
+                <div className={`flex items-center gap-1.5 lg:gap-2 ${side === 'Interceptor' ? 'flex-row-reverse' : ''}`}>
+                    <div className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-md text-[6px] lg:text-[8px] font-black text-white/40 uppercase tracking-widest whitespace-nowrap">
                         {profile?.rank_name || "NOOB"}
                     </div>
                     <div className="flex gap-0.5">
-                        {[1, 2, 3].map(i => <div key={i} className={`w-3 h-1 rounded-full ${i <= (profile?.level % 3 + 1) ? 'bg-compete-purple shadow-[0_0_5px_#9B5CFF]' : 'bg-white/5'}`} />)}
+                        {[1, 2, 3].map(i => <div key={i} className={`w-2 h-0.5 lg:w-3 lg:h-1 rounded-full ${i <= (profile?.level % 3 + 1) ? 'bg-compete-purple shadow-[0_0_5px_#9B5CFF]' : 'bg-white/5'}`} />)}
                     </div>
                 </div>
             </div>

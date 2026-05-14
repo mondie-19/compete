@@ -1,10 +1,11 @@
 "use client";
 import { motion } from "framer-motion";
-import { Zap, ChevronLeft, Gamepad2, ShieldAlert, AlertTriangle, Monitor, Smartphone } from "lucide-react";
+import { Zap, ChevronLeft, Gamepad2, ShieldAlert, AlertTriangle, Monitor, Smartphone, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createChallenge } from "@/app/actions/challenges";
 import { createClient } from "@/supabase/client";
+import { useHeartbeat } from "@/lib/useHeartbeat";
 import { toast } from "sonner";
 import Link from "next/link";
 import Footer from "@/components/Footer";
@@ -12,7 +13,7 @@ import Footer from "@/components/Footer";
 const PLATFORMS = [
     { id: "PC",     icon: <Monitor size={18} />,    color: "hover:border-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]" },
     {
-        id: "PS5",
+        id: "PS",
         icon: (
             <svg width="18" height="18" viewBox="0 0 640 640" fill="currentColor">
                 <path d="M603 436.3C591.7 450.5 564.2 460.6 564.2 460.6L359.1 534.2L359.1 479.9L510 426.1C527.1 420 529.8 411.3 515.8 406.7C501.9 402.1 476.7 403.4 459.6 409.6L359.1 445.1L359.1 388.7C382.3 380.9 406.2 375.1 434.8 371.9C475.7 367.4 525.7 372.5 565 387.4C609.2 401.4 614.2 422.1 603 436.3zM378.6 343.8L378.6 204.8C378.6 188.5 375.6 173.5 360.3 169.2C348.6 165.4 341.3 176.3 341.3 192.6L341.3 540.5L247.5 510.7L247.5 96C287.4 103.4 345.5 120.9 376.7 131.4C456.2 158.7 483.1 192.7 483.1 269.2C483.1 343.7 437.1 372 378.6 343.8zM75.3 474.2C29.9 461.4 22.3 434.7 43 419.4C62.1 405.2 94.7 394.5 94.7 394.5L229.2 346.7L229.2 401.2L132.4 435.8C115.3 441.9 112.7 450.6 126.6 455.2C140.5 459.8 165.7 458.5 182.8 452.3L229.2 435.4L229.2 484.2C177.6 493.5 127.8 491.5 75.3 474.2z" />
@@ -50,13 +51,16 @@ export default function DeployPage() {
     const [isDeploying, setIsDeploying] = useState(false);
     const router = useRouter();
     const supabase = createClient();
+    useHeartbeat();
 
     useEffect(() => {
         const fetchBalance = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
-                const { data } = await supabase.from('profiles').select('balance').eq('id', user.id).single();
-                if (data) setBalance(data.balance);
+                const { data } = await supabase.from('profiles').select('balance, region').eq('id', user.id).single();
+                if (data) {
+                    setBalance(data.balance);
+                }
             }
         }
         fetchBalance();
@@ -134,37 +138,37 @@ export default function DeployPage() {
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20" />
             </div>
 
-            <main className="flex-1 relative z-10 pt-32 pb-20 px-6 max-w-5xl mx-auto w-full">
-                <Link href="/lobby" className="inline-flex items-center gap-2 text-white/40 hover:text-white transition-colors mb-12 text-sm font-medium">
-                    <ChevronLeft size={16} className="-ml-1" />
-                    Back to Lobby
+            <main className="flex-1 relative z-10 pt-20 lg:pt-32 pb-10 px-4 lg:px-6 max-w-5xl mx-auto w-full">
+                <Link href="/lobby" className="inline-flex items-center gap-1.5 text-white/40 hover:text-white transition-colors mb-6 lg:mb-12 text-[10px] lg:text-sm font-medium">
+                    <ChevronLeft className="-ml-1 w-3 h-3 lg:w-4 lg:h-4" />
+                    BACK TO LOBBY
                 </Link>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
                     {/* INFO SIDE */}
-                    <div className="lg:col-span-5 space-y-8 sticky top-32">
+                    <div className="lg:col-span-5 space-y-6 lg:space-y-8 lg:sticky lg:top-32">
                         <div>
-                            <h1 className="text-4xl lg:text-5xl font-medium tracking-tight mb-4 text-compete-purple">
+                            <h1 className="text-2xl lg:text-5xl font-black italic uppercase tracking-tighter mb-2 text-compete-purple">
                                 Deploy Match
                             </h1>
-                            <p className="text-white/50 text-base leading-relaxed max-w-sm">
-                                Create a custom match layout. Your stake is secured in escrow and released upon valid verification.
+                            <p className="text-white/30 text-[10px] lg:text-base leading-relaxed max-w-sm">
+                                Create a custom match layout. Your stake is secured in escrow and released upon verification.
                             </p>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 lg:gap-6">
                             {balance !== null && (
-                                <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center justify-between shadow-sm">
-                                    <span className="text-sm font-medium text-white/50">Available Balance</span>
-                                    <span className="text-xl font-semibold tracking-tight">KSh {balance.toLocaleString()}</span>
+                                <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between shadow-sm">
+                                    <span className="text-[10px] font-medium text-white/40 uppercase tracking-widest">Available</span>
+                                    <span className="text-sm lg:text-xl font-black italic tracking-tight">KSh {balance.toLocaleString()}</span>
                                 </div>
                             )}
 
-                            <div className="flex items-start gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
-                                <ShieldAlert size={20} className="text-white/40 shrink-0 mt-0.5" />
+                            <div className="flex items-start gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+                                <ShieldAlert className="text-compete-purple shrink-0 mt-0.5 w-4 h-4 lg:w-5 lg:h-5" />
                                 <div>
-                                    <p className="text-sm font-medium text-white mb-1">Escrow Protocol</p>
-                                    <p className="text-sm text-white/40 leading-relaxed">Funds remain locked in the system until conclusive match results are submitted and verified.</p>
+                                    <p className="text-[10px] font-black uppercase text-white/60 mb-0.5">Escrow Protocol</p>
+                                    <p className="text-[9px] lg:text-sm text-white/20 leading-relaxed italic">Funds are locked until match verification.</p>
                                 </div>
                             </div>
                         </div>
@@ -175,46 +179,46 @@ export default function DeployPage() {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-[#121212] border border-white/10 rounded-3xl p-8 shadow-2xl relative"
+                            className="bg-[#121212] border border-white/10 rounded-2xl lg:rounded-3xl p-5 lg:p-8 shadow-2xl relative"
                             style={{ boxShadow: wager.shadowStyle }}
                         >
-                            <div className="space-y-6 relative z-10">
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2 text-sm font-medium text-white/60 ml-1">
-                                        <Gamepad2 size={16} /> Game Title
+                            <div className="space-y-5 lg:space-y-6 relative z-10">
+                                <div className="space-y-1.5">
+                                    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+                                        <Gamepad2 size={12} /> Game Title
                                     </label>
                                     <input
                                         type="text"
-                                        placeholder="e.g. Warzone, EA FC 24"
+                                        placeholder="e.g. WARZONE, EA FC 24"
                                         value={gameName}
                                         onChange={(e) => setGameName(e.target.value)}
-                                        className={`w-full bg-black/50 border ${wager.borderClass} rounded-2xl py-4 px-5 text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all placeholder:text-white/20`}
+                                        className={`w-full bg-black/50 border ${wager.borderClass} rounded-xl py-3.5 px-4 text-xs lg:text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all placeholder:text-white/10 uppercase font-black italic`}
                                     />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-white/60 ml-1">Platform</label>
-                                    <div className="grid grid-cols-5 gap-2">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">Platform</label>
+                                    <div className="grid grid-cols-5 gap-1.5 lg:gap-2">
                                         {PLATFORMS.map((p) => (
                                             <button
                                                 key={p.id}
                                                 type="button"
                                                 onClick={() => setPlatform(p.id)}
-                                                className={`flex flex-col items-center gap-2 py-3 px-2 rounded-xl border transition-all duration-300 ${
+                                                className={`flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-lg lg:rounded-xl border transition-all duration-300 ${
                                                     platform === p.id
                                                         ? 'bg-white text-black border-white shadow-xl scale-105'
                                                         : `bg-black/40 border-white/10 text-white/40 ${p.color}`
                                                 }`}
                                             >
-                                                {p.icon}
-                                                <span className="text-[7px] font-black uppercase tracking-tighter">{p.id}</span>
+                                                <div className="scale-75 lg:scale-100">{p.icon}</div>
+                                                <span className="text-[6px] lg:text-[7px] font-black uppercase tracking-tighter">{p.id}</span>
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className={`text-sm font-medium ml-1 ${isInsufficientFunds ? "text-red-400" : "text-white/60"}`}>
+                                <div className="space-y-1.5">
+                                    <label className={`text-[10px] font-black uppercase tracking-widest ml-1 ${isInsufficientFunds ? "text-red-400" : "text-white/40"}`}>
                                         Stake (KSh)
                                     </label>
                                     <input
@@ -222,42 +226,43 @@ export default function DeployPage() {
                                         value={entryFee}
                                         step={50}
                                         onChange={(e) => setEntryFee(Math.max(0, Number(e.target.value)))}
-                                        className={`w-full bg-black/50 border ${isInsufficientFunds ? "border-red-500/50" : wager.borderClass} rounded-2xl py-4 px-5 text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+                                        className={`w-full bg-black/50 border ${isInsufficientFunds ? "border-red-500/50" : wager.borderClass} rounded-xl py-3.5 px-4 text-xs lg:text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-black italic`}
                                     />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-white/60 ml-1">
-                                        Rules & Engagements
+
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
+                                        Engagements
                                     </label>
                                     <textarea
-                                        placeholder="Optional: Match rules, server region, playing style..."
+                                        placeholder="Rules, region, style..."
                                         value={engagements}
                                         onChange={(e) => setEngagements(e.target.value)}
-                                        className={`w-full bg-black/50 border ${wager.borderClass} rounded-2xl py-4 px-5 text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all placeholder:text-white/20 h-28 resize-none`}
+                                        className={`w-full bg-black/50 border ${wager.borderClass} rounded-xl py-3.5 px-4 text-xs lg:text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all placeholder:text-white/10 h-20 lg:h-28 resize-none font-medium text-white/60`}
                                     />
                                 </div>
 
-                                <div className={`p-6 mt-2 ${wager.bgClass} border ${wager.borderClass} rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-300`}>
-                                    <p className={`text-xs font-semibold tracking-widest uppercase mb-1 ${wager.colorClass} opacity-80`}>{wager.label}</p>
-                                    <p className={`text-4xl font-semibold tracking-tight ${wager.colorClass}`}>KSh {(entryFee * 2).toLocaleString()}</p>
-                                    <p className="text-xs text-white/40 mt-1 font-medium">Total Prize Pool (1:1 Ratio)</p>
+                                <div className={`p-4 lg:p-6 mt-1 lg:mt-2 ${wager.bgClass} border ${wager.borderClass} rounded-xl lg:rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-300`}>
+                                    <p className={`text-[8px] lg:text-xs font-black tracking-widest uppercase mb-1 ${wager.colorClass} opacity-60`}>{wager.label}</p>
+                                    <p className={`text-2xl lg:text-4xl font-black italic tracking-tighter ${wager.colorClass}`}>KSh {(entryFee * 2).toLocaleString()}</p>
+                                    <p className="text-[7px] lg:text-xs text-white/20 mt-1 font-black uppercase tracking-widest">Total Prize Pool</p>
                                 </div>
 
                                 <button
                                     disabled={isDeploying || !gameName || isInsufficientFunds}
                                     onClick={handleDeploy}
-                                    className={`w-full py-5 text-sm font-bold tracking-wide rounded-2xl transition-all flex items-center justify-center gap-2 mt-4 ${isInsufficientFunds
+                                    className={`w-full py-4 lg:py-5 text-[10px] lg:text-sm font-black uppercase tracking-widest rounded-xl lg:rounded-2xl transition-all flex items-center justify-center gap-2 mt-2 lg:mt-4 ${isInsufficientFunds
                                         ? "bg-red-500/10 text-red-400 border border-red-500/30 cursor-not-allowed"
                                         : isDeploying || !gameName
                                             ? "bg-white/5 text-white/30 cursor-wait"
-                                            : "bg-white text-black hover:bg-white/90 active:scale-[0.98]"
+                                            : "bg-white text-black hover:bg-white/90 active:scale-[0.98] italic"
                                         }`}
                                 >
                                     {isInsufficientFunds ? (
-                                        <AlertTriangle size={18} />
+                                        <AlertTriangle size={14} />
                                     ) : (
-                                        <Zap size={18} className={isDeploying ? "animate-pulse" : ""} />
+                                        <Zap size={14} className={isDeploying ? "animate-pulse" : ""} />
                                     )}
 
                                     <span>

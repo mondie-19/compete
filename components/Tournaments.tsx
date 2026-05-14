@@ -83,8 +83,8 @@ export default function Tournaments() {
 
       <div className="flex flex-col md:flex-row justify-between items-center md:items-end mb-12 gap-6">
         <div className="text-center md:text-left">
-          <h2 className="text-compete-purple font-bold tracking-widest uppercase mb-2">Ongoing Events</h2>
-          <h3 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter">
+          <h2 className="text-compete-purple font-bold tracking-widest mb-2">Ongoing Events</h2>
+          <h3 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter">
             Active Tournaments
           </h3>
         </div>
@@ -111,7 +111,7 @@ export default function Tournaments() {
           <Trophy size={48} />
         </motion.div>
 
-        <h4 className="text-3xl md:text-5xl font-black text-white uppercase italic tracking-tighter mb-4">
+        <h4 className="text-3xl md:text-5xl font-black text-white italic tracking-tighter mb-4">
           Arena Under <span className="text-compete-purple">Construction</span>
         </h4>
         <p className="text-compete-muted text-lg max-w-xl mx-auto mb-10">
@@ -124,13 +124,13 @@ export default function Tournaments() {
             { label: "Security", value: "Locked"     },
           ].map((stat, i) => (
             <div key={i} className="flex flex-col items-center">
-              <span className="text-[10px] font-black uppercase tracking-widest text-compete-purple mb-1">{stat.label}</span>
+              <span className="text-[10px] font-black tracking-widest text-compete-purple mb-1">{stat.label}</span>
               <span className="text-xl font-bold text-white">{stat.value}</span>
             </div>
           ))}
           {/* Live Prize Stat */}
           <div className="flex flex-col items-center">
-            <span className="text-[10px] font-black uppercase tracking-widest text-compete-purple mb-1">Rewards</span>
+            <span className="text-[10px] font-black tracking-widest text-compete-purple mb-1">Rewards</span>
             <span className="text-xl font-bold text-white tabular-nums">
               {formatPrize(animatedPrize, currencyCfg)}
             </span>

@@ -34,7 +34,8 @@ export default function StatsDashboard() {
 
       setStats({
         username: profile?.username || "COMPETITOR",
-        level: profile?.level || 1,
+        level: ranking?.level || 1,
+        xp: ranking?.xp || 0,
         rank: ranking?.rank || "-",
         totalMatches: ranking?.total_matches || 0,
         winRate: ranking?.win_rate || 0,
@@ -53,7 +54,7 @@ export default function StatsDashboard() {
     return (
       <div className="py-20 flex flex-col items-center justify-center space-y-4 opacity-40">
         <Loader2 className="animate-spin text-compete-purple" size={48} />
-        <p className="text-[10px] font-black uppercase tracking-[0.5em]">Synchronizing Neural Stats...</p>
+        <p className="text-[10px] font-black  tracking-[0.5em]">Synchronizing Neural Stats...</p>
       </div>
     );
   }
@@ -61,7 +62,7 @@ export default function StatsDashboard() {
   if (!stats) {
     return (
       <div className="py-20 text-center opacity-20">
-        <p className="text-[10px] font-black uppercase tracking-[0.5em]">Login required for performance tracking</p>
+        <p className="text-[10px] font-black  tracking-[0.5em]">Login required for performance tracking</p>
       </div>
     );
   }
@@ -71,6 +72,7 @@ export default function StatsDashboard() {
     { icon: TrendingUp, label: "Win Rate", value: `${stats.winRate}%`, color: "text-compete-purple" },
     { icon: Zap, label: "Current Rank", value: `#${stats.rank}`, color: "text-red-500" },
     { icon: Target, label: "Level", value: stats.level, color: "text-blue-500" },
+    { icon: Star, label: "Neural XP", value: stats.xp, color: "text-orange-500" },
   ];
 
   // Simulated performance data relative to user's real totals for visual appeal
@@ -92,13 +94,13 @@ export default function StatsDashboard() {
         >
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-4xl md:text-5xl font-black text-white italic uppercase tracking-tighter mb-2">
+              <h2 className="text-4xl md:text-5xl font-black text-white italic  tracking-tighter mb-2">
                 Performance <span className="text-compete-purple">Dashboard</span>
               </h2>
               <p className="text-compete-muted">Operative: <span className="text-white font-bold">{stats.username}</span></p>
             </div>
             <div className="text-right hidden md:block">
-              <p className="text-compete-muted text-sm uppercase tracking-widest font-black text-[9px]">Uplink Date</p>
+              <p className="text-compete-muted text-sm  tracking-widest font-black text-[9px]">Uplink Date</p>
               <p className="text-white font-bold">{new Date(stats.joinDate).toLocaleDateString()}</p>
             </div>
           </div>
@@ -124,7 +126,7 @@ export default function StatsDashboard() {
                 <div className="absolute top-0 right-0 w-24 h-24 bg-compete-purple/5 -mr-8 -mt-8 rounded-full blur-2xl group-hover:bg-compete-purple/20 transition-all" />
                 <div className="flex items-center justify-between mb-4 relative z-10">
                   <Icon className={`${stat.color} opacity-60 group-hover:opacity-100 transition-opacity`} size={24} />
-                  <div className="text-[9px] uppercase tracking-[0.2em] text-white/30 font-black">{stat.label}</div>
+                  <div className="text-[9px]  tracking-[0.2em] text-white/30 font-black">{stat.label}</div>
                 </div>
                 <p className="text-3xl font-black text-white italic relative z-10">{stat.value}</p>
               </motion.div>
@@ -141,7 +143,7 @@ export default function StatsDashboard() {
             className="lg:col-span-2 bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xs font-black text-white uppercase tracking-[0.4em] flex items-center gap-3">
+              <h3 className="text-xs font-black text-white  tracking-[0.4em] flex items-center gap-3">
                 <BarChart3 size={16} className="text-compete-purple" />
                 Deployment History
               </h3>
@@ -150,7 +152,7 @@ export default function StatsDashboard() {
                   <button
                     key={period}
                     onClick={() => setTimeframe(period)}
-                    className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                    className={`px-4 py-1.5 rounded-lg text-[9px] font-black  tracking-widest transition-all ${
                       timeframe === period
                         ? "bg-compete-purple text-white shadow-lg shadow-compete-purple/20"
                         : "text-white/30 hover:text-white"
@@ -203,18 +205,18 @@ export default function StatsDashboard() {
             className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8 flex flex-col justify-between"
           >
             <div>
-              <h3 className="text-xs font-black text-white uppercase tracking-[0.4em] mb-8">Victory Ratio</h3>
+              <h3 className="text-xs font-black text-white  tracking-[0.4em] mb-8">W/L Ratio</h3>
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Total Wins</span>
+                  <span className="text-[10px] font-black  tracking-widest text-white/30">Total Wins</span>
                   <span className="text-xl font-black italic text-compete-purple">{stats.totalWins}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Defeats</span>
+                  <span className="text-[10px] font-black  tracking-widest text-white/30">Defeats</span>
                   <span className="text-xl font-black italic text-white/60">{stats.totalLosses}</span>
                 </div>
                 <div className="pt-6 border-t border-white/5">
-                  <p className="text-[8px] font-black uppercase text-white/20 tracking-widest mb-4">Skill Confidence</p>
+                  <p className="text-[8px] font-black  text-white/20 tracking-widest mb-4">Skill Confidence</p>
                   <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
@@ -225,7 +227,7 @@ export default function StatsDashboard() {
                 </div>
               </div>
             </div>
-            <button className="w-full py-4 bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-white/40 hover:bg-white hover:text-black transition-all rounded-xl mt-8">
+            <button className="w-full py-4 bg-white/5 border border-white/10 text-[9px] font-black  tracking-widest text-white/40 hover:bg-white hover:text-black transition-all rounded-xl mt-8">
               Download Intel Report
             </button>
           </motion.div>

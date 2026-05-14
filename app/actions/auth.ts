@@ -1,5 +1,7 @@
 "use server";
 import { createClient } from "@/supabase/server";
+import { sendEmail } from "@/lib/email";
+import { WelcomeEmail } from "@/app/emails/WelcomeEmail";
 
 /**
  * SIGN UP: Create a new account and profile
@@ -21,9 +23,13 @@ export async function signUp(email: string, password: string, username: string) 
         return { error: error.message };
     }
 
-    // Handle "Welcome Letter" dispatch
-    // For now, we simulate this. In a real scenario, you'd use a service like Resend.
-    console.log(`[MAIL TERMINAL]: Welcome Letter sent to ${email} for operative ${username}.`);
+    // Handle "Welcome Letter" dispatch via Resend
+    const verificationLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://compete.app'}/auth/verify?token=pending`; // Example placeholder for verification link
+    await sendEmail({
+        to: email,
+        subject: `Welcome to Compete, ${username}`,
+        react: WelcomeEmail({ username, verificationLink }),
+    });
 
     return { success: true, user: data.user, role: 'client' };
 }

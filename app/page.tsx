@@ -16,7 +16,7 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <div className="relative min-h-screen bg-compete-bg slide-up">
+    <div className="relative min-h-screen bg-compete-bg slide-up overflow-x-hidden">
 
       {/* Add pt-20 to account for the fixed navbar height */}
       <main className="pt-20">

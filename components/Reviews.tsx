@@ -64,7 +64,7 @@ export default function Reviews() {
         <p className="text-compete-muted mt-2">Hear from real competitors cashing out on the platform</p>
       </div>
 
-      <div className="relative h-80">
+      <div className="relative min-h-[520px] md:h-80">
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
@@ -74,9 +74,9 @@ export default function Reviews() {
             transition={{ duration: 0.5 }}
             className="absolute inset-0"
           >
-            <div className="h-full bg-compete-card/30 border border-white/5 rounded-2xl p-8 flex gap-8 items-stretch">
+            <div className="h-full bg-compete-card/30 border border-white/5 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-stretch relative">
               <div
-                className="w-48 h-full rounded-lg bg-cover bg-center flex-shrink-0 hidden md:block"
+                className="w-full md:w-48 h-32 md:h-full rounded-lg bg-cover bg-center flex-shrink-0"
                 style={{ backgroundImage: `url(${REVIEWS[current].bg})` }}
               />
               <div className="flex-1 flex flex-col justify-between">
@@ -101,13 +101,13 @@ export default function Reviews() {
         {/* Navigation Buttons */}
         <button
           onClick={prev}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-14 p-2 hover:bg-white/10 rounded-full transition-colors"
+          className="absolute left-2 md:left-0 top-1/2 -translate-y-1/2 md:-translate-x-14 p-2 hover:bg-white/10 rounded-full transition-colors z-20"
         >
           <ChevronLeft size={24} className="text-compete-purple" />
         </button>
         <button
           onClick={next}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-14 p-2 hover:bg-white/10 rounded-full transition-colors"
+          className="absolute right-2 md:right-0 top-1/2 -translate-y-1/2 md:translate-x-14 p-2 hover:bg-white/10 rounded-full transition-colors z-20"
         >
           <ChevronRight size={24} className="text-compete-purple" />
         </button>
