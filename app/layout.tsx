@@ -31,7 +31,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${chakraPetch.variable}`}>
-      <body className="relative min-h-screen bg-compete-bg text-compete-text overflow-x-hidden font-sans">
+      <body className="relative min-h-screen bg-compete-bg text-compete-text overflow-x-hidden font-mono">
         {/* Navbar */}
         <Navbar />
 

@@ -24,70 +24,70 @@ export default function Leaderboard() {
     fetchRankings();
   }, [supabase]);
   return (
-    <section className="py-20 px-4 max-w-5xl mx-auto">
+    <section className="py-20 px-4 max-w-5xl mx-auto font-mono">
       <div className="text-center mb-12">
-        <h2 className="text-4xl font-black text-white italic  tracking-tighter">
-          Hall of <span className="text-compete-purple">Fame</span>
+        <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">
+          HALL OF <span className="text-compete-purple">FAME</span>
         </h2>
-        <p className="text-compete-muted mt-2">The top competitors this season</p>
+        <p className="text-white/40 text-xs mt-2">The top competitors this season</p>
       </div>
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        className="bg-compete-card/30 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-md"
+        className="bg-[#0F0F16]/60 border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md"
       >
         {/* Desktop Table View */}
         <div className="hidden md:block">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-white/5 text-compete-muted text-xs  tracking-widest">
-                <th className="p-6">Rank</th>
-                <th className="p-6">Player</th>
-                <th className="p-6">Score</th>
-                <th className="p-6">Win Rate</th>
+              <tr className="bg-white/5 text-white/40 text-[10px] font-black tracking-widest uppercase">
+                <th className="p-6">RANK</th>
+                <th className="p-6">PLAYER</th>
+                <th className="p-6">SCORE</th>
+                <th className="p-6">WIN RATE</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="p-12 text-center text-white/20 italic font-black  tracking-widest animate-pulse">
-                    Synchronizing Global Standings...
+                  <td colSpan={4} className="p-12 text-center text-white/20 italic font-black tracking-widest animate-pulse">
+                    SYNCHRONIZING GLOBAL STANDINGS...
                   </td>
                 </tr>
               ) : topPlayers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-12 text-center text-white/20 italic font-black  tracking-widest">
-                    No Match Data Found
+                  <td colSpan={4} className="p-12 text-center text-white/20 italic font-black tracking-widest">
+                    NO MATCH DATA FOUND
                   </td>
                 </tr>
               ) : (
                 topPlayers.map((player) => (
                   <tr key={player.rank} className="hover:bg-compete-purple/5 transition-colors group">
-                    <td className="p-6 font-bold">
+                    <td className="p-6 font-black text-sm">
                       {player.rank <= 3 ? (
-                        <Medal className={player.rank === 1 ? "text-yellow-400" : "text-compete-muted"} size={20} />
+                        <Medal className={player.rank === 1 ? "text-yellow-400" : "text-compete-muted"} size={18} />
                       ) : (
-                        <span className="text-compete-muted ml-1">{player.rank}</span>
+                        <span className="text-white/40 ml-1">{player.rank}</span>
                       )}
                     </td>
                     <td className="p-6 flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-none bg-white/5 border border-white/10 flex items-center justify-center text-xl overflow-hidden">
+                      <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                         {player.avatar_url ? (
                           <img src={player.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                         ) : (
-                          <span className="font-black italic text-compete-purple">{player.username[0]}</span>
+                          <span className="font-black italic text-compete-purple text-xs">{player.username[0].toUpperCase()}</span>
                         )}
                       </div>
-                      <span className="font-bold text-white group-hover:text-compete-purple transition-colors">
-                        {player.username}
+                      <span className="font-black text-xs text-white group-hover:text-compete-purple transition-colors">
+                        {player.username.toUpperCase()}
                       </span>
-                      {player.rank === 1 && <Flame size={16} className="text-orange-500 animate-pulse" />}
+                      {player.rank === 1 && <Flame size={14} className="text-orange-500 animate-pulse" />}
                     </td>
-                    <td className="p-6 text-white font-mono font-black italic">${player.total_earnings.toLocaleString()}</td>
+                    <td className="p-6 text-white text-xs font-black italic">${player.total_earnings.toLocaleString()}</td>
                     <td className="p-6">
                       <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-black text-white/40 w-8">{player.win_rate}%</span>
+                        <span className="text-[9px] font-black text-white/40 w-8">{player.win_rate}%</span>
                         <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden min-w-[100px]">
                           <div
                             className="h-full bg-compete-purple shadow-[0_0_10px_#9B5CFF]"
@@ -106,35 +106,35 @@ export default function Leaderboard() {
         {/* Mobile Card View */}
         <div className="md:hidden divide-y divide-white/5">
           {loading ? (
-            <div className="p-8 text-center text-white/20 italic font-black  tracking-widest animate-pulse text-[10px]">
-              Synchronizing Global Standings...
+            <div className="p-8 text-center text-white/20 italic font-black tracking-widest animate-pulse text-[10px]">
+              SYNCHRONIZING GLOBAL STANDINGS...
             </div>
           ) : topPlayers.length === 0 ? (
-            <div className="p-8 text-center text-white/20 italic font-black  tracking-widest text-[10px]">
-              No Match Data Found
+            <div className="p-8 text-center text-white/20 italic font-black tracking-widest text-[10px]">
+              NO MATCH DATA FOUND
             </div>
           ) : (
             topPlayers.map((player) => (
               <div key={player.rank} className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-none bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                    <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                       {player.avatar_url ? (
                         <img src={player.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                       ) : (
-                        <span className="font-black italic text-compete-purple text-xs">{player.username[0]}</span>
+                        <span className="font-black italic text-compete-purple text-xs">{player.username[0].toUpperCase()}</span>
                       )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-white text-xs">{player.username}</span>
+                        <span className="font-black text-white text-xs">{player.username.toUpperCase()}</span>
                         {player.rank === 1 && <Flame size={12} className="text-orange-500" />}
                       </div>
                       <p className="text-[8px] font-black text-white/20 tracking-widest">Rank #{player.rank}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-white font-mono font-black italic text-xs">${player.total_earnings.toLocaleString()}</p>
+                    <p className="text-white font-black italic text-xs">${player.total_earnings.toLocaleString()}</p>
                     <p className="text-[8px] font-black text-white/20 tracking-widest">Earnings</p>
                   </div>
                 </div>
@@ -159,10 +159,10 @@ export default function Leaderboard() {
       <div className="mt-8 flex justify-center">
         <Link
           href="/rankings"
-          className="group flex items-center gap-3 px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black tracking-[0.2em] hover:bg-white hover:text-black transition-all shadow-xl"
+          className="group flex items-center gap-3 px-8 py-4 bg-white/5 border border-white/10 rounded-full text-[10px] font-black tracking-[0.2em] hover:bg-white hover:text-black transition-all shadow-xl uppercase"
         >
           View Full Hall of Fame
-          <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          <ChevronRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
         </Link>
       </div>
     </section>

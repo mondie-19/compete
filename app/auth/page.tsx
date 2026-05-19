@@ -68,7 +68,7 @@ export default function AuthPage() {
     };
 
     return (
-        <div className="relative min-h-screen bg-[#000000] text-white flex flex-col items-center pt-32 p-6 overflow-hidden selection:bg-compete-purple selection:text-white">
+        <div className="relative min-h-screen bg-[#0A0A0F] text-white flex flex-col items-center pt-32 p-6 overflow-hidden selection:bg-compete-purple selection:text-white font-mono">
 
             {/* TACTICAL BACKGROUND GRID */}
             <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
@@ -81,28 +81,39 @@ export default function AuthPage() {
                 <div className="w-full h-[2px] bg-compete-purple animate-scan shadow-[0_0_15px_#9B5CFF]" />
             </div>
 
-            <Link href="/" className="fixed top-28 left-[7%] md:left-[calc(50%-512px+24px)] lg:left-[calc(50%-512px+32px)] flex items-center gap-3 text-white/40 hover:text-white transition-all group z-30">
-                <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                <span className="text-[10px] font-black tracking-[0.4em] italic">Abort Uplink</span>
+            <Link href="/" className="fixed top-28 left-[7%] md:left-[calc(50%-512px+24px)] lg:left-[calc(50%-512px+32px)] flex items-center gap-2 text-white/40 hover:text-white transition-all group z-30 text-[10px] font-black uppercase">
+                <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+                <span>ABORT UPLINK</span>
             </Link>
 
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative z-20 w-full max-w-[380px] bg-[#050505] border border-white/10 p-8 rounded-3xl shadow-2xl overflow-hidden"
+                className="relative z-20 w-full max-w-[380px] bg-[#0F0F16]/60 border border-white/10 p-6 lg:p-8 rounded-3xl shadow-2xl overflow-hidden backdrop-blur-md"
             >
-                {/* DECORATIVE CORNERS */}
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-compete-purple/40 rounded-tl-3xl" />
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-compete-purple/40 rounded-br-3xl" />
+                {/* Dynamic Iridescent Accent indicator */}
+                <style>{`
+                    @keyframes shimmer {
+                        0% { background-position: 200% 0; }
+                        100% { background-position: -200% 0; }
+                    }
+                `}</style>
+                <div 
+                    className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#0F0A1A] via-[#9B5CFF] via-[#5A20B3] via-[#9B5CFF] to-[#0F0A1A]"
+                    style={{
+                        backgroundSize: "200% 100%",
+                        animation: "shimmer 4s linear infinite"
+                    }}
+                />
 
-                <div className="mb-8 text-left mt-2">
-                    <div className="flex items-center gap-2 text-compete-purple mb-4">
-                        <Fingerprint size={20} className="animate-pulse" />
-                        <span className="text-[8px] font-black tracking-[0.5em]">Identity Required</span>
+                <div className="mb-6 text-left mt-2">
+                    <div className="flex items-center gap-2 text-compete-purple mb-3">
+                        <Fingerprint size={16} className="animate-pulse" />
+                        <span className="text-[8px] font-black tracking-[0.4em] uppercase">IDENTITY REQUIRED</span>
                     </div>
-                    <h1 className="text-3xl font-black italic tracking-tighter leading-none">
-                        {isLogin ? "Neural" : "New Competitor"}<br />
-                        <span className="text-transparent stroke-text">{isLogin ? "Uplink" : "Protocol"}</span>
+                    <h1 className="text-2xl lg:text-3xl font-black italic tracking-tighter leading-none uppercase">
+                        {isLogin ? "NEURAL" : "NEW COMPETITOR"}<br />
+                        <span className="text-compete-purple">{isLogin ? "UPLINK" : "PROTOCOL"}</span>
                     </h1>
                 </div>
 
@@ -113,54 +124,57 @@ export default function AuthPage() {
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
                                 exit={{ opacity: 0, height: 0 }}
-                                className="relative group"
+                                className="space-y-1"
                             >
+                                <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">COMPETITOR HANDLE</label>
                                 <input
                                     id="username"
                                     name="username"
                                     type="text"
-                                    placeholder="Competitor Name"
+                                    placeholder="e.g. NINJA#1234"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     required={!isLogin}
                                     autoComplete="username"
-                                    className="w-full bg-white/[0.03] border border-white/10 p-4 pl-6 text-white outline-none focus:border-compete-purple focus:bg-white/[0.08] transition-all font-bold placeholder:text-white/10 tracking-widest text-[10px]"
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none transition-all placeholder:text-white/10 font-black italic text-white focus:border-compete-purple/40"
                                 />
                             </motion.div>
                         )}
                     </AnimatePresence>
 
-                    <div className="relative group">
+                    <div className="space-y-1">
+                        <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">EMAIL ADDRESS</label>
                         <input
                             id="email"
                             name="email"
                             type="email"
-                            placeholder="Email Address"
+                            placeholder="e.g. CODESMITH@COMPETE.GG"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
                             autoComplete="email"
-                            className="w-full bg-white/[0.03] border border-white/10 p-4 pl-6 text-white outline-none focus:border-compete-purple focus:bg-white/[0.08] transition-all font-bold placeholder:text-white/10 tracking-widest text-[10px]"
+                            className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none transition-all placeholder:text-white/10 font-black italic text-white focus:border-compete-purple/40"
                         />
                     </div>
 
-                    <div className="relative group">
+                    <div className="space-y-1">
+                        <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">ACCESS KEY</label>
                         <input
                             id="password"
                             name="password"
                             type="password"
-                            placeholder="Access Key"
+                            placeholder="••••••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
                             autoComplete={isLogin ? "current-password" : "new-password"}
-                            className="w-full bg-white/[0.03] border border-white/10 p-4 pl-6 text-white outline-none focus:border-compete-purple focus:bg-white/[0.08] transition-all font-bold placeholder:text-white/10 tracking-widest text-[10px]"
+                            className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none transition-all placeholder:text-white/10 font-black italic text-white focus:border-compete-purple/40"
                         />
                     </div>
 
-                    <div className="flex items-center justify-between py-2">
-                        <label className="flex items-center gap-3 cursor-pointer group/check">
-                            <div className="relative w-4 h-4 border border-white/20 group-hover/check:border-compete-purple transition-colors rounded-sm overflow-hidden flex items-center justify-center">
+                    <div className="flex items-center justify-between py-1">
+                        <label className="flex items-center gap-2 cursor-pointer group/check">
+                            <div className="relative w-3.5 h-3.5 border border-white/20 group-hover/check:border-compete-purple transition-colors rounded-sm overflow-hidden flex items-center justify-center">
                                 <input
                                     type="checkbox"
                                     checked={rememberMe}
@@ -172,13 +186,13 @@ export default function AuthPage() {
                                     <div className="w-1.5 h-1.5 bg-white rounded-full scale-0 peer-checked:scale-100 transition-transform delay-100" />
                                 </div>
                             </div>
-                            <span className="text-[9px] font-black tracking-widest text-white/40 group-hover/check:text-white transition-colors">
-                                Remember Access
+                            <span className="text-[8px] font-black tracking-widest text-white/40 group-hover/check:text-white transition-colors uppercase">
+                                REMEMBER ACCESS
                             </span>
                         </label>
                         {isLogin && (
-                            <Link href="/auth/forgot" className="text-[9px] font-black tracking-widest text-compete-purple hover:text-white transition-colors">
-                                Lost Password?
+                            <Link href="/auth/forgot" className="text-[8px] font-black tracking-widest text-compete-purple hover:text-white transition-colors uppercase">
+                                LOST PASSWORD?
                             </Link>
                         )}
                     </div>
@@ -186,52 +200,50 @@ export default function AuthPage() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-white text-black py-4 font-black tracking-[0.3em] italic hover:bg-compete-purple hover:text-white transition-all flex items-center justify-center gap-3 group overflow-hidden relative disabled:opacity-50"
+                        className="w-full bg-white text-black py-4 font-black tracking-[0.25em] italic hover:bg-compete-purple hover:text-white rounded-full transition-all flex items-center justify-center gap-2 group overflow-hidden relative disabled:opacity-50 mt-2 uppercase text-xs"
                     >
                         {loading ? (
-                            <Loader2 size={18} className="animate-spin" />
+                            <Loader2 size={14} className="animate-spin" />
                         ) : (
-                            <Target size={18} className="group-hover:scale-125 transition-transform" />
+                            <Target size={14} className="group-hover:scale-125 transition-transform" />
                         )}
-                        <span>{loading ? "Authorizing..." : (isLogin ? "Authorize" : "Initialize")}</span>
+                        <span>{loading ? "AUTHORIZING..." : (isLogin ? "AUTHORIZE" : "INITIALIZE")}</span>
                     </button>
                 </form>
 
-                <div className="mt-8 flex items-center gap-4">
+                <div className="mt-6 space-y-3">
                     <button
                         onClick={handleGoogleSignIn}
                         type="button"
-                        className="flex-1 flex items-center justify-center gap-3 py-4 border border-white/5 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all font-black text-[9px] tracking-widest"
+                        className="w-full py-3.5 border border-white/10 rounded-full bg-white/5 text-white hover:text-black hover:bg-white active:scale-[0.98] transition-all font-black text-[9px] tracking-[0.2em] italic uppercase flex items-center justify-center gap-2"
                     >
-                        <Globe size={14} /> Google - ID
+                        <Globe size={12} /> AUTHORIZE WITH GOOGLE
                     </button>
-                    <div className="w-[1px] h-8 bg-white/10" />
-                    <div className="flex-1 text-right">
+                    
+                    <div className="flex justify-between items-center text-[8px] font-black tracking-widest pt-2">
+                        <span className="text-white/20 uppercase">UPLINK REGISTRY</span>
                         <button
                             onClick={() => setIsLogin(!isLogin)}
                             type="button"
-                            className="text-[9px] font-black tracking-widest text-compete-purple hover:text-white transition-colors"
+                            className="text-compete-purple hover:text-white transition-colors uppercase italic"
                         >
-                            {isLogin ? "New Competitor?" : "Already Registered?"}
+                            {isLogin ? "INITIALIZE NEW PROFILE" : "ESTABLISH REGULAR UPLINK"}
                         </button>
                     </div>
                 </div>
 
                 {/* STATUS BAR */}
-                <div className="mt-8 pt-4 border-t border-white/5 flex justify-between items-center opacity-20">
+                <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center opacity-20">
                     <div className="flex gap-1">
                         <div className="w-1 h-1 bg-compete-purple rounded-full" />
                         <div className="w-1 h-1 bg-compete-purple rounded-full animate-pulse" />
                         <div className="w-1 h-1 bg-compete-purple rounded-full" />
                     </div>
-                    <span className="text-[7px] font-black tracking-[0.4em]">Encrypted Connection Active</span>
+                    <span className="text-[7px] font-black tracking-[0.4em] uppercase">ENCRYPTED CONNECTION ACTIVE</span>
                 </div>
             </motion.div>
 
             <style jsx>{`
-                .stroke-text {
-                    -webkit-text-stroke: 1px rgba(155, 92, 255, 0.5);
-                }
                 @keyframes scan {
                     0% { top: 0; }
                     100% { top: 100%; }

@@ -41,42 +41,42 @@ export function LiveUsersDetail({ users }: LiveUsersDetailProps) {
     .sort((a, b) => b.lastSeen.getTime() - a.lastSeen.getTime());
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Region Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-2">
         {regionalStats.map((stat) => (
           <div 
             key={stat.region}
             onClick={() => setRegionFilter(stat.region === 'World' ? 'all' : stat.region)}
-            className={`p-3 rounded-2xl border transition-all cursor-pointer group ${
+            className={`p-2.5 rounded-none border transition-all cursor-pointer group ${
               (regionFilter === 'all' && stat.region === 'World') || regionFilter === stat.region
-              ? 'bg-compete-purple/10 border-compete-purple/40 shadow-[0_0_20px_rgba(155,92,255,0.05)]'
-              : 'bg-white/5 border-white/10 hover:border-white/20'
+              ? 'bg-compete-purple/5 border-compete-purple/35 shadow-purple-glow'
+              : 'bg-transparent border-white/10 hover:border-white/20'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
-              <div className={`p-1.5 rounded-lg ${stat.region === 'World' ? 'bg-compete-purple/20 text-compete-purple' : 'bg-white/5 text-white/40 group-hover:text-white'}`}>
-                <Globe size={14} />
+            <div className="flex items-center justify-between mb-1.5">
+              <div className={`p-1 rounded-none border ${stat.region === 'World' ? 'bg-compete-purple/15 text-compete-purple border-compete-purple/30' : 'bg-transparent border-white/10 text-white/20 group-hover:text-white'}`}>
+                <Globe size={12} />
               </div>
               <div className="text-right">
-                <p className="text-[9px] font-black uppercase tracking-[0.1em]">{stat.region}</p>
+                <p className="text-[8px] font-black uppercase tracking-[0.1em]">{stat.region}</p>
               </div>
             </div>
             
-            <div className="space-y-1.5">
+            <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <p className="text-[7px] font-black uppercase tracking-widest text-green-400/60">Live</p>
-                <p className="text-[10px] font-black text-green-400">{stat.active}</p>
+                <p className="text-[6px] font-black uppercase tracking-widest text-green-400/60">Live</p>
+                <p className="text-[9px] font-black text-green-400">{stat.active}</p>
               </div>
-              <div className="h-0.5 w-full bg-white/5 rounded-full overflow-hidden">
+              <div className="h-0.5 w-full bg-white/5 rounded-none overflow-hidden">
                 <div 
-                  className="h-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)] transition-all duration-500" 
+                  className="h-full bg-green-500 transition-all duration-500" 
                   style={{ width: `${stat.active + stat.inactive > 0 ? (stat.active / (stat.active + stat.inactive)) * 100 : 0}%` }}
                 />
               </div>
               <div className="flex items-center justify-between">
-                <p className="text-[7px] font-black uppercase tracking-widest text-red-400/60">Ghost</p>
-                <p className="text-[10px] font-black text-red-400/80">{stat.inactive}</p>
+                <p className="text-[6px] font-black uppercase tracking-widest text-red-400/60">Ghost</p>
+                <p className="text-[9px] font-black text-red-400/80">{stat.inactive}</p>
               </div>
             </div>
           </div>
@@ -86,69 +86,69 @@ export function LiveUsersDetail({ users }: LiveUsersDetailProps) {
       <div className="h-px bg-white/5 w-full" />
 
       {/* List Section */}
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row gap-4 items-stretch">
-          <div className="flex bg-white/5 p-1 rounded-xl border border-white/10 flex-1 items-stretch">
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row gap-2 items-stretch">
+          <div className="flex bg-transparent p-1 rounded-none border border-white/10 flex-1 items-stretch">
             <button
               onClick={() => setTab('active')}
-              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${
-                tab === 'active' ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'text-white/40 hover:text-white'
+              className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-none transition-all flex items-center justify-center gap-1.5 ${
+                tab === 'active' ? 'bg-green-500/10 text-green-400 border border-green-500/25' : 'text-white/40 hover:text-white'
               }`}
             >
-              <div className={`w-1.5 h-1.5 rounded-full ${tab === 'active' ? 'bg-green-400 animate-pulse' : 'bg-white/20'}`} />
+              <div className={`w-1 h-1 rounded-full ${tab === 'active' ? 'bg-green-400 animate-pulse' : 'bg-white/20'}`} />
               Active (24h)
             </button>
             <button
               onClick={() => setTab('inactive')}
-              className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2 ${
-                tab === 'inactive' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'text-white/40 hover:text-white'
+              className={`flex-1 py-2 text-[9px] font-black uppercase tracking-widest rounded-none transition-all flex items-center justify-center gap-1.5 ${
+                tab === 'inactive' ? 'bg-red-500/10 text-red-400 border border-red-500/25' : 'text-white/40 hover:text-white'
               }`}
             >
-              <div className={`w-1.5 h-1.5 rounded-full ${tab === 'inactive' ? 'bg-red-400' : 'bg-white/20'}`} />
+              <div className={`w-1 h-1 rounded-full ${tab === 'inactive' ? 'bg-red-400' : 'bg-white/20'}`} />
               Inactive
             </button>
           </div>
 
-          <div className="relative min-w-[220px] flex items-center">
-            <Globe className="absolute left-4 z-10 text-compete-purple pointer-events-none" size={14} />
+          <div className="relative min-w-[200px] flex items-center">
+            <Globe className="absolute left-3.5 z-10 text-compete-purple pointer-events-none" size={12} />
             <select 
               value={regionFilter === 'all' ? 'World' : regionFilter}
               onChange={(e) => setRegionFilter(e.target.value === 'World' ? 'all' : e.target.value)}
-              className="w-full h-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-[10px] font-black uppercase tracking-[0.1em] outline-none focus:border-compete-purple appearance-none cursor-pointer hover:bg-white/10 transition-all text-white/80"
+              className="w-full h-full bg-transparent border border-white/10 rounded-none pl-9 pr-9 py-2 text-[9px] font-black uppercase tracking-[0.1em] outline-none focus:border-compete-purple appearance-none cursor-pointer hover:bg-white/5 transition-all text-white/80"
             >
               {REGIONS.map(r => (
                 <option key={r} value={r} className="bg-[#0A0A0F]">{r}</option>
               ))}
             </select>
-            <div className="absolute right-4 z-10 pointer-events-none text-white/20 text-[10px] flex items-center">
-               <span className="mt-[2px]">▼</span>
+            <div className="absolute right-3.5 z-10 pointer-events-none text-white/20 text-[9px] flex items-center">
+               <span className="mt-[1px]">▼</span>
             </div>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {filteredUsers.length === 0 ? (
-            <div className="py-12 text-center border border-dashed border-white/5 rounded-[2rem] text-white/20">
-              <Users className="mx-auto mb-3 opacity-50" size={32} />
-              <p className="text-[10px] font-black uppercase tracking-widest">No connections in this sector</p>
+            <div className="py-8 text-center border border-white/10 rounded-none bg-transparent text-white/20">
+              <Users className="mx-auto mb-2 opacity-50" size={24} />
+              <p className="text-[9px] font-black uppercase tracking-widest">No connections in this sector</p>
             </div>
           ) : (
             filteredUsers.map((user) => (
-              <div key={user.id} className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between hover:bg-white/10 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className={`w-2 h-2 rounded-full ${user.isInactive ? 'bg-red-500' : 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]'}`} />
+              <div key={user.id} className="bg-transparent border border-white/10 p-3 rounded-none flex items-center justify-between hover:bg-white/[0.02] transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className={`w-1.5 h-1.5 rounded-full ${user.isInactive ? 'bg-red-500' : 'bg-green-500'}`} />
                   <div>
-                    <p className="font-bold text-sm">{user.username}</p>
-                    <p className="text-[9px] text-white/40 font-black uppercase tracking-widest flex items-center gap-1 mt-1">
-                      <Globe size={10} /> {user.region || 'Unknown'}
+                    <p className="font-bold text-xs">{user.username}</p>
+                    <p className="text-[8px] text-white/40 font-black uppercase tracking-widest flex items-center gap-1 mt-0.5">
+                      <Globe size={8} /> {user.region || 'Unknown'}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-0.5">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-white/60 mb-0.5">
                     {user.isInactive ? 'Inactive for' : 'Active'}
                   </p>
-                  <p className={`text-xs font-bold italic ${user.isInactive ? 'text-red-400' : 'text-green-400'}`}>
+                  <p className={`text-[10px] font-bold italic ${user.isInactive ? 'text-red-400' : 'text-green-400'}`}>
                     {formatDistanceToNow(user.lastSeen, { addSuffix: true })}
                   </p>
                 </div>

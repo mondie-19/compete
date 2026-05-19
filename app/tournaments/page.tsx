@@ -119,91 +119,96 @@ export default function TournamentsPage() {
     }
     setSubmitting(true);
     try {
-      // Upsert to newsletter_subscribers table
-      const { error } = await supabase
-        .from("newsletter_subscribers")
-        .upsert({ email: email.trim().toLowerCase() }, { onConflict: "email" });
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() })
+      });
+      
+      const result = await response.json();
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to subscribe");
+      }
 
       setSubscribed(true);
       toast.success("You're on the list! We'll reach out when tournaments go live.");
     } catch (err: any) {
       console.error(err);
-      toast.error("Something went wrong. Please try again.");
+      toast.error(err.message || "Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <main className="min-h-screen bg-black text-white relative overflow-hidden pt-32">
+    <main className="min-h-screen bg-black text-white relative overflow-hidden pt-20">
       {/* Background Glows */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-96 bg-compete-purple/10 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-compete-purple/5 blur-[100px] rounded-full pointer-events-none" />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 min-h-screen flex flex-col items-center justify-center text-center">
+      <div className="relative z-10 max-w-7xl mx-auto px-6 min-h-[80vh] flex flex-col items-center justify-center text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           onAnimationComplete={() => setInView(true)}
-          className="space-y-8"
+          className="space-y-4"
         >
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-compete-purple text-[10px] font-black uppercase tracking-[0.3em]">
-            <Trophy size={14} />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-compete-purple text-[9px] font-black uppercase tracking-[0.3em]">
+            <Trophy size={12} />
             Tournament System
           </div>
 
           {/* Title */}
-          <div className="space-y-2">
-            <h1 className="text-6xl md:text-8xl font-black uppercase italic tracking-tighter leading-none">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none">
               Coming <span className="text-compete-purple text-glow">Soon</span>
             </h1>
-            <p className="text-compete-muted text-lg md:text-xl max-w-2xl mx-auto font-medium">
+            <p className="text-compete-muted text-sm md:text-base max-w-2xl mx-auto font-medium">
               The ultimate arena for competitive excellence is under construction.
               Prepare your squad for the next generation of staking.
             </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             {/* Auth-aware back button */}
             <Link
               href={isLoggedIn ? "/lobby" : "/"}
-              className="group flex items-center gap-2 px-8 py-4 bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-compete-purple hover:text-white transition-all rounded-sm"
+              className="group flex items-center gap-2 px-6 py-3 bg-white text-black text-[10px] font-black uppercase tracking-widest hover:bg-compete-purple hover:text-white transition-all rounded-sm"
             >
-              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
               {isLoggedIn ? "Back to Lobby" : "Back to Home"}
             </Link>
 
             {/* Notify Me */}
             <button
               onClick={() => setShowNotify(true)}
-              className="flex items-center gap-2 px-8 py-4 bg-white/5 border border-white/10 text-white text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-all rounded-sm"
+              className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all rounded-sm"
             >
-              <Bell size={16} />
+              <Bell size={14} />
               Notify Me
             </button>
           </div>
 
           {/* Status Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto border-t border-white/5 pt-12">
-            <div className="flex flex-col items-center gap-2">
-              <div className="text-compete-purple mb-1 opacity-50"><Timer size={16} /></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Systems</span>
-              <span className="text-sm font-bold text-white/80">Staging</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 max-w-2xl mx-auto border-t border-white/5 pt-8">
+            <div className="flex flex-col items-center gap-1">
+              <div className="text-compete-purple mb-0.5 opacity-50"><Timer size={14} /></div>
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Systems</span>
+              <span className="text-xs font-bold text-white/80">Staging</span>
             </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="text-compete-purple mb-1 opacity-50"><Trophy size={16} /></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Anti-Cheat</span>
-              <span className="text-sm font-bold text-white/80">Active</span>
+            <div className="flex flex-col items-center gap-1">
+              <div className="text-compete-purple mb-0.5 opacity-50"><Trophy size={14} /></div>
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Anti-Cheat</span>
+              <span className="text-xs font-bold text-white/80">Active</span>
             </div>
-            <div className="flex flex-col items-center gap-2">
-              <div className="text-compete-purple mb-1 opacity-50"><Trophy size={16} /></div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Prize Pools</span>
-              <span className="text-sm font-bold text-white tabular-nums">
+            <div className="flex flex-col items-center gap-1">
+              <div className="text-compete-purple mb-0.5 opacity-50"><Trophy size={14} /></div>
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Prize Pools</span>
+              <span className="text-xs font-bold text-white tabular-nums">
                 {formatPrize(animatedPrize, currencyCfg)} Locked
               </span>
             </div>
@@ -229,7 +234,7 @@ export default function TournamentsPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", stiffness: 300, damping: 28 }}
-              className="relative w-full max-w-md bg-neutral-900 border border-white/10 rounded-3xl p-8 shadow-2xl"
+              className="relative w-full max-w-md bg-neutral-900 border border-white/10 rounded-2xl p-6 shadow-2xl"
             >
               {/* Close */}
               <button
@@ -248,42 +253,42 @@ export default function TournamentsPage() {
                     exit={{ opacity: 0 }}
                     className="space-y-6"
                   >
-                    <div className="flex flex-col items-center text-center gap-3 mb-2">
-                      <div className="p-4 rounded-2xl bg-compete-purple/10 border border-compete-purple/20 text-compete-purple">
-                        <Bell size={24} />
+                    <div className="flex flex-col items-center text-center gap-2 mb-1">
+                      <div className="p-3 rounded-xl bg-compete-purple/10 border border-compete-purple/20 text-compete-purple">
+                        <Bell size={20} />
                       </div>
-                      <h2 className="text-2xl font-black uppercase tracking-tight">
+                      <h2 className="text-xl font-black uppercase tracking-tight">
                         Get Notified
                       </h2>
-                      <p className="text-white/40 text-sm max-w-xs">
+                      <p className="text-white/40 text-xs max-w-xs">
                         Be the first to know when tournaments go live. We'll send launch details, bracket info, and prize breakdowns directly to your inbox.
                       </p>
                     </div>
 
-                    <form onSubmit={handleSubscribe} className="space-y-4">
+                    <form onSubmit={handleSubscribe} className="space-y-3">
                       <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" size={16} />
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" size={14} />
                         <input
                           type="email"
                           placeholder="your@email.com"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           disabled={submitting}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-11 pr-4 text-sm text-white placeholder:text-white/20 focus:border-compete-purple focus:bg-white/[0.07] outline-none transition-all disabled:opacity-50"
+                          className="w-full bg-white/5 border border-white/10 rounded-lg py-3 pl-11 pr-4 text-xs text-white placeholder:text-white/20 focus:border-compete-purple focus:bg-white/[0.07] outline-none transition-all disabled:opacity-50"
                         />
                       </div>
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="w-full flex items-center justify-center gap-2 bg-compete-purple text-white py-4 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-compete-purple/80 transition-all disabled:opacity-50"
+                        className="w-full flex items-center justify-center gap-2 bg-compete-purple text-white py-3 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-compete-purple/80 transition-all disabled:opacity-50"
                       >
                         {submitting ? (
-                          <><Loader2 size={16} className="animate-spin" /> Subscribing...</>
+                          <><Loader2 size={14} className="animate-spin" /> Subscribing...</>
                         ) : (
-                          <><Bell size={16} /> Subscribe</>
+                          <><Bell size={14} /> Subscribe</>
                         )}
                       </button>
-                      <p className="text-white/20 text-[10px] text-center tracking-wide">
+                      <p className="text-white/20 text-[9px] text-center tracking-wide">
                         No spam. Unsubscribe at any time. We only send tournament-related updates.
                       </p>
                     </form>

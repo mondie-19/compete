@@ -74,12 +74,10 @@ export default function AboutSection() {
   // Fetch live stats from Supabase
   useEffect(() => {
     const fetchStats = async () => {
-      // User count: total profiles
       const { count: profileCount } = await supabase
         .from("profiles")
         .select("id", { count: "exact", head: true });
 
-      // Total prizes paid: sum of prize_pool on completed challenges
       const { data: prizeData } = await supabase
         .from("challenges")
         .select("prize_pool")
@@ -87,7 +85,6 @@ export default function AboutSection() {
 
       const totalPrize = prizeData?.reduce((acc, c) => acc + (c.prize_pool || 0), 0) ?? 0;
 
-      // Use live data if meaningful, otherwise keep seeded floor
       setUserCount(Math.max(10000, profileCount ?? 0));
       setPrizeUSD(Math.max(50000, totalPrize));
     };
@@ -100,37 +97,37 @@ export default function AboutSection() {
 
   const perks = [
     {
-      title: "Instant Payouts",
+      title: "INSTANT PAYOUTS",
       desc: "Funds move the moment match results are verified. No delays, no disputes left pending indefinitely.",
-      icon: <Zap className="text-yellow-400" />,
+      icon: <Zap className="text-yellow-400" size={16} />,
       grid: "md:col-span-2",
-      bg: "bg-yellow-400/5"
+      bg: "bg-[#0F0F16]/60"
     },
     {
-      title: "Pro Anti-Cheat",
+      title: "PRO ANTI-CHEAT",
       desc: "Every match is monitored. Suspicious activity is flagged, reviewed, and actioned swiftly.",
-      icon: <ShieldCheck className="text-blue-400" />,
+      icon: <ShieldCheck className="text-blue-400" size={16} />,
       grid: "md:col-span-1",
-      bg: "bg-blue-400/5"
+      bg: "bg-[#0F0F16]/60"
     },
     {
-      title: "Global Reach",
+      title: "GLOBAL REACH",
       desc: "Challengers from across Africa, Europe, and beyond. One arena, no borders.",
-      icon: <Globe className="text-compete-purple" />,
+      icon: <Globe className="text-compete-purple" size={16} />,
       grid: "md:col-span-1",
-      bg: "bg-compete-purple/5"
+      bg: "bg-[#0F0F16]/60"
     },
     {
-      title: "Skill-Based Entry",
+      title: "SKILL ENTRY",
       desc: "Stakes range from beginner wagers to high-tier deployments. Every level is competitive.",
-      icon: <Coins className="text-green-400" />,
+      icon: <Coins className="text-green-400" size={16} />,
       grid: "md:col-span-2",
-      bg: "bg-green-400/5"
+      bg: "bg-[#0F0F16]/60"
     }
   ];
 
   return (
-    <div className="bg-black text-white">
+    <div className="bg-[#0A0A0F] text-white font-mono">
       {/* --- ABOUT US SECTION --- */}
       <section className="max-w-7xl mx-auto px-6 py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <motion.div
@@ -138,45 +135,45 @@ export default function AboutSection() {
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           onViewportEnter={() => setInView(true)}
+          className="space-y-6"
         >
-          <h2 className="text-xs font-black tracking-[0.4em] text-compete-purple mb-4">
-            The New Standard
-          </h2>
-          <h3 className="text-4xl md:text-6xl font-black italic tracking-tighter leading-none mb-6">
-            We are the <span className="text-compete-purple text-glow">Frontier</span> of Cash Bouts.
+          <div className="inline-block px-3 py-1 bg-compete-purple/10 border border-compete-purple/20 text-compete-purple text-[10px] font-black tracking-[0.2em] rounded-full uppercase">
+            THE NEW STANDARD
+          </div>
+          <h3 className="text-3xl md:text-5xl font-black italic tracking-tighter uppercase leading-none">
+            We are the <span className="text-compete-purple">Frontier</span> of Cash Bouts.
           </h3>
-          <p className="text-compete-muted text-lg leading-relaxed mb-8">
+          <p className="text-white/40 text-xs leading-relaxed max-w-xl">
             Compete was built to settle one argument: that raw mechanical skill deserves a cash return. Stop playing for nothing. Wager, outplay, and collect — no middlemen.
           </p>
 
           {/* Live Stats */}
-          <div className="flex gap-8">
+          <div className="flex gap-8 pt-4">
             <div>
-              <p className="text-3xl font-black italic tabular-nums">
+              <p className="text-2xl font-black italic tabular-nums">
                 {formatUsers(animatedUsers)}
               </p>
-              <p className="text-xs font-bold text-compete-muted tracking-widest mt-1">
-                Registered Competitors
+              <p className="text-[9px] font-bold text-white/40 tracking-wider mt-1 uppercase">
+                COMPETITORS
               </p>
             </div>
             <div className="w-px h-12 bg-white/10" />
             <div>
-              <p className="text-3xl font-black italic tabular-nums">
+              <p className="text-2xl font-black italic tabular-nums text-compete-purple">
                 {formatPrize(animatedPrize, currencyCfg)}
               </p>
-              <p className="text-xs font-bold text-compete-muted tracking-widest mt-1">
-                Prizes Paid Out
+              <p className="text-[9px] font-bold text-white/40 tracking-wider mt-1 uppercase">
+                PRIZES PAID OUT
               </p>
             </div>
           </div>
         </motion.div>
 
         <div className="relative">
-          <div className="absolute inset-0 bg-compete-purple/20 blur-[100px] rounded-full" />
           <img
             src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070"
             alt="Competitive gaming"
-            className="relative z-10 rounded-3xl border border-white/10 grayscale hover:grayscale-0 transition-all duration-700 shadow-2xl"
+            className="relative z-10 rounded-2xl border border-white/10 grayscale hover:grayscale-0 transition-all duration-700 shadow-2xl"
           />
         </div>
       </section>
@@ -185,12 +182,12 @@ export default function AboutSection() {
       <section className="max-w-7xl mx-auto px-6 py-24 border-t border-white/5">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div className="max-w-xl">
-            <h3 className="text-3xl md:text-5xl font-black italic tracking-tighter">
-              Why competitors <span className="text-compete-purple">Choose Us</span>
+            <h3 className="text-2xl md:text-4xl font-black italic tracking-tighter uppercase">
+              WHY COMPETITORS <span className="text-compete-purple">CHOOSE US</span>
             </h3>
           </div>
-          <p className="text-compete-muted text-sm max-w-xs md:text-right">
-            Built by people who understand competitive gaming — not boardrooms. Every feature ships to serve the player first.
+          <p className="text-white/40 text-xs max-w-xs md:text-right">
+            Built by players who understand competitive gaming. Every feature ships to serve you first.
           </p>
         </div>
 
@@ -199,18 +196,18 @@ export default function AboutSection() {
           {perks.map((perk, i) => (
             <motion.div
               key={i}
-              whileHover={{ scale: 1.02 }}
-              className={`${perk.grid} ${perk.bg} border border-white/5 rounded-3xl p-8 flex flex-col justify-between group transition-all`}
+              whileHover={{ scale: 1.01 }}
+              className={`${perk.grid} ${perk.bg} border border-white/10 rounded-2xl p-6 flex flex-col justify-between group transition-all`}
             >
-              <div className="mb-12">
-                <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center mb-6 border border-white/10 group-hover:border-compete-purple/50 transition-colors">
+              <div className="mb-8">
+                <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center mb-6 border border-white/10 group-hover:border-compete-purple/50 transition-colors">
                   {perk.icon}
                 </div>
-                <h4 className="text-2xl font-bold italic mb-3">{perk.title}</h4>
-                <p className="text-compete-muted text-sm leading-relaxed">{perk.desc}</p>
+                <h4 className="text-base font-black uppercase tracking-wider mb-3">{perk.title}</h4>
+                <p className="text-white/50 text-[11px] leading-relaxed">{perk.desc}</p>
               </div>
-              <div className="flex items-center gap-2 text-[10px] font-black tracking-widest text-white/20 group-hover:text-compete-purple transition-colors">
-                System Active <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+              <div className="flex items-center gap-2 text-[8px] font-black tracking-widest text-white/20 group-hover:text-compete-purple transition-colors uppercase">
+                SYSTEM ACTIVE <div className="w-1 h-1 rounded-full bg-current animate-pulse" />
               </div>
             </motion.div>
           ))}

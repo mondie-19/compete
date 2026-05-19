@@ -11,7 +11,7 @@ import Link from "next/link";
 import Footer from "@/components/Footer";
 
 const PLATFORMS = [
-    { id: "PC",     icon: <Monitor size={18} />,    color: "hover:border-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]" },
+    { id: "PC",     icon: <Monitor size={18} className="drop-shadow-[0_0_12px_rgba(255,255,255,0.8)]" />,    color: "hover:border-white hover:shadow-[0_0_20px_rgba(255,255,255,0.6)] hover:text-white" },
     {
         id: "PS",
         icon: (
@@ -30,7 +30,7 @@ const PLATFORMS = [
         ),
         color: "hover:border-[#107C10] hover:shadow-[0_0_20px_rgba(16,124,16,0.6)] hover:text-[#107C10]"
     },
-    { id: "MOBILE",   icon: <Smartphone size={18} />, color: "hover:border-compete-purple hover:shadow-[0_0_15px_rgba(155,92,255,0.3)]" },
+    { id: "MOBILE",   icon: <Smartphone size={18} className="drop-shadow-[0_0_12px_rgba(155,92,255,0.8)]" />, color: "hover:border-compete-purple hover:shadow-[0_0_20px_rgba(155,92,255,0.6)] hover:text-compete-purple" },
     {
         id: "NINTENDO",
         icon: (
@@ -44,6 +44,7 @@ const PLATFORMS = [
 
 export default function DeployPage() {
     const [gameName, setGameName] = useState("");
+    const [gamerId, setGamerId] = useState("");
     const [platform, setPlatform] = useState("PC");
     const [entryFee, setEntryFee] = useState(1000);
     const [engagements, setEngagements] = useState("");
@@ -67,12 +68,12 @@ export default function DeployPage() {
     }, []);
 
     const handleDeploy = async () => {
-        if (!gameName || entryFee <= 0) {
-            toast.error("Invalid parameters");
+        if (!gameName || !gamerId || entryFee <= 0) {
+            toast.error("Game Name and Gamer ID are required parameters.");
             return;
         }
 
-        const fullGameName = engagements ? `${gameName} - ${engagements.substring(0, 50)}` : gameName;
+        const fullGameName = `${gameName} [ID: ${gamerId}]${engagements ? ` - ${engagements.substring(0, 50)}` : ""}`;
 
         setIsDeploying(true);
         try {
@@ -101,7 +102,8 @@ export default function DeployPage() {
                 borderClass: "border-[#E5E4E2]/20",
                 focusBorderClass: "focus:border-[#E5E4E2]/40",
                 accentClass: "bg-[#E5E4E2]",
-                shadowStyle: "0 0 20px rgba(229, 228, 226, 0.05)"
+                shadowStyle: "0 0 20px rgba(229, 228, 226, 0.05)",
+                previewBorderBg: "bg-gradient-to-r from-[#1A1A24] via-[#E5E4E2] via-[#8E8D9C] via-[#E5E4E2] to-[#1A1A24]"
             };
         }
         if (entryFee >= 5000) {
@@ -112,7 +114,8 @@ export default function DeployPage() {
                 borderClass: "border-[#FFD700]/20",
                 focusBorderClass: "focus:border-[#FFD700]/40",
                 accentClass: "bg-[#FFD700]",
-                shadowStyle: "0 0 20px rgba(255, 215, 0, 0.05)"
+                shadowStyle: "0 0 20px rgba(255, 215, 0, 0.05)",
+                previewBorderBg: "bg-gradient-to-r from-[#1A1A10] via-[#FFD700] via-[#B8860B] via-[#FFD700] to-[#1A1A10]"
             };
         }
         return {
@@ -122,24 +125,18 @@ export default function DeployPage() {
             borderClass: "border-[#9B5CFF]/20",
             focusBorderClass: "focus:border-[#9B5CFF]/40",
             accentClass: "bg-[#9B5CFF]",
-            shadowStyle: "0 0 20px rgba(155, 92, 255, 0.05)"
+            shadowStyle: "0 0 20px rgba(155, 92, 255, 0.05)",
+            previewBorderBg: "bg-gradient-to-r from-[#0F0A1A] via-[#9B5CFF] via-[#5A20B3] via-[#9B5CFF] to-[#0F0A1A]"
         };
     };
 
     const wager = getWagerDesign();
 
     return (
-        <div className="min-h-screen bg-[#0A0A0A] text-white relative font-sans flex flex-col selection:bg-compete-purple/30">
-
-            {/* SUBTLE BACKGROUND */}
-            <div className="fixed inset-0 z-0 pointer-events-none">
-                <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-compete-purple/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/5 blur-[100px] rounded-full translate-y-1/2 -translate-x-1/2" />
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:64px_64px] opacity-20" />
-            </div>
+        <div className="min-h-screen bg-[#0A0A0F] text-white relative font-mono flex flex-col selection:bg-compete-purple/30">
 
             <main className="flex-1 relative z-10 pt-20 lg:pt-32 pb-10 px-4 lg:px-6 max-w-5xl mx-auto w-full">
-                <Link href="/lobby" className="inline-flex items-center gap-1.5 text-white/40 hover:text-white transition-colors mb-6 lg:mb-12 text-[10px] lg:text-sm font-medium">
+                <Link href="/lobby" className="inline-flex items-center gap-1.5 text-white/40 hover:text-white transition-colors mb-4 lg:mb-8 text-[9px] lg:text-xs font-black uppercase">
                     <ChevronLeft className="-ml-1 w-3 h-3 lg:w-4 lg:h-4" />
                     BACK TO LOBBY
                 </Link>
@@ -148,27 +145,93 @@ export default function DeployPage() {
                     {/* INFO SIDE */}
                     <div className="lg:col-span-5 space-y-6 lg:space-y-8 lg:sticky lg:top-32">
                         <div>
-                            <h1 className="text-2xl lg:text-5xl font-black italic uppercase tracking-tighter mb-2 text-compete-purple">
-                                Deploy Match
+                            <h1 className="text-xl lg:text-3xl font-black italic tracking-tighter mb-1 text-compete-purple uppercase">
+                                DEPLOY MATCH
                             </h1>
-                            <p className="text-white/30 text-[10px] lg:text-base leading-relaxed max-w-sm">
+                            <p className="text-white/40 text-xs leading-relaxed max-w-sm">
                                 Create a custom match layout. Your stake is secured in escrow and released upon verification.
                             </p>
                         </div>
 
+                        {/* ID sync instruction updated per user request */}
+                        <div className={`p-4 ${wager.bgClass} border ${wager.borderClass} rounded-2xl shadow-sm transition-all duration-300`}>
+                            <span className={`text-[8px] font-black ${wager.colorClass} tracking-widest uppercase block mb-1`}>GAMER ID REQUIREMENT</span>
+                            <span className="text-[10px] text-white/60 leading-relaxed block">
+                                IMPORTANT: Simply enter your in-game ID (Gamer ID) in the field on the right. Your platform profile name does not need to match your in-game username anymore—we will use the ID you provide to verify your match results!
+                            </span>
+                        </div>
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 lg:gap-6">
                             {balance !== null && (
-                                <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between shadow-sm">
-                                    <span className="text-[10px] font-medium text-white/40 uppercase tracking-widest">Available</span>
-                                    <span className="text-sm lg:text-xl font-black italic tracking-tight">KSh {balance.toLocaleString()}</span>
+                                <div className="p-4 bg-[#0F0F16]/60 border border-white/10 rounded-2xl flex items-center justify-between shadow-sm backdrop-blur-md">
+                                    <span className="text-[8px] font-black text-white/40 tracking-widest uppercase">AVAILABLE</span>
+                                    <span className="text-xs lg:text-lg font-black italic tracking-tight">KSh {balance.toLocaleString()}</span>
                                 </div>
                             )}
 
-                            <div className="flex items-start gap-3 p-4 bg-white/[0.02] border border-white/5 rounded-xl">
-                                <ShieldAlert className="text-compete-purple shrink-0 mt-0.5 w-4 h-4 lg:w-5 lg:h-5" />
+                            <div className="flex items-start gap-3 p-4 bg-[#0F0F16]/60 border border-white/10 rounded-2xl backdrop-blur-md">
+                                <ShieldAlert className={`${wager.colorClass} shrink-0 mt-0.5 w-3.5 h-3.5 lg:w-4 lg:h-4 transition-colors duration-300`} />
                                 <div>
-                                    <p className="text-[10px] font-black uppercase text-white/60 mb-0.5">Escrow Protocol</p>
-                                    <p className="text-[9px] lg:text-sm text-white/20 leading-relaxed italic">Funds are locked until match verification.</p>
+                                    <p className="text-[9px] font-black text-white/60 mb-0.5 uppercase">ESCROW PROTOCOL</p>
+                                    <p className="text-[8px] lg:text-xs text-white/20 leading-relaxed">Funds are locked until match verification.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Live Preview Deployment Card */}
+                        <div className="p-5 bg-gradient-to-br from-[#0F0F16] to-[#0A0A0F] border border-white/10 rounded-2xl shadow-xl space-y-4 font-mono relative overflow-hidden backdrop-blur-md">
+                             {/* Dynamic Iridescent Accent indicator */}
+                            <style>{`
+                                @keyframes shimmer {
+                                    0% { background-position: 200% 0; }
+                                    100% { background-position: -200% 0; }
+                                }
+                            `}</style>
+                            <div 
+                                className={`absolute top-0 left-0 right-0 h-[3px] ${wager.previewBorderBg}`}
+                                style={{
+                                    backgroundSize: "200% 100%",
+                                    animation: "shimmer 4s linear infinite"
+                                }}
+                            />
+                                                        <div className="flex justify-between items-center">
+                                <span className={`text-[8px] font-black ${wager.colorClass} tracking-widest uppercase transition-colors duration-300`}>LIVE DEPLOYMENT PREVIEW</span>
+                                <span className="text-[7px] font-mono text-white/30 uppercase">STATUS: DRAFT</span>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div>
+                                    <p className="text-[8px] font-black text-white/20 tracking-widest uppercase">GAME TITLE</p>
+                                    <p className="text-xs font-black italic tracking-tighter text-white">{gameName || "AWAITING TITLE..."}</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <p className="text-[8px] font-black text-white/20 tracking-widest uppercase">GAMER ID</p>
+                                        <p className={`text-xs font-black ${wager.colorClass} truncate transition-colors duration-300`}>{gamerId || "NOT SET"}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[8px] font-black text-white/20 tracking-widest uppercase">PLATFORM</p>
+                                        <p className="text-xs font-black text-white uppercase">{platform}</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <p className="text-[8px] font-black text-white/20 tracking-widest uppercase">STAKE</p>
+                                        <p className="text-xs font-black text-white">KSh {entryFee.toLocaleString()}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-[8px] font-black text-white/20 tracking-widest uppercase">EST. POT</p>
+                                        <p className="text-xs font-black text-green-400">KSh {(entryFee * 2 * 0.85).toLocaleString()}</p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <p className="text-[8px] font-black text-white/20 tracking-widest uppercase">ENGAGEMENTS</p>
+                                    <p className="text-[9px] text-white/50 leading-relaxed max-h-12 overflow-y-auto font-medium">
+                                        {engagements || "NO SPECIAL RULES SPECIFIED."}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -179,98 +242,122 @@ export default function DeployPage() {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-[#121212] border border-white/10 rounded-2xl lg:rounded-3xl p-5 lg:p-8 shadow-2xl relative"
+                            className="bg-[#0F0F16]/60 border border-white/10 rounded-2xl p-6 shadow-2xl relative backdrop-blur-md"
                             style={{ boxShadow: wager.shadowStyle }}
                         >
-                            <div className="space-y-5 lg:space-y-6 relative z-10">
-                                <div className="space-y-1.5">
-                                    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                                        <Gamepad2 size={12} /> Game Title
+                            <div className="space-y-4 lg:space-y-5 relative z-10">
+                                <div className="space-y-1">
+                                    <label className="flex items-center gap-2 text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">
+                                        <Gamepad2 size={10} /> GAME TITLE
                                     </label>
                                     <input
                                         type="text"
                                         placeholder="e.g. WARZONE, EA FC 24"
                                         value={gameName}
                                         onChange={(e) => setGameName(e.target.value)}
-                                        className={`w-full bg-black/50 border ${wager.borderClass} rounded-xl py-3.5 px-4 text-xs lg:text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all placeholder:text-white/10 uppercase font-black italic`}
+                                        className={`w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none transition-all placeholder:text-white/10 font-black italic text-white ${wager.focusBorderClass}`}
                                     />
                                 </div>
 
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">Platform</label>
-                                    <div className="grid grid-cols-5 gap-1.5 lg:gap-2">
+                                <div className="space-y-1">
+                                    <label className="flex items-center gap-2 text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">
+                                        GAMER ID
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. Ninja#1234, CyberNinja"
+                                        value={gamerId}
+                                        onChange={(e) => setGamerId(e.target.value)}
+                                        className={`w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none transition-all placeholder:text-white/10 font-black italic text-white ${wager.focusBorderClass}`}
+                                    />
+                                    <p className="text-[8px] font-black text-white/20 tracking-widest ml-1 uppercase">
+                                        This is your unique in-game identity (e.g. Riot ID, PSN ID, Gamertag) in the specified game.
+                                    </p>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">PLATFORM</label>
+                                    <div className="grid grid-cols-5 gap-1.5">
                                         {PLATFORMS.map((p) => (
                                             <button
                                                 key={p.id}
                                                 type="button"
                                                 onClick={() => setPlatform(p.id)}
-                                                className={`flex flex-col items-center gap-1.5 py-2.5 px-1 rounded-lg lg:rounded-xl border transition-all duration-300 ${
+                                                className={`flex flex-col items-center gap-1.5 py-2 px-1 rounded-xl border transition-all duration-300 ${
                                                     platform === p.id
-                                                        ? 'bg-white text-black border-white shadow-xl scale-105'
+                                                        ? 'bg-white text-black border-white shadow-md scale-105'
                                                         : `bg-black/40 border-white/10 text-white/40 ${p.color}`
                                                 }`}
                                             >
-                                                <div className="scale-75 lg:scale-100">{p.icon}</div>
-                                                <span className="text-[6px] lg:text-[7px] font-black uppercase tracking-tighter">{p.id}</span>
+                                                <div className="scale-75">{p.icon}</div>
+                                                <span className="text-[7px] font-black tracking-widest uppercase">{p.id}</span>
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="space-y-1.5">
-                                    <label className={`text-[10px] font-black uppercase tracking-widest ml-1 ${isInsufficientFunds ? "text-red-400" : "text-white/40"}`}>
-                                        Stake (KSh)
+                                <div className="space-y-1">
+                                    <label className={`text-[9px] font-black tracking-widest ml-1 uppercase ${isInsufficientFunds ? "text-red-400" : "text-white/40"}`}>
+                                        STAKE (KSh)
                                     </label>
                                     <input
                                         type="number"
                                         value={entryFee}
                                         step={50}
                                         onChange={(e) => setEntryFee(Math.max(0, Number(e.target.value)))}
-                                        className={`w-full bg-black/50 border ${isInsufficientFunds ? "border-red-500/50" : wager.borderClass} rounded-xl py-3.5 px-4 text-xs lg:text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-black italic`}
+                                        className={`w-full bg-black/50 border ${isInsufficientFunds ? "border-red-500/50" : "border-white/10"} rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-black italic text-white ${isInsufficientFunds ? "" : wager.focusBorderClass}`}
                                     />
                                 </div>
 
-
-                                <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-1">
-                                        Engagements
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">
+                                        ENGAGEMENTS
                                     </label>
                                     <textarea
-                                        placeholder="Rules, region, style..."
+                                        placeholder="RULES, REGION, STYLE..."
                                         value={engagements}
                                         onChange={(e) => setEngagements(e.target.value)}
-                                        className={`w-full bg-black/50 border ${wager.borderClass} rounded-xl py-3.5 px-4 text-xs lg:text-base focus:bg-black/80 ${wager.focusBorderClass} outline-none transition-all placeholder:text-white/10 h-20 lg:h-28 resize-none font-medium text-white/60`}
+                                        className={`w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none transition-all placeholder:text-white/10 h-16 lg:h-20 resize-none font-medium text-white ${wager.focusBorderClass}`}
                                     />
                                 </div>
 
-                                <div className={`p-4 lg:p-6 mt-1 lg:mt-2 ${wager.bgClass} border ${wager.borderClass} rounded-xl lg:rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-300`}>
-                                    <p className={`text-[8px] lg:text-xs font-black tracking-widest uppercase mb-1 ${wager.colorClass} opacity-60`}>{wager.label}</p>
-                                    <p className={`text-2xl lg:text-4xl font-black italic tracking-tighter ${wager.colorClass}`}>KSh {(entryFee * 2).toLocaleString()}</p>
-                                    <p className="text-[7px] lg:text-xs text-white/20 mt-1 font-black uppercase tracking-widest">Total Prize Pool</p>
+                                <div className={`p-4 mt-1 bg-white/[0.02] border border-white/10 rounded-2xl space-y-2 transition-all duration-300`}>
+                                    <div className="flex justify-between items-center px-1">
+                                        <span className="text-[8px] lg:text-[10px] font-black tracking-widest text-white/40 uppercase">PLATFORM FEE (15%)</span>
+                                        <span className="text-[10px] lg:text-sm font-black italic text-red-400">
+                                            - KSh {(entryFee * 2 * 0.15).toLocaleString()}
+                                        </span>
+                                    </div>
+                                    <div className="h-px bg-white/5 w-full" />
+                                    <div className="flex flex-col items-center justify-center text-center">
+                                        <p className={`text-[8px] lg:text-[10px] font-black tracking-widest mb-0.5 ${wager.colorClass} opacity-60 uppercase`}>{wager.label}</p>
+                                        <p className={`text-xl lg:text-2xl font-black italic tracking-tighter ${wager.colorClass}`}>KSh {(entryFee * 2 * 0.85).toLocaleString()}</p>
+                                        <p className="text-[7px] lg:text-[10px] text-white/20 mt-0.5 font-black tracking-widest uppercase">NET PRIZE POOL</p>
+                                    </div>
                                 </div>
 
                                 <button
-                                    disabled={isDeploying || !gameName || isInsufficientFunds}
+                                    disabled={isDeploying || !gameName || !gamerId || isInsufficientFunds}
                                     onClick={handleDeploy}
-                                    className={`w-full py-4 lg:py-5 text-[10px] lg:text-sm font-black uppercase tracking-widest rounded-xl lg:rounded-2xl transition-all flex items-center justify-center gap-2 mt-2 lg:mt-4 ${isInsufficientFunds
+                                    className={`w-full py-4 text-[9px] lg:text-xs font-black tracking-widest rounded-full transition-all flex items-center justify-center gap-2 mt-1 lg:mt-2 uppercase ${isInsufficientFunds
                                         ? "bg-red-500/10 text-red-400 border border-red-500/30 cursor-not-allowed"
-                                        : isDeploying || !gameName
+                                        : isDeploying || !gameName || !gamerId
                                             ? "bg-white/5 text-white/30 cursor-wait"
                                             : "bg-white text-black hover:bg-white/90 active:scale-[0.98] italic"
                                         }`}
                                 >
                                     {isInsufficientFunds ? (
-                                        <AlertTriangle size={14} />
+                                        <AlertTriangle size={12} />
                                     ) : (
-                                        <Zap size={14} className={isDeploying ? "animate-pulse" : ""} />
+                                        <Zap size={12} className={`${isDeploying ? "animate-pulse" : ""} ${wager.colorClass} transition-colors duration-300`} />
                                     )}
 
                                     <span>
                                         {isInsufficientFunds
-                                            ? "Insufficient Funds"
+                                            ? "INSUFFICIENT FUNDS"
                                             : isDeploying
-                                                ? "Deploying..."
-                                                : "Deploy Match"}
+                                                ? "DEPLOYING..."
+                                                : "DEPLOY MATCH"}
                                     </span>
                                 </button>
                             </div>

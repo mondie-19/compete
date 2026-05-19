@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 // Replaced Cpu icons with dedicated gaming icons
 const PLATFORMS = [
-  { id: "PC", icon: <Monitor size={18} />, color: "hover:border-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]" },
+  { id: "PC", icon: <Monitor size={18} className="drop-shadow-[0_0_12px_rgba(255,255,255,0.8)]" />, color: "hover:border-white hover:shadow-[0_0_20px_rgba(255,255,255,0.6)] hover:text-white" },
   {
     id: "PS",
     icon: (
@@ -27,7 +27,7 @@ const PLATFORMS = [
     ),
     color: "hover:border-[#107C10] hover:shadow-[0_0_20px_rgba(16,124,16,0.6)] hover:text-[#107C10]"
   },
-  { id: "Mobile", icon: <Smartphone size={18} />, color: "hover:border-compete-purple hover:shadow-[0_0_15px_rgba(155,92,255,0.3)]" },
+  { id: "Mobile", icon: <Smartphone size={18} className="drop-shadow-[0_0_12px_rgba(155,92,255,0.8)]" />, color: "hover:border-compete-purple hover:shadow-[0_0_20px_rgba(155,92,255,0.6)] hover:text-compete-purple" },
 ];
 
 import { createClient } from "@/supabase/client";
@@ -56,7 +56,7 @@ export default function CreateChallenge() {
 
     try {
       const entryFee = parseFloat(form.entryFee);
-      const prizePool = entryFee * 1.8; // 10% rake each side (entry * 2 * 0.9 = entry * 1.8)
+      const prizePool = entryFee * 1.7; // 15% platform fee (entry * 2 * 0.85 = entry * 1.7)
 
       const { data: challengeId, error } = await supabase.rpc('create_challenge_with_escrow', {
         p_game_name: form.gameName,
@@ -76,8 +76,13 @@ export default function CreateChallenge() {
 
       toast.success("CHALLENGE DEPLOYED: Identity Verified");
       router.push("/lobby");
-    } catch (error) {
-      console.error("Create Challenge Error:", error);
+    } catch (error: any) {
+      console.error("Create Challenge Fetch/Network Error:", error);
+      console.error("Error details:", {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+      });
       toast.error("DEPLOYMENT FAILED: SYSTEM ERROR");
     } finally {
       setLoading(false);
@@ -87,27 +92,27 @@ export default function CreateChallenge() {
   return (
     <main className="min-h-screen bg-black text-white p-6 font-sans">
       <div className="max-w-xl mx-auto pt-12 pb-20">
-        <Link href="/lobby" className="flex items-center gap-2 text-white/30 hover:text-compete-purple transition-all mb-8 group">
-          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Back to Lobby</span>
+        <Link href="/lobby" className="flex items-center gap-2 text-white/30 hover:text-compete-purple transition-all mb-4 group">
+          <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+          <span className="text-[9px] font-black tracking-widest">Back to Lobby</span>
         </Link>
 
-        <header className="mb-12">
-          <h1 className="text-5xl font-black italic uppercase tracking-tighter">
+        <header className="mb-6">
+          <h1 className="text-4xl font-black italic tracking-tighter">
             Host <span className="text-compete-purple text-glow">Challenge</span>
           </h1>
-          <p className="text-white/30 text-xs font-bold uppercase tracking-[0.2em] mt-2">Define the stakes. Rule the arena.</p>
+          <p className="text-white/30 text-[10px] font-bold tracking-[0.2em] mt-1">Define the stakes. Rule the arena.</p>
         </header>
 
-        <form onSubmit={handleSubmit} className="space-y-8 bg-neutral-900/50 p-8 rounded-[32px] border border-white/5 backdrop-blur-xl relative overflow-hidden">
+        <form onSubmit={handleSubmit} className="space-y-4 bg-neutral-900/50 p-6 rounded-[24px] border border-white/5 backdrop-blur-xl relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-compete-purple to-transparent opacity-50" />
 
           {/* GAME SELECT */}
           <div>
-            <label className="text-[10px] font-black uppercase text-compete-purple tracking-[0.3em] mb-4 block">Select Title</label>
+            <label className="text-[9px] font-black text-compete-purple tracking-[0.3em] mb-2 block">Select Title</label>
             <input
               required
-              className="w-full bg-white/5 border border-white/10 p-4 rounded-xl outline-none focus:border-compete-purple transition-all italic font-bold placeholder:text-white/10"
+              className="w-full bg-white/5 border border-white/10 p-3 rounded-xl outline-none focus:border-compete-purple transition-all italic font-bold placeholder:text-white/10 text-sm"
               placeholder="e.g., Call of Duty: Warzone"
               value={form.gameName}
               onChange={(e) => setForm({ ...form, gameName: e.target.value })}
@@ -116,15 +121,15 @@ export default function CreateChallenge() {
 
           {/* GAMER ID (ABIOS SEARCH) */}
           <div>
-            <label className="text-[10px] font-black uppercase text-compete-purple tracking-[0.3em] mb-4 flex justify-between">
+            <label className="text-[9px] font-black text-compete-purple tracking-[0.3em] mb-2 flex justify-between">
               <span>Target Gamer ID</span>
               <span className="text-white/20 font-mono">ABIOS SYNC</span>
             </label>
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={16} />
               <input
                 required
-                className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-xl outline-none focus:border-compete-purple transition-all font-bold uppercase tracking-widest text-xs"
+                className="w-full bg-white/5 border border-white/10 p-3 pl-12 rounded-xl outline-none focus:border-compete-purple transition-all font-bold tracking-widest text-xs"
                 placeholder="USERNAME#1234"
                 value={form.gamerId}
                 onChange={(e) => setForm({ ...form, gamerId: e.target.value })}
@@ -134,20 +139,20 @@ export default function CreateChallenge() {
 
           {/* PLATFORM SELECT */}
           <div>
-            <label className="text-[10px] font-black uppercase text-compete-purple tracking-[0.3em] mb-4 block">Platform</label>
-            <div className="grid grid-cols-4 gap-3">
+            <label className="text-[9px] font-black text-compete-purple tracking-[0.3em] mb-2 block">Platform</label>
+            <div className="grid grid-cols-4 gap-2">
               {PLATFORMS.map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   onClick={() => setForm({ ...form, platform: p.id })}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-300 ${form.platform === p.id
-                      ? 'bg-white text-black border-white shadow-xl scale-105'
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-300 ${form.platform === p.id
+                      ? 'bg-white text-black border-white shadow-lg scale-105'
                       : `bg-white/5 border-white/10 text-white/40 ${p.color}`
                     }`}
                 >
                   {p.icon}
-                  <span className="text-[8px] font-black uppercase tracking-tighter">{p.id}</span>
+                  <span className="text-[7px] font-black tracking-tighter">{p.id}</span>
                 </button>
               ))}
             </div>
@@ -155,41 +160,50 @@ export default function CreateChallenge() {
 
           {/* ENTRY FEE */}
           <div>
-            <label className="text-[10px] font-black uppercase text-compete-purple tracking-[0.3em] mb-4 block">Entry Fee ($)</label>
+            <label className="text-[9px] font-black text-compete-purple tracking-[0.3em] mb-2 block">Entry Fee (Kshs)</label>
             <div className="relative">
-              <Sword className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={20} />
+              <Sword className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={16} />
               <input
                 required
                 type="number"
-                className="w-full bg-white/5 border border-white/10 p-4 pl-12 rounded-xl outline-none focus:border-compete-purple transition-all text-2xl font-black italic"
+                className="w-full bg-white/5 border border-white/10 p-3 pl-12 rounded-xl outline-none focus:border-compete-purple transition-all text-xl font-black italic"
                 placeholder="0.00"
                 value={form.entryFee}
                 onChange={(e) => setForm({ ...form, entryFee: e.target.value })}
               />
             </div>
-            <div className="mt-4 p-4 bg-compete-purple/10 border border-compete-purple/20 rounded-xl flex justify-between items-center group">
-              <div className="flex items-center gap-2">
-                <Zap size={14} className="text-compete-purple animate-pulse" />
-                <span className="text-[9px] font-black uppercase text-compete-purple">Estimated Prize Pool</span>
+            <div className="mt-3 p-3 bg-compete-purple/10 border border-compete-purple/20 rounded-xl space-y-2 group transition-all">
+              <div className="flex justify-between items-center px-1">
+                <span className="text-[8px] font-black text-compete-purple/60 uppercase">Platform Fee (15%)</span>
+                <span className="text-[10px] font-black italic text-red-400">
+                  -${(parseFloat(form.entryFee || "0") * 2 * 0.15).toFixed(2)}
+                </span>
               </div>
-              <span className="text-xl font-black italic text-white group-hover:scale-110 transition-transform">
-                ${(parseFloat(form.entryFee || "0") * 1.8).toFixed(2)}
-              </span>
+              <div className="h-px bg-compete-purple/5 w-full" />
+              <div className="flex justify-between items-center px-1">
+                <div className="flex items-center gap-2">
+                  <Zap size={12} className="text-compete-purple animate-pulse" />
+                  <span className="text-[8px] font-black text-compete-purple">Estimated Prize Pool</span>
+                </div>
+                <span className="text-lg font-black italic text-white group-hover:scale-105 transition-transform">
+                  ${(parseFloat(form.entryFee || "0") * 1.7).toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
 
           <button
             disabled={loading}
-            className="w-full h-20 bg-white text-black rounded-2xl font-black uppercase tracking-[0.2em] italic hover:bg-compete-purple hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-3 group relative overflow-hidden"
+            className="w-full h-14 bg-white text-black rounded-xl font-black tracking-[0.2em] italic hover:bg-compete-purple hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-3 group relative overflow-hidden"
           >
             {loading ? (
               <>
-                <Loader2 className="animate-spin" size={20} />
+                <Loader2 className="animate-spin" size={16} />
                 <span className="animate-pulse">Verifying ID...</span>
               </>
             ) : (
               <>
-                <Trophy size={20} className="group-hover:rotate-12 transition-transform" />
+                <Trophy size={16} className="group-hover:rotate-12 transition-transform" />
                 Deploy Challenge
               </>
             )}

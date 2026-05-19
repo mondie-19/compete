@@ -126,84 +126,168 @@ export default function AdminDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-[#0A0A0F] text-white font-sans pb-32 selection:bg-compete-purple selection:text-white relative overflow-x-hidden">
+        <div className="min-h-screen bg-[#0A0A0F] text-white font-mono pb-32 selection:bg-compete-purple selection:text-white relative overflow-x-hidden">
             
-            <main className="pt-32 max-w-7xl mx-auto px-6 space-y-8">
+            <main className="pt-24 max-w-7xl mx-auto px-6 space-y-4">
                 
                 {/* System Pulse Indicator */}
-                <div className="flex items-center justify-between bg-white/[0.02] border border-white/5 p-4 rounded-2xl">
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <div className="w-2 h-2 bg-green-500 rounded-full animate-ping" />
-                            <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full" />
+                <div className="flex items-center justify-between bg-transparent border border-white/10 p-3 rounded-none">
+                    <div className="flex items-center gap-3">
+                        <div className="relative flex items-center justify-center">
+                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping absolute" />
+                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
                         </div>
                         <div>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white">System Pulse: Nominal</p>
-                            <p className="text-[8px] font-black uppercase tracking-widest text-white/20 mt-0.5">Encrypted Real-time Uplink Active</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white">System Pulse: Nominal</p>
+                            <p className="text-[7px] font-black uppercase tracking-widest text-white/20 mt-0.5">Encrypted Real-time Uplink Active</p>
                         </div>
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Last Sync</p>
-                        <p className="text-[10px] font-bold text-white/60">{new Date().toLocaleTimeString()}</p>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-white/40">Last Sync</p>
+                        <p className="text-[9px] font-bold text-white/60">{new Date().toLocaleTimeString()}</p>
                     </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Revenue Tile */}
-                    <div className="lg:col-span-2">
-                        <StatTile 
-                            title="Total Site Revenue (15% Fee)"
-                            value={`KSh ${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
-                            subtitle="System Yield Across All Regions"
-                            icon={<Banknote size={32} />}
-                            colorClass="text-compete-purple"
-                            onClick={() => setActivePanel('revenue')}
-                        />
+                {/* Brutalist Mosaic Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-stretch">
+                    
+                    {/* 1. Total Site Revenue (6/12 width) */}
+                    <div className="lg:col-span-6 flex flex-col justify-between bg-transparent border border-white/10 p-4 rounded-none hover:border-white/20 transition-all group">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">TOTAL REVENUE (15%)</h3>
+                                <p className="text-2xl font-black italic text-compete-purple tracking-tighter">
+                                    KSh {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                </p>
+                                <p className="text-[8px] text-white/20 uppercase tracking-widest mt-1">System Yield Across All Sectors</p>
+                            </div>
+                            <button 
+                                onClick={() => setActivePanel('revenue')} 
+                                className="px-2 py-0.5 border border-white/10 text-[8px] font-black uppercase tracking-widest hover:bg-white/5 transition-all text-white/60 hover:text-white cursor-pointer"
+                            >
+                                EXPAND &rarr;
+                            </button>
+                        </div>
+                        <div className="border-t border-white/5 pt-3">
+                            <p className="text-[8px] font-black uppercase tracking-widest text-white/30 mb-2">RECENT REVENUE UPLINKS</p>
+                            <div className="h-[76px] overflow-y-auto custom-scrollbar space-y-1.5 pr-1">
+                                {revenueTimeline.slice(0, 3).map((item, idx) => (
+                                    <div key={idx} className="flex justify-between items-center text-[9px] border-b border-white/5 pb-1">
+                                        <span className="text-white/60 font-bold uppercase">{new Date(item.date).toLocaleDateString()}</span>
+                                        <span className="text-compete-purple font-black">KSh {Number(item.daily_revenue).toLocaleString()}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Live Users Tile */}
-                    <StatTile 
-                        title="Live Users (24h)"
-                        value={liveUsers.toLocaleString()}
-                        subtitle="Active Global Connections"
-                        icon={<Users size={32} />}
-                        colorClass="text-green-500"
-                        onClick={() => setActivePanel('users')}
-                    />
-
-                    {/* Staked Tile */}
-                    <StatTile 
-                        title="Total Cash Staked"
-                        value={`KSh ${totalStaked.toLocaleString()}`}
-                        subtitle="Global Value Locked"
-                        icon={<Target size={32} />}
-                        colorClass="text-yellow-500"
-                        onClick={() => setActivePanel('staked')}
-                    />
-
-                    {/* Active Matches Tile */}
-                    <div className="lg:col-span-2">
-                        <StatTile 
-                            title="Active Deployments"
-                            value={activeMatchesCount.toLocaleString()}
-                            subtitle={`${recentMatchesCount} matches finalized recently`}
-                            icon={<Zap size={32} />}
-                            colorClass="text-orange-500"
-                            onClick={() => setActivePanel('matches')}
-                        />
+                    {/* 2. Live Connections (6/12 width) */}
+                    <div className="lg:col-span-6 flex flex-col justify-between bg-transparent border border-white/10 p-4 rounded-none hover:border-white/20 transition-all group">
+                        <div className="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">LIVE CONNECTIONS</h3>
+                                <p className="text-2xl font-black italic text-green-400 tracking-tighter">
+                                    {liveUsers.toLocaleString()}
+                                </p>
+                                <p className="text-[8px] text-white/20 uppercase tracking-widest mt-1">Active Global Terminals</p>
+                            </div>
+                            <button 
+                                onClick={() => setActivePanel('users')} 
+                                className="px-2 py-0.5 border border-white/10 text-[8px] font-black uppercase tracking-widest hover:bg-white/5 transition-all text-white/60 hover:text-white cursor-pointer"
+                            >
+                                EXPAND &rarr;
+                            </button>
+                        </div>
+                        <div className="border-t border-white/5 pt-3">
+                            <p className="text-[8px] font-black uppercase tracking-widest text-white/30 mb-2">ACTIVE SECTORS</p>
+                            <div className="grid grid-cols-4 gap-2">
+                                {regionalStats.filter(s => s.region !== 'World').slice(0, 4).map((stat) => (
+                                    <div key={stat.region} className="border border-white/10 p-1.5 text-center bg-transparent">
+                                        <p className="text-[7px] font-black uppercase text-white/40 tracking-wider leading-none mb-1">{stat.region}</p>
+                                        <p className="text-[10px] font-black text-green-400 leading-none">{stat.active_users || 0}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
-                    {/* User Management Tile */}
-                    <div className="lg:col-span-2">
-                        <StatTile 
-                            title="Personnel Management"
-                            value={allUsers.length.toLocaleString()}
-                            subtitle="Players, Moderators, Support"
-                            icon={<Shield size={32} />}
-                            colorClass="text-blue-500"
-                            onClick={() => setActivePanel('management')}
-                        />
+                    {/* 3. Value Locked / Staked Weights (4/12 width) */}
+                    <div className="lg:col-span-4 flex flex-col justify-between bg-transparent border border-white/10 p-4 rounded-none hover:border-white/20 transition-all group">
+                        <div>
+                            <div className="flex justify-between items-start mb-3">
+                                <div>
+                                    <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">TOTAL LOCKED VALUE</h3>
+                                    <p className="text-xl font-black italic text-yellow-500 tracking-tighter">
+                                        KSh {totalStaked.toLocaleString()}
+                                    </p>
+                                </div>
+                                <button 
+                                    onClick={() => setActivePanel('staked')} 
+                                    className="px-2 py-0.5 border border-white/10 text-[8px] font-black uppercase tracking-widest hover:bg-white/5 transition-all text-white/60 hover:text-white cursor-pointer"
+                                >
+                                    EXPAND
+                                </button>
+                            </div>
+                            <div className="border-t border-white/5 pt-3 space-y-2">
+                                <p className="text-[8px] font-black uppercase tracking-widest text-white/30 mb-1">SECTOR WEIGHTS</p>
+                                <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-1">
+                                    {regionalStats.filter(s => s.region !== 'World').slice(0, 3).map((stat) => {
+                                        const pct = totalStaked > 0 ? (stat.total_staked / totalStaked) * 100 : 0;
+                                        return (
+                                            <div key={stat.region} className="space-y-1">
+                                                <div className="flex justify-between text-[8px] font-black uppercase tracking-widest leading-none">
+                                                    <span className="text-white/60">{stat.region}</span>
+                                                    <span className="text-yellow-500">{pct.toFixed(0)}%</span>
+                                                </div>
+                                                <div className="h-0.5 bg-white/5 rounded-none overflow-hidden">
+                                                    <div className="h-full bg-yellow-500" style={{ width: `${pct}%` }} />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    {/* 4. Active Deployments (8/12 width) */}
+                    <div className="lg:col-span-8 flex flex-col bg-transparent border border-white/10 p-4 rounded-none hover:border-white/20 transition-all">
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">ACTIVE SYSTEM DEPLOYMENTS</h3>
+                                <p className="text-[8px] text-white/20 font-black uppercase tracking-widest">REAL-TIME CONFLICT CHANNELS</p>
+                            </div>
+                            <button 
+                                onClick={() => setActivePanel('matches')} 
+                                className="px-2.5 py-1 border border-white/10 text-[8px] font-black uppercase tracking-widest hover:bg-white/5 transition-all text-white/60 hover:text-white cursor-pointer"
+                            >
+                                EXPAND FEED &rarr;
+                            </button>
+                        </div>
+                        <div className="border-t border-white/5 pt-3 flex-1">
+                            <ActiveMatchesDetail matches={allMatches.slice(0, 2)} />
+                        </div>
+                    </div>
+
+                    {/* 5. User Command Management Directory (12/12 full width) */}
+                    <div className="lg:col-span-12 flex flex-col bg-transparent border border-white/10 p-4 rounded-none hover:border-white/20 transition-all">
+                        <div className="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">PERSONNEL DIRECTORY & ACCESS CONTROL</h3>
+                                <p className="text-[8px] text-white/20 font-black uppercase tracking-widest">CONTROL NETWORK IDENTITIES & ACCESS PERMISSIONS</p>
+                            </div>
+                            <button 
+                                onClick={() => setActivePanel('management')} 
+                                className="px-2.5 py-1 border border-white/10 text-[8px] font-black uppercase tracking-widest hover:bg-white/5 transition-all text-white/60 hover:text-white cursor-pointer"
+                            >
+                                EXPAND MANAGEMENT &rarr;
+                            </button>
+                        </div>
+                        <div className="border-t border-white/5 pt-3">
+                            <UserManagementDetail users={allUsers.slice(0, 3)} />
+                        </div>
+                    </div>
+
                 </div>
 
             </main>
@@ -213,7 +297,7 @@ export default function AdminDashboard() {
                 isOpen={activePanel === 'revenue'} 
                 onClose={() => setActivePanel(null)}
                 title="Revenue Intelligence"
-                icon={<Banknote size={24} />}
+                icon={null}
             >
                 <RevenueDetail stats={regionalStats} timeline={revenueTimeline} />
             </SlidePanel>
@@ -222,7 +306,7 @@ export default function AdminDashboard() {
                 isOpen={activePanel === 'users'} 
                 onClose={() => setActivePanel(null)}
                 title="Live User Tracking"
-                icon={<Users size={24} />}
+                icon={null}
             >
                 <LiveUsersDetail users={allUsers} />
             </SlidePanel>
@@ -231,7 +315,7 @@ export default function AdminDashboard() {
                 isOpen={activePanel === 'staked'} 
                 onClose={() => setActivePanel(null)}
                 title="Staked Value Distribution"
-                icon={<Target size={24} />}
+                icon={null}
             >
                 <StakedDetail stats={regionalStats} />
             </SlidePanel>
@@ -240,7 +324,7 @@ export default function AdminDashboard() {
                 isOpen={activePanel === 'matches'} 
                 onClose={() => setActivePanel(null)}
                 title="Active Deployments"
-                icon={<Zap size={24} />}
+                icon={null}
             >
                 <ActiveMatchesDetail matches={allMatches} />
             </SlidePanel>
@@ -249,7 +333,7 @@ export default function AdminDashboard() {
                 isOpen={activePanel === 'management'} 
                 onClose={() => setActivePanel(null)}
                 title="Personnel Directory"
-                icon={<Shield size={24} />}
+                icon={null}
             >
                 <UserManagementDetail users={allUsers} />
             </SlidePanel>

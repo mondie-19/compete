@@ -13,34 +13,45 @@ interface StatTileProps {
 }
 
 export function StatTile({ title, value, subtitle, icon, colorClass, onClick }: StatTileProps) {
+  // Extract color name for hover border class safely
+  const borderHoverClass = colorClass.includes('compete-purple') 
+    ? 'hover:border-compete-purple/50' 
+    : colorClass.includes('green') 
+    ? 'hover:border-green-500/50' 
+    : colorClass.includes('yellow') 
+    ? 'hover:border-yellow-500/50' 
+    : colorClass.includes('orange') 
+    ? 'hover:border-orange-500/50' 
+    : 'hover:border-blue-500/50';
+
   return (
     <motion.button
-      whileHover={{ y: -4, scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{ y: -2, scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
       onClick={onClick}
-      className={`relative w-full text-left bg-neutral-900 border border-white/5 p-6 rounded-[2rem] overflow-hidden group hover:border-${colorClass.split('-')[1]}/30 transition-all`}
+      className={`relative w-full text-left bg-transparent border border-white/10 p-4 rounded-none overflow-hidden group ${borderHoverClass} transition-all duration-200`}
     >
-      <div className={`absolute -right-6 -top-6 opacity-5 rotate-12 transition-transform group-hover:rotate-0 group-hover:scale-110 ${colorClass}`}>
+      <div className={`absolute -right-4 -top-4 opacity-[0.02] rotate-12 transition-transform group-hover:rotate-0 group-hover:scale-110 ${colorClass}`}>
         {icon}
       </div>
 
       <div className="relative z-10 flex flex-col h-full justify-between">
-        <div className="flex items-center justify-between mb-8">
-          <div className={`p-3 rounded-2xl bg-white/5 border border-white/10 ${colorClass}`}>
+        <div className="flex items-center justify-between mb-4">
+          <div className={`p-2 rounded-none bg-white/[0.02] border border-white/10 ${colorClass}`}>
             {icon}
           </div>
-          <ChevronRight size={20} className="text-white/20 group-hover:text-white group-hover:translate-x-1 transition-all" />
+          <ChevronRight size={16} className="text-white/20 group-hover:text-white group-hover:translate-x-1 transition-all" />
         </div>
 
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">
+          <p className="text-[9px] font-black uppercase tracking-widest text-white/40 mb-1 leading-none">
             {title}
           </p>
-          <p className={`text-4xl font-black italic uppercase tracking-tighter ${colorClass}`}>
+          <p className={`text-2xl font-black italic uppercase tracking-tighter ${colorClass} leading-tight`}>
             {value}
           </p>
           {subtitle && (
-            <p className="text-[10px] font-bold uppercase text-white/30 tracking-widest mt-2">
+            <p className="text-[8px] font-bold uppercase text-white/30 tracking-widest mt-1 leading-none">
               {subtitle}
             </p>
           )}
@@ -49,3 +60,4 @@ export function StatTile({ title, value, subtitle, icon, colorClass, onClick }: 
     </motion.button>
   );
 }
+

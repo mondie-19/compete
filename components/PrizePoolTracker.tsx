@@ -58,10 +58,6 @@ export default function PrizePoolTracker() {
     return (
       <div className="py-20 flex flex-col items-center justify-center opacity-30">
         <Loader2 className="animate-spin text-compete-purple mb-4" size={40} />
-  if (loading) {
-    return (
-      <div className="py-20 flex flex-col items-center justify-center opacity-30">
-        <Loader2 className="animate-spin text-compete-purple mb-4" size={40} />
         <p className="text-[10px] font-black tracking-[0.4em]">Synching Prize Matrix...</p>
       </div>
     );

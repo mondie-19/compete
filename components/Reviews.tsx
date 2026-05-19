@@ -56,12 +56,12 @@ export default function Reviews() {
   const prev = () => setCurrent((prev) => (prev - 1 + REVIEWS.length) % REVIEWS.length);
 
   return (
-    <section className="py-20 px-4 max-w-5xl mx-auto">
+    <section className="py-20 px-4 max-w-5xl mx-auto font-mono">
       <div className="text-center mb-12">
-        <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">
-          What Competitors <span className="text-compete-purple">Say</span>
+        <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">
+          WHAT COMPETITORS <span className="text-compete-purple">SAY</span>
         </h2>
-        <p className="text-compete-muted mt-2">Hear from real competitors cashing out on the platform</p>
+        <p className="text-white/40 text-xs mt-2">Hear from real competitors cashing out on the platform</p>
       </div>
 
       <div className="relative min-h-[520px] md:h-80">
@@ -74,25 +74,25 @@ export default function Reviews() {
             transition={{ duration: 0.5 }}
             className="absolute inset-0"
           >
-            <div className="h-full bg-compete-card/30 border border-white/5 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-stretch relative">
+            <div className="h-full bg-[#0F0F16]/60 border border-white/10 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row gap-6 md:gap-8 items-stretch relative backdrop-blur-md">
               <div
-                className="w-full md:w-48 h-32 md:h-full rounded-lg bg-cover bg-center flex-shrink-0"
+                className="w-full md:w-48 h-32 md:h-full rounded-xl bg-cover bg-center flex-shrink-0 border border-white/10"
                 style={{ backgroundImage: `url(${REVIEWS[current].bg})` }}
               />
               <div className="flex-1 flex flex-col justify-between">
                 <div>
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-2xl flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xl flex-shrink-0">
                       {REVIEWS[current].avatar}
                     </div>
                     <div>
-                      <p className="font-bold text-white text-lg">{REVIEWS[current].name}</p>
-                      <p className="text-sm text-compete-muted">{REVIEWS[current].title}</p>
+                      <p className="font-black text-white text-base uppercase">{REVIEWS[current].name}</p>
+                      <p className="text-[10px] text-white/40 font-black uppercase tracking-wider">{REVIEWS[current].title}</p>
                     </div>
                   </div>
-                  <p className="text-white italic leading-relaxed text-lg">{REVIEWS[current].text}</p>
+                  <p className="text-white/70 italic leading-relaxed text-xs">"{REVIEWS[current].text}"</p>
                 </div>
-                <div className="text-compete-purple font-bold text-xl">{REVIEWS[current].rating}★</div>
+                <div className="text-compete-purple font-black text-sm pt-4">{REVIEWS[current].rating} / 5 STAR</div>
               </div>
             </div>
           </motion.div>
@@ -103,13 +103,13 @@ export default function Reviews() {
           onClick={prev}
           className="absolute left-2 md:left-0 top-1/2 -translate-y-1/2 md:-translate-x-14 p-2 hover:bg-white/10 rounded-full transition-colors z-20"
         >
-          <ChevronLeft size={24} className="text-compete-purple" />
+          <ChevronLeft size={20} className="text-compete-purple" />
         </button>
         <button
           onClick={next}
           className="absolute right-2 md:right-0 top-1/2 -translate-y-1/2 md:translate-x-14 p-2 hover:bg-white/10 rounded-full transition-colors z-20"
         >
-          <ChevronRight size={24} className="text-compete-purple" />
+          <ChevronRight size={20} className="text-compete-purple" />
         </button>
 
         {/* Dots */}

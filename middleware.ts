@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   // Define protected routes
-  const protectedRoutes = ["/dashboard", "/lobby", "/match", "/wallet", "/deploy", "/admin", "/moderator"];
+  const protectedRoutes = ["/dashboard", "/lobby", "/match", "/deploy", "/admin", "/moderator"];
   const isProtectedRoute = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );
@@ -67,7 +67,6 @@ export const config = {
     "/dashboard/:path*",
     "/lobby/:path*",
     "/match/:path*",
-    "/wallet/:path*",
     "/deploy/:path*",
     "/admin/:path*",
     "/moderator/:path*",

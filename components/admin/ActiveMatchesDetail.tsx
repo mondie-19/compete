@@ -28,84 +28,84 @@ export function ActiveMatchesDetail({ matches }: ActiveMatchesDetailProps) {
     .filter(m => m.game_name.toLowerCase().includes(search.toLowerCase()) || m.host?.username?.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 items-stretch">
+      <div className="flex flex-col md:flex-row gap-2 items-stretch">
         <div className="relative flex-1 flex items-center">
-          <Search className="absolute left-4 z-10 text-white/20" size={16} />
+          <Search className="absolute left-3.5 z-10 text-white/20" size={14} />
           <input
             type="text"
             placeholder="Search game or host..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs outline-none focus:border-compete-purple placeholder:text-white/20 transition-colors h-full"
+            className="w-full bg-transparent border border-white/10 rounded-none py-2 pl-9 pr-3 text-xs outline-none focus:border-compete-purple placeholder:text-white/20 transition-colors h-full"
           />
         </div>
         
-        <div className="relative min-w-[220px] flex items-center">
-          <Globe className="absolute left-4 z-10 text-compete-purple pointer-events-none" size={14} />
+        <div className="relative min-w-[200px] flex items-center">
+          <Globe className="absolute left-3.5 z-10 text-compete-purple pointer-events-none" size={12} />
           <select 
             value={regionFilter}
             onChange={(e) => setRegionFilter(e.target.value)}
-            className="w-full h-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-3 text-[10px] font-black uppercase tracking-[0.1em] outline-none focus:border-compete-purple appearance-none cursor-pointer hover:bg-white/10 transition-all text-white/80"
+            className="w-full h-full bg-transparent border border-white/10 rounded-none pl-9 pr-9 py-2 text-[9px] font-black uppercase tracking-[0.1em] outline-none focus:border-compete-purple appearance-none cursor-pointer hover:bg-white/5 transition-all text-white/80"
           >
             <option value="all" className="bg-[#0A0A0F]">All Regions</option>
             {REGIONS.filter(r => r !== 'World').map(r => (
               <option key={r} value={r} className="bg-[#0A0A0F]">{r}</option>
             ))}
           </select>
-          <div className="absolute right-4 z-10 pointer-events-none text-white/20 text-[10px] flex items-center">
-             <span className="mt-[2px]">▼</span>
+          <div className="absolute right-3.5 z-10 pointer-events-none text-white/20 text-[9px] flex items-center">
+             <span className="mt-[1px]">▼</span>
           </div>
         </div>
       </div>
 
       {/* Matches List */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {filteredMatches.length === 0 ? (
-          <div className="py-12 text-center border border-dashed border-white/5 rounded-[2rem] text-white/20">
-            <Gamepad2 className="mx-auto mb-3 opacity-50" size={32} />
-            <p className="text-[10px] font-black uppercase tracking-widest">No active deployments</p>
+          <div className="py-8 text-center border border-white/10 rounded-none bg-transparent text-white/20">
+            <Gamepad2 className="mx-auto mb-2 opacity-50" size={24} />
+            <p className="text-[9px] font-black uppercase tracking-widest">No active deployments</p>
           </div>
         ) : (
           filteredMatches.map(match => (
-            <div key={match.id} className="bg-neutral-900 border border-white/5 rounded-2xl overflow-hidden hover:border-white/10 transition-all group">
-              <div className="p-4 flex items-center justify-between border-b border-white/5">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-white/40 group-hover:text-compete-purple transition-colors border border-white/5">
-                    <Gamepad2 size={20} />
+            <div key={match.id} className="bg-transparent border border-white/10 rounded-none overflow-hidden hover:border-white/20 transition-all group">
+              <div className="p-3 flex items-center justify-between border-b border-white/5 bg-transparent">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-transparent rounded-none flex items-center justify-center text-white/40 group-hover:text-compete-purple transition-colors border border-white/10">
+                    <Gamepad2 size={16} />
                   </div>
                   <div>
-                    <h4 className="font-black italic uppercase leading-none">{match.game_name}</h4>
-                    <p className="text-[9px] font-black uppercase text-white/40 tracking-widest mt-1">
+                    <h4 className="font-black italic uppercase leading-none text-xs">{match.game_name}</h4>
+                    <p className="text-[8px] font-black uppercase text-white/40 tracking-widest mt-1 leading-none">
                       {match.platform} • {match.region}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-black italic text-compete-purple">KSh {match.prize_pool.toLocaleString()}</p>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-white/30">Prize Pool</p>
+                  <p className="text-xs font-black italic text-compete-purple leading-none">KSh {match.prize_pool.toLocaleString()}</p>
+                  <p className="text-[7px] font-black uppercase tracking-widest text-white/30 mt-1 leading-none">Prize Pool</p>
                 </div>
               </div>
 
-              <div className="bg-white/[0.02] p-4 flex items-center justify-between">
-                <div className="flex items-center gap-6">
+              <div className="bg-transparent p-3 flex items-center justify-between">
+                <div className="flex items-center gap-4">
                   <div>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-white/30 mb-0.5">Host</p>
-                    <p className="text-xs font-bold">{match.host?.username || 'Unknown'}</p>
+                    <p className="text-[7px] font-black uppercase tracking-widest text-white/30 mb-0.5 leading-none">Host</p>
+                    <p className="text-[10px] font-bold leading-none">{match.host?.username || 'Unknown'}</p>
                   </div>
-                  <div className="h-4 w-px bg-white/10" />
+                  <div className="h-3 w-px bg-white/10" />
                   <div>
-                    <p className="text-[8px] font-black uppercase tracking-widest text-white/30 mb-0.5">Opponent</p>
-                    <p className="text-xs font-bold text-white/60">{match.opponent?.username || 'Waiting...'}</p>
+                    <p className="text-[7px] font-black uppercase tracking-widest text-white/30 mb-0.5 leading-none">Opponent</p>
+                    <p className="text-[10px] font-bold text-white/60 leading-none">{match.opponent?.username || 'Waiting...'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                  <span className={`px-2 py-1 rounded border text-[8px] font-black uppercase tracking-widest ${
-                    match.status === 'open' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
-                    match.status === 'in_progress' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30 animate-pulse' :
-                    'bg-red-500/10 text-red-400 border-red-500/30'
+                <div className="flex items-center gap-3">
+                  <span className={`px-1.5 py-0.5 rounded-none border text-[7px] font-black uppercase tracking-widest ${
+                    match.status === 'open' ? 'bg-blue-500/5 text-blue-400 border-blue-500/20' :
+                    match.status === 'in_progress' ? 'bg-yellow-500/5 text-yellow-500 border-yellow-500/20 animate-pulse' :
+                    'bg-red-500/5 text-red-400 border-red-500/20'
                   }`}>
                     {match.status.replace('_', ' ')}
                   </span>
@@ -113,7 +113,7 @@ export function ActiveMatchesDetail({ matches }: ActiveMatchesDetailProps) {
                   <Link 
                     href={`/match/${match.id}`} 
                     target="_blank"
-                    className="text-[10px] font-black uppercase tracking-widest text-compete-purple hover:text-white transition-colors"
+                    className="text-[9px] font-black uppercase tracking-widest text-compete-purple hover:text-white transition-colors"
                   >
                     View &rarr;
                   </Link>

@@ -21,14 +21,14 @@ export function RevenueDetail({ stats, timeline }: RevenueDetailProps) {
   const worldRevenue = filteredStats.find(s => s.region === 'World')?.total_revenue || 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       {/* Time Range Switcher */}
-      <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+      <div className="flex bg-transparent p-1 rounded-none border border-white/10">
         {(['24h', '7d', '30d', 'all'] as const).map((r) => (
           <button
             key={r}
             onClick={() => setTimeRange(r)}
-            className={`flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${
+            className={`flex-1 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-none transition-all ${
               timeRange === r ? 'bg-compete-purple text-white shadow-purple-glow' : 'text-white/40 hover:text-white'
             }`}
           >
@@ -38,7 +38,7 @@ export function RevenueDetail({ stats, timeline }: RevenueDetailProps) {
       </div>
 
       {/* Regional Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
         {filteredStats.map((stat, idx) => {
           const isWorld = stat.region === 'World';
           const share = worldRevenue > 0 && !isWorld ? (stat.total_revenue / worldRevenue) * 100 : 0;
@@ -46,52 +46,52 @@ export function RevenueDetail({ stats, timeline }: RevenueDetailProps) {
           return (
             <motion.div 
               key={stat.region}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              className={`p-3 rounded-2xl border transition-all duration-300 group ${
+              transition={{ delay: idx * 0.03 }}
+              className={`p-2.5 rounded-none border transition-all duration-200 group ${
                 isWorld 
-                ? 'col-span-full bg-compete-purple/10 border-compete-purple/30 shadow-[0_0_20px_rgba(155,92,255,0.05)]' 
-                : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/[0.07]'
+                ? 'col-span-full bg-compete-purple/5 border-compete-purple/20' 
+                : 'bg-transparent border-white/10 hover:border-white/20'
               }`}
             >
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex justify-between items-start mb-1.5">
                 <div>
                   <h4 className={`text-[8px] font-black uppercase tracking-[0.1em] mb-0.5 ${isWorld ? 'text-compete-purple' : 'text-white/40'}`}>
-                    {stat.region}
+                     {stat.region}
                   </h4>
-                  <p className={`${isWorld ? 'text-lg' : 'text-sm'} font-black italic text-white tracking-tighter`}>
+                  <p className={`${isWorld ? 'text-base' : 'text-xs'} font-black italic text-white tracking-tighter`}>
                     KSh {stat.total_revenue.toLocaleString()}
                   </p>
                 </div>
-                <div className={`${isWorld ? 'w-8 h-8' : 'w-6 h-6'} rounded-lg flex items-center justify-center border ${
-                  isWorld ? 'bg-compete-purple/20 border-compete-purple/40 text-compete-purple' : 'bg-white/5 border-white/10 text-white/20'
+                <div className={`${isWorld ? 'w-7 h-7' : 'w-5 h-5'} rounded-none flex items-center justify-center border ${
+                  isWorld ? 'bg-compete-purple/15 border-compete-purple/30 text-compete-purple' : 'bg-transparent border-white/10 text-white/20'
                 }`}>
-                  {isWorld ? <Globe size={16} /> : <DollarSign size={12} />}
+                  {isWorld ? <Globe size={14} /> : <DollarSign size={10} />}
                 </div>
               </div>
 
               {!isWorld && (
-                <div className="space-y-1.5">
-                  <div className="flex justify-between text-[7px] font-black uppercase tracking-widest text-white/20">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[6px] font-black uppercase tracking-widest text-white/20">
                     <span>Share</span>
                     <span>{share.toFixed(1)}%</span>
                   </div>
-                  <div className="h-0.5 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-0.5 bg-white/5 rounded-none overflow-hidden">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${share}%` }}
-                      className="h-full bg-compete-purple shadow-[0_0_5px_rgba(155,92,255,0.5)]"
+                      className="h-full bg-compete-purple"
                     />
                   </div>
                 </div>
               )}
 
               {isWorld && (
-                <div className="flex gap-4 mt-2 pt-2 border-t border-white/5">
-                  <div className="flex-1">
-                    <p className="text-[7px] font-black uppercase text-white/20 mb-0.5">Aggregated Yield</p>
-                    <p className="text-[10px] font-bold text-white/60 uppercase">Nominal</p>
+                <div className="flex gap-4 mt-1.5 pt-1.5 border-t border-white/5">
+                  <div className="flex-1 flex justify-between items-center">
+                    <p className="text-[6px] font-black uppercase text-white/20">Aggregated Yield</p>
+                    <p className="text-[8px] font-bold text-white/60 uppercase">Nominal</p>
                   </div>
                 </div>
               )}
@@ -101,12 +101,12 @@ export function RevenueDetail({ stats, timeline }: RevenueDetailProps) {
       </div>
 
       {/* Revenue Trend Chart */}
-      <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Revenue Velocity (Daily)</h3>
-          <Calendar size={16} className="text-compete-purple" />
+      <div className="bg-transparent border border-white/10 p-4 rounded-none">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">Revenue Velocity (Daily)</h3>
+          <Calendar size={14} className="text-compete-purple" />
         </div>
-        <div className="h-[200px] w-full">
+        <div className="h-[180px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={timeline.filter(t => t.region === 'World').reverse()}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -126,12 +126,12 @@ export function RevenueDetail({ stats, timeline }: RevenueDetailProps) {
                 tickFormatter={(val) => `KSh ${val >= 1000 ? (val/1000).toFixed(1) + 'k' : val}`}
               />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }}
+                contentStyle={{ backgroundColor: '#0A0A0F', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '0px' }}
                 itemStyle={{ color: '#9B5CFF', fontWeight: 'bold', fontSize: '10px' }}
                 labelStyle={{ color: 'rgba(255,255,255,0.4)', fontSize: '8px', marginBottom: '4px' }}
                 labelFormatter={(val) => new Date(val).toLocaleDateString()}
               />
-              <Bar dataKey="revenue" fill="#9B5CFF" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="revenue" fill="#9B5CFF" radius={[0, 0, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

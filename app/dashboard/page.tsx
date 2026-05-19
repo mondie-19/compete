@@ -119,6 +119,19 @@ export default function Dashboard() {
     fetchData();
   }, [supabase]);
 
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam && ["overview", "performance", "financial", "matches", "vault", "settings"].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    };
+    handleLocationChange();
+    const interval = setInterval(handleLocationChange, 200);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleNameUpdate = async () => {
     if (!newUsername || newUsername === profile.username) {
       setIsEditingName(false);
@@ -231,7 +244,7 @@ export default function Dashboard() {
   const chartPerformanceData = Object.values(monthlyPerformance).slice(-6);
 
   return (
-    <div className="min-h-screen bg-compete-bg text-white relative">
+    <div className="min-h-screen bg-black text-white relative font-mono selection:bg-compete-purple">
       <div className="flex flex-col lg:flex-row min-h-screen">
         <style>{`
         .hide-scrollbar {
@@ -251,20 +264,20 @@ export default function Dashboard() {
       `}</style>
 
         {/* Sidebar (Desktop) / Mobile Nav (Bottom) */}
-        <div className="fixed bottom-0 left-0 right-0 z-40 lg:relative lg:w-60 bg-[#0A0A0F]/90 lg:bg-[#0A0A0F]/60 backdrop-blur-3xl border-t lg:border-t-0 lg:border-r border-white/5 py-2 lg:pt-20 lg:shrink-0 h-auto lg:min-h-screen">
-          <div className="flex lg:flex-col items-center lg:items-stretch justify-around lg:justify-start px-2 lg:px-4 lg:space-y-6 lg:sticky lg:top-20">
+        <div className="fixed bottom-0 left-0 right-0 z-40 lg:relative lg:w-60 bg-[#0F0F16]/90 lg:bg-transparent backdrop-blur-md lg:backdrop-blur-none border-t lg:border-t-0 lg:border-r border-white/10 py-2 lg:pt-8 lg:shrink-0 h-auto lg:min-h-screen">
+          <div className="flex lg:flex-col items-center lg:items-stretch justify-around lg:justify-start px-2 lg:px-4 lg:space-y-8 lg:sticky lg:top-8">
             {/* Universal Neural Identity Profile Section */}
             <button
               onClick={() => setShowIdPopup(true)}
-              className="hidden lg:block w-full text-left bg-white/[0.02] border border-white/5 p-4 rounded-xl mb-6 group hover:border-compete-purple/30 transition-all cursor-pointer relative overflow-hidden"
+              className="hidden lg:block w-full text-left bg-white/[0.02] border border-white/10 p-4 rounded-2xl mb-6 mt-10 group hover:border-compete-purple/50 transition-all cursor-pointer relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-16 h-16 bg-compete-purple/5 -mr-8 -mt-8 rounded-full blur-xl group-hover:bg-compete-purple/10 transition-all" />
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[8px] font-black text-white/20 tracking-widest">Neural ID</span>
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+                <span className="text-[8px] font-black text-white/30 tracking-widest uppercase">NEURAL ID</span>
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
               </div>
-              <p className="text-sm font-black italic text-compete-purple tracking-tighter truncate">{profile?.username}</p>
-              <p className={`text-[6px] font-black tracking-[0.3em] mt-1 ${levelInfo.text}`}>Level {ranking?.level || 1} • {levelInfo.name}</p>
+              <p className="text-sm font-black italic text-compete-purple tracking-tighter truncate uppercase">{profile?.username}</p>
+              <p className={`text-[6px] font-black tracking-[0.3em] mt-1 ${levelInfo.text} uppercase`}>LEVEL {ranking?.level || 1} • {levelInfo.name.toUpperCase()}</p>
             </button>
 
             {/* Navigation Items */}
@@ -276,23 +289,35 @@ export default function Dashboard() {
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
-                    className={`flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-2 lg:py-2.5 rounded-lg transition-all relative ${isActive
+                    className={`flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-2 lg:py-2.5 rounded-xl transition-all relative ${isActive
                         ? "text-compete-purple lg:text-white lg:bg-white/5 lg:border lg:border-white/10"
-                        : "text-white/20 hover:text-white"
+                        : "text-white/30 hover:text-white"
                       }`}
                   >
-                    <Icon size={16} className={isActive ? "text-compete-purple" : ""} />
-                    <span className="text-[7px] lg:text-[10px] font-black  tracking-widest lg:tracking-[0.1em]">{item.label}</span>
+                    <Icon size={14} className={isActive ? "text-compete-purple" : ""} />
+                    <span className="text-[7px] lg:text-[9px] font-black tracking-[0.2em] uppercase">{item.label}</span>
                   </button>
                 );
               })}
+              
+              <div className="hidden lg:block w-full h-px bg-white/10 my-2" />
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  window.location.href = "/auth";
+                }}
+                className="flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-2 lg:px-4 py-2 lg:py-2.5 rounded-xl transition-all text-white/30 hover:text-red-500 hover:bg-white/5"
+              >
+                <LogOut size={14} />
+                <span className="text-[7px] lg:text-[9px] font-black tracking-[0.2em] uppercase">LOGOUT</span>
+              </button>
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 pt-20 lg:pt-24 pb-24 lg:pb-20 px-4 lg:px-8 max-w-6xl mx-auto w-full">
-          <div className="flex items-center justify-between mb-6 lg:mb-8">
+        <div className="flex-1 flex flex-col justify-center pt-8 lg:pt-8 pb-24 lg:pb-8 px-4 lg:px-8 max-w-6xl mx-auto w-full">
+          <div className="sticky top-0 z-30 bg-black/95 backdrop-blur-md py-4 -mx-4 lg:-mx-8 px-4 lg:px-8 border-b border-white/5 mb-6 lg:mb-8 flex items-center justify-between transition-all duration-300">
             <div>
               <h1 className="text-lg lg:text-2xl font-black text-white italic tracking-tighter leading-none">
                 Neural <span className="text-compete-purple">Dashboard</span>
@@ -321,30 +346,30 @@ export default function Dashboard() {
                 {/* Top Stats Cards */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
                   {[
-                    { label: 'Standing', value: `#${ranking?.rank || '---'}`, icon: Trophy, color: 'text-yellow-500', trend: `${ranking?.xp || 0} XP` },
-                    { label: 'Win Rate', value: `${winRate}%`, icon: Zap, color: 'text-compete-purple', trend: winRate >= 50 ? '+4%' : '-2%' },
-                    { label: 'Missions', value: matches.length, icon: History, color: 'text-blue-400' },
-                    { label: 'Vault', value: `${profile?.balance || 0}`, icon: DollarSign, color: 'text-green-500' }
+                    { label: 'STANDING', value: `#${ranking?.rank || '---'}`, icon: Trophy, color: 'text-yellow-500', trend: `${ranking?.xp || 0} XP` },
+                    { label: 'WIN RATE', value: `${winRate}%`, icon: Zap, color: 'text-compete-purple', trend: winRate >= 50 ? '+4%' : '-2%' },
+                    { label: 'MISSIONS', value: matches.length, icon: History, color: 'text-blue-400' },
+                    { label: 'VAULT', value: `Ksh ${profile?.balance || 0}`, icon: DollarSign, color: 'text-green-500' }
                   ].map((stat, i) => (
                     <motion.div
                       key={stat.label}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="bg-white/[0.02] border border-white/5 rounded-xl lg:rounded-2xl p-3 lg:p-4 hover:border-white/10 transition-all group"
+                      className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-2xl p-4 hover:border-compete-purple/50 transition-all group relative overflow-hidden"
                     >
-                      <div className="flex items-center justify-between mb-2 lg:mb-4">
-                        <div className={`p-1.5 lg:p-2 rounded-lg bg-white/5 ${stat.color}`}>
-                          <stat.icon className="w-3 h-3 lg:w-4 lg:h-4" />
+                      <div className="flex items-center justify-between mb-3">
+                        <div className={`p-2 rounded-xl bg-white/5 ${stat.color}`}>
+                          <stat.icon className="w-3.5 h-3.5" />
                         </div>
                         {stat.trend && (
-                          <span className={`text-[6px] lg:text-[8px] font-black ${stat.trend.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+                          <span className={`text-[7px] lg:text-[8px] font-black ${stat.trend.startsWith('+') ? 'text-green-400' : stat.trend.includes('XP') ? 'text-compete-purple' : 'text-red-400'} uppercase tracking-wider`}>
                             {stat.trend}
                           </span>
                         )}
                       </div>
-                      <p className="text-[7px] lg:text-[8px] font-black  text-white/20 tracking-widest mb-0.5 lg:mb-1">{stat.label}</p>
-                      <p className="text-sm lg:text-xl font-black text-white italic tracking-tighter leading-none">{stat.value}</p>
+                      <p className="text-[8px] font-black text-white/30 tracking-widest mb-1 uppercase">{stat.label}</p>
+                      <p className="text-base lg:text-xl font-black text-white italic tracking-tighter leading-none uppercase">{stat.value}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -355,21 +380,21 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="bg-compete-card/30 border border-white/5 rounded-xl lg:rounded-2xl p-4 lg:p-6"
+                    className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6"
                   >
-                    <h3 className="text-white font-black  italic tracking-widest text-[8px] lg:text-[10px] mb-4 lg:mb-6 flex items-center gap-2 opacity-40">
-                      <Trophy className="w-3 h-3 lg:w-[14px] lg:h-[14px] text-yellow-500" /> Deployment Metrics
+                    <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] mb-6 flex items-center gap-2 opacity-50 uppercase">
+                      <Trophy className="w-[14px] h-[14px] text-yellow-500" /> DEPLOYMENT METRICS
                     </h3>
-                    <div className="space-y-3 lg:space-y-4">
+                    <div className="space-y-4">
                       {[
-                        { label: 'Total Engagements', value: matches.length, color: 'text-white' },
-                        { label: 'Successful Missions', value: totalWins, color: 'text-green-400' },
-                        { label: 'Failed Missions', value: totalLosses, color: 'text-red-400' },
-                        { label: 'W/L Ratio', value: (totalWins / (totalLosses || 1)).toFixed(2), color: 'text-compete-purple' }
+                        { label: 'TOTAL ENGAGEMENTS', value: matches.length, color: 'text-white' },
+                        { label: 'SUCCESSFUL MISSIONS', value: totalWins, color: 'text-green-400' },
+                        { label: 'FAILED MISSIONS', value: totalLosses, color: 'text-red-400' },
+                        { label: 'W/L RATIO', value: (totalWins / (totalLosses || 1)).toFixed(2), color: 'text-compete-purple' }
                       ].map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-white/[0.01] border border-white/5 p-2.5 lg:p-3 rounded-lg lg:rounded-xl">
-                          <span className="text-white/40  text-[7px] lg:text-[8px] font-black tracking-widest">{item.label}</span>
-                          <span className={`${item.color} font-black italic text-xs lg:text-base`}>{item.value}</span>
+                        <div key={idx} className="flex justify-between items-center bg-white/[0.02] border border-white/10 p-3.5 rounded-2xl">
+                          <span className="text-white/30 text-[8px] font-black tracking-widest uppercase">{item.label}</span>
+                          <span className={`${item.color} font-black italic text-xs lg:text-sm uppercase`}>{item.value}</span>
                         </div>
                       ))}
                     </div>
@@ -379,22 +404,23 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="bg-compete-card/30 border border-white/5 rounded-xl lg:rounded-2xl p-3 lg:p-4"
+                    className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6"
                   >
-                    <div className="flex justify-between items-start mb-2 lg:mb-3">
-                      <h3 className="text-white font-black italic tracking-widest text-[7px] lg:text-[8px] opacity-40">Identity Genesis</h3>
-                      <div className={`px-2 py-0.5 ${levelInfo.bg} ${levelInfo.border} border rounded text-[7px] lg:text-[8px] font-black ${levelInfo.text} tracking-widest`}>
+                    <div className="flex justify-between items-start mb-4">
+                      <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] opacity-50 uppercase">IDENTITY GENESIS</h3>
+                      <div className={`px-3 py-1 ${levelInfo.bg} ${levelInfo.border} border rounded-full text-[8px] font-black ${levelInfo.text} tracking-widest uppercase`}>
                         LVL {ranking?.level || 1}
                       </div>
                     </div>
-                    <p className="text-lg lg:text-2xl font-black text-white mb-0.5  italic leading-none tracking-tighter">
+                    <p className="text-xl lg:text-3xl font-black text-white mb-1 italic leading-none tracking-tighter uppercase">
                       {new Date(profile?.created_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
                     </p>
-                    <p className="text-white/20 text-[6px] lg:text-[7px] font-black  tracking-[0.3em]">Operational Since Launch</p>
-                    <div className="mt-4 lg:mt-6 p-2.5 lg:p-3 bg-white/[0.01] rounded-lg lg:rounded-xl border border-white/5">
-                      <div className="flex justify-between items-center mb-1.5 lg:mb-2">
-                        <p className="text-[6px] lg:text-[7px] text-white/40  font-black tracking-widest">Progress to Level {(ranking?.level || 1) + 1}</p>
-                        <p className="text-[7px] lg:text-[8px] text-compete-purple font-black">{ranking?.xp || 0} / {((ranking?.level || 1) + 1) * 100} XP</p>
+                    <p className="text-white/20 text-[7px] font-black tracking-[0.3em] uppercase">OPERATIONAL SINCE LAUNCH</p>
+                    
+                    <div className="mt-8 p-4 bg-white/[0.02] rounded-2xl border border-white/10">
+                      <div className="flex justify-between items-center mb-3">
+                        <p className="text-[7px] text-white/30 font-black tracking-widest uppercase">PROGRESS TO LEVEL {(ranking?.level || 1) + 1}</p>
+                        <p className="text-[8px] text-compete-purple font-black uppercase tracking-wider">{ranking?.xp || 0} / {((ranking?.level || 1) + 1) * 100} XP</p>
                       </div>
                       <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
                         <motion.div
@@ -423,43 +449,43 @@ export default function Dashboard() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-compete-card/30 border border-white/5 rounded-xl lg:rounded-2xl p-4 lg:p-6"
+                  className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6"
                 >
-                  <h3 className="text-sm lg:text-lg font-bold text-white  tracking-widest mb-4 lg:mb-6 flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 lg:w-5 lg:h-5 text-compete-purple" />
-                    Performance
+                  <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] mb-6 flex items-center gap-2 opacity-50 uppercase">
+                    <BarChart3 className="w-[14px] h-[14px] text-compete-purple" /> PERFORMANCE TREND
                   </h3>
                   <div className="h-[200px] lg:h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartPerformanceData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                         <XAxis 
                           dataKey="month" 
                           stroke="rgba(255, 255, 255, 0.1)" 
-                          fontSize={10} 
-                          tick={{ fill: 'rgba(255,255,255,0.4)' }}
+                          fontSize={9} 
+                          tick={{ fill: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}
                           axisLine={false}
                           tickLine={false}
                         />
                         <YAxis 
                           stroke="rgba(255, 255, 255, 0.1)" 
-                          fontSize={10} 
-                          tick={{ fill: 'rgba(255,255,255,0.4)' }}
+                          fontSize={9} 
+                          tick={{ fill: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}
                           axisLine={false}
                           tickLine={false}
                         />
                         <Tooltip
                           contentStyle={{
-                            backgroundColor: "#12121A",
-                            border: "1px solid rgba(155, 92, 255, 0.3)",
-                            borderRadius: "8px",
-                            fontSize: "10px"
+                            backgroundColor: "#0B0B10",
+                            border: "1px solid rgba(155, 92, 255, 0.2)",
+                            borderRadius: "12px",
+                            fontSize: "9px",
+                            fontWeight: "bold",
                           }}
                           labelStyle={{ color: "#9B5CFF" }}
                         />
-                        <Legend iconSize={10} wrapperStyle={{ fontSize: '10px' }} />
-                        <Bar dataKey="wins" fill="#9B5CFF" />
-                        <Bar dataKey="losses" fill="rgba(155, 92, 255, 0.3)" />
+                        <Legend iconSize={8} wrapperStyle={{ fontSize: '9px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em' }} />
+                        <Bar dataKey="wins" fill="#9B5CFF" radius={[2, 2, 0, 0]} name="WISSIONS WON" />
+                        <Bar dataKey="losses" fill="rgba(155, 92, 255, 0.1)" radius={[2, 2, 0, 0]} name="MISSIONS LOST" />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -471,34 +497,36 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-compete-card/30 border border-white/5 rounded-2xl p-6 flex flex-col items-center"
+                    className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6 flex flex-col items-center"
                   >
-                    <h3 className="text-lg font-bold text-white  tracking-widest mb-6">Total Record</h3>
+                    <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] mb-6 opacity-50 uppercase self-start">TOTAL RECORD</h3>
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
                         <Pie
                           data={[
                             { name: "Wins", value: totalWins, fill: "#9B5CFF" },
-                            { name: "Losses", value: totalLosses, fill: "rgba(155, 92, 255, 0.2)" }
+                            { name: "Losses", value: totalLosses, fill: "rgba(155, 92, 255, 0.1)" }
                           ]}
                           cx="50%"
                           cy="50%"
                           innerRadius={60}
                           outerRadius={90}
-                          paddingAngle={2}
+                          paddingAngle={4}
                           dataKey="value"
                         >
                           {[
                             { name: "Wins", value: totalWins, fill: "#9B5CFF" },
-                            { name: "Losses", value: totalLosses, fill: "rgba(155, 92, 255, 0.2)" }
+                            { name: "Losses", value: totalLosses, fill: "rgba(155, 92, 255, 0.1)" }
                           ].map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                            <Cell key={`cell-${index}`} fill={entry.fill} stroke="rgba(255, 255, 255, 0.05)" />
                           ))}
                         </Pie>
                         <Tooltip
                           contentStyle={{
-                            backgroundColor: "#12121A",
-                            border: "1px solid rgba(155, 92, 255, 0.3)",
+                            backgroundColor: "#0B0B10",
+                            border: "1px solid rgba(155, 92, 255, 0.2)",
+                            borderRadius: "12px",
+                            fontSize: "9px"
                           }}
                         />
                       </PieChart>
@@ -509,20 +537,20 @@ export default function Dashboard() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="bg-white/[0.02] border border-white/5 rounded-2xl p-6"
+                    className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6"
                   >
-                    <h3 className="text-lg font-bold text-white  tracking-widest mb-6">Neural Skill Profile</h3>
+                    <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] mb-6 opacity-50 uppercase">NEURAL SKILL PROFILE</h3>
                     <div className="space-y-4">
                       {[
-                        { skill: "Win Velocity", value: 85, color: "from-blue-500 to-cyan-500" },
-                        { skill: "Strategic Logic", value: Math.min(100, (totalWins * 3) + 45), color: "from-purple-500 to-pink-500" },
-                        { skill: "Adaptability Score", value: Math.min(100, (matches.length * 2) + 50), color: "from-green-500 to-emerald-500" },
-                        { skill: "Consistency Index", value: Math.min(100, (totalWins / (matches.length || 1)) * 100), color: "from-orange-500 to-red-500" }
+                        { skill: "WIN VELOCITY", value: 85, color: "from-blue-500 to-cyan-500" },
+                        { skill: "STRATEGIC LOGIC", value: Math.min(100, (totalWins * 3) + 45), color: "from-purple-500 to-pink-500" },
+                        { skill: "ADAPTABILITY SCORE", value: Math.min(100, (matches.length * 2) + 50), color: "from-green-500 to-emerald-500" },
+                        { skill: "CONSISTENCY INDEX", value: Math.min(100, (totalWins / (matches.length || 1)) * 100), color: "from-orange-500 to-red-500" }
                       ].map((metric, i) => (
                         <div key={i}>
                           <div className="flex justify-between mb-2">
-                            <span className="text-[9px] text-white/40 font-black tracking-widest">{metric.skill}</span>
-                            <span className="text-[10px] text-white font-black italic">{metric.value.toFixed(0)}%</span>
+                            <span className="text-[8px] text-white/30 font-black tracking-widest uppercase">{metric.skill}</span>
+                            <span className="text-[9px] text-white font-black italic">{metric.value.toFixed(0)}%</span>
                           </div>
                           <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
                             <motion.div
@@ -554,40 +582,40 @@ export default function Dashboard() {
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-compete-card/50 border border-white/5 rounded-2xl p-6 hover:border-compete-purple/30 transition-all shadow-xl"
+                    className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6 hover:border-compete-purple/50 transition-all shadow-xl"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <TrendingUp className="text-green-400" size={24} />
+                      <TrendingUp className="text-green-400" size={20} />
                     </div>
-                    <p className="text-compete-muted text-[10px] font-bold tracking-widest mb-1">Total Earnings</p>
-                    <p className="text-3xl font-black text-white italic">Kshs {totalEarnings}</p>
+                    <p className="text-white/30 text-[8px] font-black tracking-widest mb-1 uppercase">TOTAL EARNINGS</p>
+                    <p className="text-2xl font-black text-white italic uppercase">Ksh {totalEarnings}</p>
                   </motion.div>
 
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-compete-card/50 border border-white/5 rounded-2xl p-6 hover:border-compete-purple/30 transition-all shadow-xl"
+                    className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6 hover:border-compete-purple/50 transition-all shadow-xl"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <DollarSign className="text-compete-purple" size={24} />
+                      <DollarSign className="text-compete-purple" size={20} />
                     </div>
-                    <p className="text-compete-muted text-[10px] font-bold tracking-widest mb-1">Total Entry Fees</p>
-                    <p className="text-3xl font-black text-white italic">-Kshs {totalSpent}</p>
+                    <p className="text-white/30 text-[8px] font-black tracking-widest mb-1 uppercase">TOTAL ENTRY FEES</p>
+                    <p className="text-2xl font-black text-white italic uppercase">-Ksh {totalSpent}</p>
                   </motion.div>
 
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="bg-compete-card/50 border border-white/5 rounded-2xl p-6 hover:border-compete-purple/30 transition-all shadow-xl"
+                    className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6 hover:border-compete-purple/50 transition-all shadow-xl"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <Users className={` ${netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`} size={24} />
+                      <Users className={`${netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`} size={20} />
                     </div>
-                    <p className="text-compete-muted text-[10px] font-bold tracking-widest mb-1">Net Flow</p>
-                    <p className={`text-3xl font-black italic ${netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {netProfit >= 0 ? `+Kshs ${netProfit}` : `-Kshs ${Math.abs(netProfit)}`}
+                    <p className="text-white/30 text-[8px] font-black tracking-widest mb-1 uppercase">NET FLOW</p>
+                    <p className={`text-2xl font-black italic uppercase ${netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {netProfit >= 0 ? `+Ksh ${netProfit}` : `-Ksh ${Math.abs(netProfit)}`}
                     </p>
                   </motion.div>
                 </div>
@@ -596,44 +624,45 @@ export default function Dashboard() {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-compete-card/30 border border-white/5 rounded-2xl p-6"
+                  className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6"
                 >
-                  <h3 className="text-lg font-bold text-white tracking-widest mb-6 flex items-center gap-2">
-                    <BarChart3 size={20} className="text-green-400" />
-                    Revenue Trend
+                  <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] mb-6 flex items-center gap-2 opacity-50 uppercase">
+                    <BarChart3 size={14} className="text-green-400" /> REVENUE TREND
                   </h3>
                   <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={chartRevenueData}>
                       <defs>
                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#9B5CFF" stopOpacity={0.8} />
-                          <stop offset="95%" stopColor="#9B5CFF" stopOpacity={0.1} />
+                          <stop offset="5%" stopColor="#9B5CFF" stopOpacity={0.4} />
+                          <stop offset="95%" stopColor="#9B5CFF" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                       <XAxis 
                         dataKey="week" 
                         stroke="rgba(255, 255, 255, 0.1)" 
-                        fontSize={10}
-                        tick={{ fill: 'rgba(255,255,255,0.4)' }}
+                        fontSize={9}
+                        tick={{ fill: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}
                         axisLine={false}
                         tickLine={false}
                       />
                       <YAxis 
                         stroke="rgba(255, 255, 255, 0.1)" 
-                        fontSize={10}
-                        tick={{ fill: 'rgba(255,255,255,0.4)' }}
-                        tickFormatter={(value) => `Kshs ${value}`}
+                        fontSize={9}
+                        tick={{ fill: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}
+                        tickFormatter={(value) => `Ksh ${value}`}
                         axisLine={false}
                         tickLine={false}
                       />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: "#12121A",
-                          border: "1px solid rgba(155, 92, 255, 0.3)",
+                          backgroundColor: "#0B0B10",
+                          border: "1px solid rgba(155, 92, 255, 0.2)",
+                          borderRadius: "12px",
+                          fontSize: "9px"
                         }}
                       />
-                      <Area type="monotone" dataKey="revenue" stroke="#9B5CFF" fillOpacity={1} fill="url(#colorRevenue)" />
+                      <Area type="monotone" dataKey="revenue" stroke="#9B5CFF" fillOpacity={1} fill="url(#colorRevenue)" name="REVENUE" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </motion.div>
@@ -649,13 +678,13 @@ export default function Dashboard() {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-6"
               >
-                <h3 className="text-lg font-bold text-white tracking-widest mb-4 flex items-center gap-3">
-                  <History size={20} className="text-compete-purple" /> Deployment Log
+                <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] mb-6 flex items-center gap-2 opacity-50 uppercase">
+                  <History size={14} className="text-compete-purple" /> DEPLOYMENT LOG
                 </h3>
                 <div className="space-y-4">
                   {matches.length === 0 && (
-                    <div className="h-40 bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center text-white/20 italic font-black tracking-widest">
-                      No Match Data Found
+                    <div className="h-40 bg-[#0F0F16]/60 border border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center text-white/20 italic font-black tracking-widest uppercase">
+                      NO DEPLOYMENT DATA FOUND
                     </div>
                   )}
                   {matches.map((match) => {
@@ -668,26 +697,26 @@ export default function Dashboard() {
                         key={match.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-compete-card/30 border border-white/5 rounded-xl overflow-hidden hover:border-compete-purple/30 transition-all shadow-lg"
+                        className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-2xl overflow-hidden hover:border-compete-purple/50 transition-all shadow-lg"
                       >
                         <button
                           onClick={() => setExpandedMatch(expandedMatch === match.id ? null : match.id)}
                           className="w-full p-4 lg:p-6 flex items-center justify-between hover:bg-white/5 transition-colors"
                         >
                           <div className="flex items-center gap-3 lg:gap-4">
-                            <div className={`w-8 h-8 lg:w-12 lg:h-12 rounded lg:rounded-lg flex items-center justify-center font-black italic text-sm lg:text-lg ${match.status !== 'resolved' ? "bg-white/10 text-white/40" :
+                            <div className={`w-8 h-8 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center font-black italic text-sm lg:text-lg ${match.status !== 'resolved' ? "bg-white/10 text-white/40" :
                               (isWinner ? "bg-green-500/20 text-green-400 border border-green-500/30" : "bg-red-500/20 text-red-400 border border-red-500/30")
-                              }`}>
+                              } uppercase`}>
                               {resultLabel[0]}
                             </div>
-                            <div className="text-left">
-                              <p className="text-white font-black italic tracking-tighter text-xs lg:text-lg">vs {opponent || 'ANONYMOUS'}</p>
-                              <p className="text-compete-muted text-[8px] lg:text-[10px] font-black tracking-widest">{match.game_name} • {new Date(match.created_at).toLocaleDateString()}</p>
+                            <div className="text-left font-mono">
+                              <p className="text-white font-black italic tracking-tighter text-xs lg:text-lg uppercase">vs {opponent || 'ANONYMOUS'}</p>
+                              <p className="text-white/30 text-[8px] lg:text-[9px] font-black tracking-widest uppercase">{match.game_name} • {new Date(match.created_at).toLocaleDateString()}</p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-white font-black italic text-sm lg:text-xl">{match.prize_pool}</p>
-                            <p className={`text-[6px] lg:text-[8px] font-black tracking-widest ${match.status === 'disputed' ? 'text-red-500 animate-pulse' : 'text-white/20'}`}>
+                          <div className="text-right font-mono">
+                            <p className="text-white font-black italic text-sm lg:text-xl uppercase">{match.prize_pool}</p>
+                            <p className={`text-[7px] lg:text-[8px] font-black tracking-widest ${match.status === 'disputed' ? 'text-red-500 animate-pulse' : 'text-white/20'} uppercase`}>
                               {match.status === 'resolved' ? "FINALIZED" : match.status}
                             </p>
                           </div>
@@ -698,20 +727,20 @@ export default function Dashboard() {
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            className="border-t border-white/5 px-6 py-6 bg-black/40"
+                            className="border-t border-white/10 px-6 py-6 bg-[#0B0B10]/80"
                           >
                             <div className="flex justify-between items-center">
                               <div>
-                                <p className="text-[10px] font-black text-white/40 tracking-widest mb-1">Match ID</p>
-                                <p className="text-xs font-mono text-compete-purple">{match.id}</p>
+                                <p className="text-[8px] font-black text-white/30 tracking-widest mb-1 uppercase">MATCH ID</p>
+                                <p className="text-xs font-mono text-compete-purple uppercase">{match.id}</p>
                               </div>
                               <div className="flex gap-4">
-                                <Link href={`/match/${match.id}`} className="px-6 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black tracking-widest hover:bg-white/10 transition-all">
-                                  View Intelligence
+                                <Link href={`/match/${match.id}`} className="px-6 py-2.5 bg-white/5 border border-white/10 rounded-full text-[9px] font-black tracking-widest hover:bg-white/10 hover:border-compete-purple/50 transition-all uppercase">
+                                  VIEW INTELLIGENCE
                                 </Link>
                                 {match.status === 'in_progress' && (
-                                  <div className="flex items-center gap-2 text-[10px] font-black text-yellow-500">
-                                    <Zap size={12} /> Active Deployment
+                                  <div className="flex items-center gap-2 text-[9px] font-black text-yellow-500 uppercase tracking-wider">
+                                    <Zap size={12} /> ACTIVE DEPLOYMENT
                                   </div>
                                 )}
                               </div>
@@ -737,36 +766,36 @@ export default function Dashboard() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-compete-card/30 border border-white/5 rounded-2xl p-8"
+                  className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6 lg:p-8"
                 >
-                  <h3 className="text-2xl font-bold text-white italic mb-6">Settings & Preferences</h3>
+                  <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] mb-6 opacity-50 uppercase">SETTINGS & PREFERENCES</h3>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/5">
+                    <div className="flex items-center justify-between p-4 bg-white/[0.02] rounded-2xl border border-white/10">
                       <div>
-                        <p className="text-white font-bold">Email Notifications</p>
-                        <p className="text-compete-muted text-sm">Receive updates about your matches</p>
+                        <p className="text-sm font-black text-white uppercase tracking-wider">EMAIL NOTIFICATIONS</p>
+                        <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mt-1">Receive updates about your matches</p>
                       </div>
-                      <input type="checkbox" defaultChecked className="w-5 h-5" />
+                      <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-white/10 text-compete-purple focus:ring-0 focus:ring-offset-0 cursor-pointer" />
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/5">
+                    <div className="flex items-center justify-between p-4 bg-white/[0.02] rounded-2xl border border-white/10">
                       <div>
-                        <p className="text-white font-bold">Match Reminders</p>
-                        <p className="text-compete-muted text-sm">Get notified before upcoming matches</p>
+                        <p className="text-sm font-black text-white uppercase tracking-wider">MATCH REMINDERS</p>
+                        <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mt-1">Get notified before upcoming matches</p>
                       </div>
-                      <input type="checkbox" defaultChecked className="w-5 h-5" />
+                      <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-white/10 text-compete-purple focus:ring-0 focus:ring-offset-0 cursor-pointer" />
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/5">
+                    <div className="flex items-center justify-between p-4 bg-white/[0.02] rounded-2xl border border-white/10">
                       <div>
-                        <p className="text-white font-bold">Dark Mode</p>
-                        <p className="text-compete-muted text-sm">Always enabled</p>
+                        <p className="text-sm font-black text-white uppercase tracking-wider">DARK MODE</p>
+                        <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mt-1">Always enabled</p>
                       </div>
-                      <input type="checkbox" defaultChecked disabled className="w-5 h-5" />
+                      <input type="checkbox" defaultChecked disabled className="w-5 h-5 rounded border-white/10 text-compete-purple/50 cursor-not-allowed" />
                     </div>
 
-                    <div className="pt-6 border-t border-white/5">
-                      <p className="text-[10px] font-black text-compete-purple tracking-widest mb-4">Neural Location Settings</p>
+                    <div className="pt-6 border-t border-white/10">
+                      <p className="text-[8px] font-black text-compete-purple tracking-[0.25em] mb-4 uppercase">NEURAL LOCATION SETSETTINGS</p>
                       <div className="relative group flex items-center">
-                        <Globe className="absolute left-4 z-10 text-compete-purple pointer-events-none" size={16} />
+                        <Globe className="absolute left-4 z-10 text-compete-purple pointer-events-none" size={14} />
                         <select
                           value={profile?.region || 'Africa'}
                           onChange={async (e) => {
@@ -783,17 +812,17 @@ export default function Dashboard() {
                               toast.success(`Sector updated to ${newRegion}`);
                             }
                           }}
-                          className="w-full bg-white/[0.03] border border-white/10 p-4 pl-12 pr-10 text-white outline-none focus:border-compete-purple focus:bg-white/[0.08] transition-all font-bold tracking-[0.1em] text-[10px] appearance-none cursor-pointer"
+                          className="w-full bg-white/[0.03] border border-white/10 p-4 pl-12 pr-10 text-white outline-none focus:border-compete-purple focus:bg-white/[0.08] transition-all font-mono font-black tracking-[0.1em] text-[10px] appearance-none cursor-pointer rounded-2xl"
                         >
                           {['Africa', 'Asia', 'Europe', 'N. America', 'S. America', 'Oceania', 'Antarctica'].map(r => (
-                            <option key={r} value={r} className="bg-[#0A0A0F]">{r}</option>
+                            <option key={r} value={r} className="bg-[#0A0A0F]">{r.toUpperCase()}</option>
                           ))}
                         </select>
                         <div className="absolute right-4 z-10 pointer-events-none text-white/20 text-[10px] flex items-center">
                           <span className="mt-[2px]">▼</span>
                         </div>
                       </div>
-                      <p className="text-[8px] font-black text-white/20 tracking-widest mt-3">This affects your leaderboard and regional intelligence feed.</p>
+                      <p className="text-[8px] font-black text-white/20 tracking-widest mt-3 uppercase">This affects your leaderboard and regional intelligence feed.</p>
                     </div>
                   </div>
                 </motion.div>
@@ -823,7 +852,7 @@ export default function Dashboard() {
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
-              className="relative bg-[#0A0A0F] border border-white/10 p-5 rounded-[2rem] max-w-[320px] w-full shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden"
+              className="relative bg-[#0A0A0F] border border-white/10 p-6 rounded-[2rem] max-w-[320px] w-full shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden font-mono"
             >
               {/* Decorative Scanline */}
               <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-5">
@@ -838,7 +867,7 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2">
                     <ShieldAlert size={14} className="text-compete-purple" />
-                    <span className="text-[8px] font-black text-white/40 tracking-[0.3em]">Neural ID</span>
+                    <span className="text-[8px] font-black text-white/40 tracking-[0.3em] uppercase">NEURAL ID</span>
                   </div>
                   <button
                     onClick={() => { setShowIdPopup(false); setIsSelectingAvatar(false); }}
@@ -853,30 +882,30 @@ export default function Dashboard() {
                     <motion.div
                       whileHover={{ scale: 1.02 }}
                       onClick={() => setIsSelectingAvatar(!isSelectingAvatar)}
-                      className="w-20 h-24 rounded-none bg-gradient-to-br from-compete-purple to-pink-500 p-[1.5px] cursor-pointer relative overflow-hidden"
+                      className="w-20 h-20 rounded-full bg-gradient-to-br from-compete-purple to-pink-500 p-[1.5px] cursor-pointer relative overflow-hidden"
                     >
-                      <div className="w-full h-full bg-black rounded-none flex items-center justify-center overflow-hidden">
+                      <div className="w-full h-full bg-black rounded-full flex items-center justify-center overflow-hidden">
                         {profile?.avatar_url ? (
                           <img src={profile.avatar_url} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                         ) : (
-                          <span className="text-2xl font-black italic text-compete-purple">{profile?.username?.[0]}</span>
+                          <span className="text-2xl font-black italic text-compete-purple uppercase">{profile?.username?.[0]}</span>
                         )}
                       </div>
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
                         <Camera size={20} className="text-white" />
                       </div>
                     </motion.div>
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-lg border-[3px] border-[#0A0A0F] flex items-center justify-center">
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-[3px] border-[#0A0A0F] flex items-center justify-center">
                       <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
                     </div>
                   </div>
                   {isEditingName ? (
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center gap-2 mt-4">
                       <input 
                         type="text"
                         value={newUsername}
                         onChange={(e) => setNewUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                        className="bg-white/5 border border-white/10 rounded px-2 py-1 text-xs font-black italic text-white outline-none focus:border-compete-purple w-32"
+                        className="bg-white/5 border border-white/10 rounded-full px-3 py-1.5 text-xs font-black italic text-white outline-none focus:border-compete-purple w-32 font-mono uppercase"
                         autoFocus
                       />
                       <button onClick={handleNameUpdate} className="text-green-400 hover:text-green-300">
@@ -887,8 +916,8 @@ export default function Dashboard() {
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 mt-3 group">
-                      <h3 className="text-lg font-black italic tracking-tighter text-white leading-none">{profile?.username}</h3>
+                    <div className="flex items-center gap-2 mt-4 group">
+                      <h3 className="text-lg font-black italic tracking-tighter text-white leading-none uppercase">{profile?.username}</h3>
                       <button 
                         onClick={() => setIsEditingName(true)}
                         className="opacity-0 group-hover:opacity-40 hover:opacity-100 transition-opacity"
@@ -897,7 +926,7 @@ export default function Dashboard() {
                       </button>
                     </div>
                   )}
-                  <p className={`${levelInfo.text} text-[7px] font-black  tracking-[0.4em] mt-1 opacity-70`}>Level {ranking?.level || 1} {levelInfo.name}</p>
+                  <p className={`${levelInfo.text} text-[7px] font-black tracking-[0.4em] mt-2 opacity-70 uppercase`}>LEVEL {ranking?.level || 1} • {levelInfo.name.toUpperCase()}</p>
                 </div>
 
                 <AnimatePresence mode="wait">
@@ -910,8 +939,8 @@ export default function Dashboard() {
                       className="space-y-3"
                     >
                       <div className="flex justify-between items-center mb-2">
-                        <p className="text-[7px] font-black  text-white/30 tracking-widest">Select Neural Asset</p>
-                        <button onClick={() => setIsSelectingAvatar(false)} className="text-[7px] font-black  text-compete-purple">Back</button>
+                        <p className="text-[8px] font-black text-white/30 tracking-widest uppercase">SELECT NEURAL ASSET</p>
+                        <button onClick={() => setIsSelectingAvatar(false)} className="text-[8px] font-black text-compete-purple uppercase">BACK</button>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         {NEURAL_AVATARS.map((url, i) => (
@@ -919,7 +948,7 @@ export default function Dashboard() {
                             key={i}
                             disabled={updatingAvatar}
                             onClick={() => handleAvatarUpdate(url)}
-                            className={`aspect-[3/4] rounded-xl overflow-hidden border transition-all ${profile?.avatar_url === url ? 'border-compete-purple scale-95' : 'border-white/5 hover:border-white/10'}`}
+                            className={`aspect-square rounded-full overflow-hidden border transition-all ${profile?.avatar_url === url ? 'border-compete-purple scale-95' : 'border-white/5 hover:border-white/10'}`}
                           >
                             <img src={url} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" />
                           </button>
@@ -934,10 +963,10 @@ export default function Dashboard() {
                       exit={{ opacity: 0, x: 10 }}
                       className="space-y-2.5"
                     >
-                      <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl">
-                        <p className="text-[7px] font-black  text-white/20 tracking-widest mb-1">Neural Signature</p>
-                        <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/5 p-2 rounded-lg group/sig">
-                          <p className="text-[9px] font-mono text-compete-purple truncate">
+                      <div className="bg-[#0F0F16]/60 border border-white/10 p-3.5 rounded-2xl">
+                        <p className="text-[8px] font-black text-white/30 tracking-widest mb-1 uppercase">NEURAL SIGNATURE</p>
+                        <div className="flex items-center justify-between gap-2 bg-black/40 border border-white/10 p-2.5 rounded-xl group/sig">
+                          <p className="text-[9px] font-mono text-compete-purple truncate uppercase">
                             {revealSignature ? profile?.id : `${profile?.id?.slice(0, 8)}••••••••${profile?.id?.slice(-4)}`}
                           </p>
                           <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -962,13 +991,13 @@ export default function Dashboard() {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl text-center">
-                          <p className="text-[7px] font-black  text-white/20 tracking-widest mb-1">Status</p>
-                          <p className="text-[9px] font-black text-green-500 tracking-widest">Operational</p>
+                        <div className="bg-[#0F0F16]/60 border border-white/10 p-3 rounded-2xl text-center">
+                          <p className="text-[8px] font-black text-white/30 tracking-widest mb-1 uppercase">STATUS</p>
+                          <p className="text-[9px] font-black text-green-500 tracking-widest uppercase">OPERATIONAL</p>
                         </div>
-                        <div className="bg-white/[0.02] border border-white/5 p-3 rounded-xl text-center">
-                          <p className="text-[7px] font-black  text-white/20 tracking-widest mb-1">Uplink</p>
-                          <p className="text-[9px] font-black text-blue-400 tracking-widest">Stable</p>
+                        <div className="bg-[#0F0F16]/60 border border-white/10 p-3 rounded-2xl text-center">
+                          <p className="text-[8px] font-black text-white/30 tracking-widest mb-1 uppercase">UPLINK</p>
+                          <p className="text-[9px] font-black text-blue-400 tracking-widest uppercase">STABLE</p>
                         </div>
                       </div>
                     </motion.div>

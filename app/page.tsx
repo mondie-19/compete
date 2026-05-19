@@ -1,26 +1,41 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Hero from "../components/Hero";
 import AboutSection from "@/components/AboutSection";
 import Tournaments from "../components/Tournaments";
-import StatsDashboard from "../components/StatsDashboard";
-import PrizePoolTracker from "../components/PrizePoolTracker";
-import MatchHistory from "../components/MatchHistory";
 import Leaderboard from "../components/Leaderboard";
 import Reviews from "../components/Reviews";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/supabase/client";
 
 export default function Home() {
   const router = useRouter();
+  const supabase = createClient();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
+    };
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session?.user);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase]);
+
+  const handleJoinClick = () => {
+    router.push(isLoggedIn ? "/deploy" : "/auth");
+  };
 
   return (
     <div className="relative min-h-screen bg-compete-bg slide-up overflow-x-hidden">
-
-      {/* Add pt-20 to account for the fixed navbar height */}
       <main className="pt-20">
-        <Hero onJoinClick={() => router.push("/auth")} />
+        <Hero onJoinClick={handleJoinClick} />
         <AboutSection />
         <Tournaments />
         <Leaderboard />

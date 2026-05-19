@@ -54,6 +54,18 @@ export async function POST(request: Request) {
         } else if (action === "delete") {
             const { error } = await adminAuthClient.auth.admin.deleteUser(userId);
             if (error) throw error;
+        } else if (action === "reset_password") {
+            const { data: { user: targetUser }, error: getErr } = await adminAuthClient.auth.admin.getUserById(userId);
+            if (getErr) throw getErr;
+            if (targetUser?.email) {
+                const { error } = await adminAuthClient.auth.admin.generateLink({
+                    type: "recovery",
+                    email: targetUser.email
+                });
+                if (error) throw error;
+            } else {
+                throw new Error("Target user email not found");
+            }
         } else {
             return NextResponse.json({ error: "Invalid action" }, { status: 400 });
         }

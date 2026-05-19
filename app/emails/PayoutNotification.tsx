@@ -55,7 +55,7 @@ export const PayoutNotification = ({
 
       {/* Call to Action */}
       <div style={{ textAlign: 'center' }}>
-        <a href={`https://compete.app/wallet`} style={{
+        <a href={`https://compete.app/dashboard`} style={{
           display: 'inline-block',
           backgroundColor: CompeteTheme.card,
           color: CompeteTheme.text,
@@ -67,7 +67,7 @@ export const PayoutNotification = ({
           fontSize: '15px',
           transition: 'all 0.2s ease',
         }}>
-          View Wallet Balance
+          View Dashboard Balance
         </a>
       </div>
     </CompeteLayout>

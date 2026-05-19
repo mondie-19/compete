@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TrendingUp, Trophy, Target, Zap, BarChart3, Loader2 } from "lucide-react";
+import { TrendingUp, Trophy, Target, Zap, BarChart3, Loader2, Star } from "lucide-react";
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { createClient } from "@/supabase/client";
 

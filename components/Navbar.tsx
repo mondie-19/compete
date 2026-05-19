@@ -87,6 +87,9 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
     return <AdminNavbar profile={profile} />;
   }
 
+  // Hide Navbar for client users on the dashboard
+  if (pathname.startsWith("/dashboard")) return null;
+
   if (!mounted) return (
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 h-[72px] w-[90%] max-w-5xl rounded-container flex items-center justify-between px-6 md:px-8 opacity-0 pointer-events-none">
       <div className="flex items-center gap-3">
@@ -101,36 +104,31 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
   return (
     <nav 
       ref={navRef}
-      className="fixed top-3 lg:top-6 left-1/2 -translate-x-1/2 z-50 h-14 lg:h-[72px] w-[94%] lg:w-[90%] max-w-5xl rounded-xl lg:rounded-[2rem] flex items-center justify-between px-4 lg:px-8 transition-all duration-500 ease-in-out border border-transparent bg-transparent"
+      className="fixed top-3 lg:top-6 left-1/2 -translate-x-1/2 z-50 h-14 lg:h-[72px] w-[94%] lg:w-[90%] max-w-5xl rounded-2xl flex items-center justify-between px-4 lg:px-8 transition-all duration-500 ease-in-out border border-white/10 bg-[#0F0F16]/60 backdrop-blur-md shadow-2xl"
     >
       <style jsx global>{`
         nav.nav-scrolled {
-          background-color: rgba(11, 11, 16, 0.8) !important;
-          backdrop-filter: blur(24px);
-          border-color: rgba(255, 255, 255, 0.05) !important;
-          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-        }
-        nav.nav-scrolled .nav-link {
-          color: var(--color-compete-purple);
+          background-color: rgba(11, 11, 16, 0.9) !important;
+          border-color: rgba(255, 255, 255, 0.1) !important;
         }
       `}</style>
 
       {/* Logo */}
-      <Link href="/" className="nav-item flex items-center gap-2 lg:gap-3 group">
-        <div className="h-4 w-4 lg:h-5 lg:w-5 rounded-sm bg-compete-purple rotate-45 shadow-[0_0_10px_#9B5CFF]" />
-        <span className="text-base lg:text-xl font-black tracking-tighter text-white">COMPETE</span>
+      <Link href="/" className="nav-item flex items-center gap-2 lg:gap-3 group font-mono">
+        <div className="h-4.5 w-4.5 rounded-full bg-compete-purple shadow-[0_0_10px_#9B5CFF]" />
+        <span className="text-base lg:text-lg font-black tracking-[0.25em] text-white">COMPETE</span>
       </Link>
 
       {/* Nav Links - Desktop */}
-      <div className="hidden lg:flex items-center gap-8 text-xs font-bold  tracking-[0.2em] text-white">
-        <Link href="/" className="nav-item nav-link transition-colors">Home</Link>
-        <Link href="/tournaments" className="nav-item nav-link transition-colors">Tournaments</Link>
-        <Link href="/rankings" className="nav-item nav-link transition-colors">Rankings</Link>
-        <Link href="/faq" className="nav-item nav-link transition-colors">FAQ</Link>
+      <div className="hidden lg:flex items-center gap-8 text-[10px] font-black tracking-[0.25em] text-white uppercase font-mono">
+        <Link href="/" className="nav-item nav-link transition-colors hover:text-compete-purple">HOME</Link>
+        <Link href="/tournaments" className="nav-item nav-link transition-colors hover:text-compete-purple">TOURNAMENTS</Link>
+        <Link href="/rankings" className="nav-item nav-link transition-colors hover:text-compete-purple">RANKINGS</Link>
+        <Link href="/faq" className="nav-item nav-link transition-colors hover:text-compete-purple">FAQ</Link>
       </div>
 
       {/* Auth & Mobile Toggle */}
-      <div className="nav-item flex items-center gap-3 lg:gap-6">
+      <div className="nav-item flex items-center gap-3 lg:gap-6 font-mono">
         {/* Menu Toggle (Mobile Only) */}
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -142,20 +140,20 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
           <>
             <Link href="/dashboard" className="flex items-center gap-2 lg:gap-3">
               <div className="text-right hidden lg:block">
-                <p className="text-xs font-bold text-white  tracking-widest leading-none mb-1">
-                  {profile.username}
+                <p className="text-[10px] font-black text-white tracking-widest leading-none mb-1">
+                  {profile.username.toUpperCase()}
                 </p>
                 {profile.username !== 'moderator001' && (
-                  <p className="text-[10px] text-compete-purple font-black  tracking-widest leading-none">Verified</p>
+                  <p className="text-[8px] text-compete-purple font-black tracking-widest leading-none">VERIFIED</p>
                 )}
               </div>
-              <div className="relative w-8 h-8 lg:w-10 lg:h-10 rounded-none bg-gradient-to-br from-compete-purple to-pink-500 p-[1.5px]">
-                <div className="w-full h-full bg-black rounded-none flex items-center justify-center text-xs overflow-hidden">
+              <div className="relative w-8 h-8 lg:w-9 lg:h-9 rounded-full bg-gradient-to-br from-compete-purple to-pink-500 p-[1.5px]">
+                <div className="w-full h-full bg-black rounded-full flex items-center justify-center text-xs overflow-hidden">
                   {profile.avatar_url ? (
                     <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                   ) : (
                     <span className="font-black italic text-compete-purple">
-                      {profile.username === 'moderator001' ? '' : profile.username[0]}
+                      {profile.username === 'moderator001' ? '' : profile.username[0].toUpperCase()}
                     </span>
                   )}
                 </div>
@@ -167,7 +165,7 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
                 await supabase.auth.signOut();
                 router.push("/auth");
               }}
-              className="hidden lg:flex p-2 rounded-xl bg-white/5 border border-white/10 text-white/20 hover:text-red-500 transition-all ml-2"
+              className="hidden lg:flex p-2 rounded-full bg-white/5 border border-white/10 text-white/20 hover:text-red-500 transition-all ml-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
             </button>
@@ -175,9 +173,9 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
         ) : (
           <button
             onClick={handleJoinClick}
-            className="rounded-lg lg:rounded-[2rem] bg-compete-purple px-4 lg:px-6 py-2 lg:py-2.5 text-[10px] lg:text-xs font-bold tracking-widest text-white shadow-purple-glow"
+            className="rounded-full bg-compete-purple hover:bg-compete-purpleGlow px-5 py-2.5 text-[10px] font-black tracking-[0.2em] text-white transition-all shadow-md"
           >
-            Authorize
+            AUTHORIZE
           </button>
         )}
       </div>

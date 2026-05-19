@@ -40,7 +40,7 @@ export function SlidePanel({ isOpen, onClose, title, icon, children }: SlidePane
               </div>
               <button
                 onClick={onClose}
-                className="p-2 text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+                className="p-2 text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-none transition-all"
               >
                 <X size={20} />
               </button>

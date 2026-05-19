@@ -36,7 +36,7 @@ export default function MatchHistory() {
         .order("resolved_at", { ascending: false });
 
       if (data) {
-        const formatted = data.map(m => {
+        const formatted = data.map((m: any) => {
           const isHost = m.host_id === user.id;
           const result = m.winner_id === user.id ? "win" : "loss";
           const opponentName = isHost ? m.opponent?.username : m.host?.username;

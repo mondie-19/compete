@@ -1,6 +1,6 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Lock, User, Chrome } from "lucide-react"; // Changed Github to Chrome
+import { X, Mail, Lock, User, Globe } from "lucide-react"; // Changed Github to Globe
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/supabase/client"; // Ensure this util exists
@@ -99,7 +99,7 @@ export default function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClos
                 onClick={handleGoogleSignIn}
                 className="flex items-center justify-center gap-3 rounded-xl border border-white/10 bg-white p-4 text-black font-black uppercase tracking-widest text-xs hover:bg-compete-purple hover:text-white transition-all group"
               >
-                <Chrome size={18} className="group-hover:rotate-12 transition-transform" />
+                <Globe size={18} className="group-hover:rotate-12 transition-transform" />
                 Google Account
               </button>
             </div>
