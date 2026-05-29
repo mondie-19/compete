@@ -10,6 +10,29 @@ import { createClient } from "@/supabase/client";
 import { useHeartbeat } from "@/lib/useHeartbeat";
 import Link from "next/link";
 
+// ─── MOCK DATA TOGGLE ───────────────────────────────────────────────────────
+// Set to false to use live Supabase data
+const USE_MOCK = true;
+
+const MOCK_RANKINGS = [
+  { rank: 1,  username: "ShadowKing_KE",  avatar_url: null, total_earnings: 12480, total_matches: 94,  win_rate: 91, region: "AF" },
+  { rank: 2,  username: "NeonBlade",       avatar_url: null, total_earnings: 9870,  total_matches: 78,  win_rate: 85, region: "AF" },
+  { rank: 3,  username: "ArcticWolf",      avatar_url: null, total_earnings: 8340,  total_matches: 65,  win_rate: 82, region: "EU" },
+  { rank: 4,  username: "ThunderStrike99", avatar_url: null, total_earnings: 7200,  total_matches: 60,  win_rate: 78, region: "NA" },
+  { rank: 5,  username: "ZeroGravity_TZ",  avatar_url: null, total_earnings: 6750,  total_matches: 57,  win_rate: 74, region: "AF" },
+  { rank: 6,  username: "GhostPilot",      avatar_url: null, total_earnings: 5900,  total_matches: 52,  win_rate: 73, region: "AS" },
+  { rank: 7,  username: "OmegaForce",      avatar_url: null, total_earnings: 5100,  total_matches: 48,  win_rate: 70, region: "EU" },
+  { rank: 8,  username: "ViperX",          avatar_url: null, total_earnings: 4680,  total_matches: 44,  win_rate: 68, region: "SA" },
+  { rank: 9,  username: "CyberPunk_NG",    avatar_url: null, total_earnings: 4100,  total_matches: 40,  win_rate: 65, region: "AF" },
+  { rank: 10, username: "StarSlayer",      avatar_url: null, total_earnings: 3750,  total_matches: 38,  win_rate: 63, region: "OC" },
+  { rank: 11, username: "IceBreaker_NO",   avatar_url: null, total_earnings: 3200,  total_matches: 35,  win_rate: 60, region: "EU" },
+  { rank: 12, username: "PhoenixRises",    avatar_url: null, total_earnings: 2900,  total_matches: 33,  win_rate: 57, region: "AS" },
+  { rank: 13, username: "DarkMatter",      avatar_url: null, total_earnings: 2540,  total_matches: 30,  win_rate: 55, region: "NA" },
+  { rank: 14, username: "LightningBolt_GH",avatar_url: null, total_earnings: 2100,  total_matches: 28,  win_rate: 52, region: "AF" },
+  { rank: 15, username: "StormChasR",      avatar_url: null, total_earnings: 1800,  total_matches: 25,  win_rate: 50, region: "NA" },
+];
+// ─────────────────────────────────────────────────────────────────────────────
+
 const CONTINENTS = [
   { id: "All", name: "World", icon: <Globe size={14} /> },
   { id: "AF", name: "Africa", icon: <Map size={14} /> },
@@ -33,6 +56,15 @@ export default function RankingsPage() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+
+      if (USE_MOCK) {
+        // ── Mock mode: instant visual data, no DB needed ──
+        setRankings(MOCK_RANKINGS);
+        setMyRank({ rank: 7, username: "You (mock)", avatar_url: null, total_earnings: 5100, total_matches: 48 });
+        setLoading(false);
+        return;
+      }
+
       const { data: rankData } = await supabase
         .from("user_rankings")
         .select("*")
@@ -45,7 +77,6 @@ export default function RankingsPage() {
         let myData = rankData?.find(r => r.username === (user.user_metadata?.username || user.email?.split('@')[0]));
         
         if (!myData) {
-          // Fetch live user stats if not in top rankings
           const { data: profile } = await supabase
             .from('profiles')
             .select('username, avatar_url')
@@ -58,7 +89,6 @@ export default function RankingsPage() {
             .or(`host_id.eq.${user.id},opponent_id.eq.${user.id}`)
             .eq('status', 'completed');
 
-          // Get earnings from a sum if total_earnings isn't a direct field
           const { data: payments } = await supabase
             .from('profiles')
             .select('balance')

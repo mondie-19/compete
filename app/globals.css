@@ -31,10 +31,17 @@
   }
 }
 
-/* Add a smooth scroll behavior for the whole site */
+/* Add a smooth scroll behavior for the whole site & ensure native browser scrollbar is used */
 html {
   scroll-behavior: smooth;
   background-color: var(--color-compete-bg);
+  scrollbar-width: auto !important;
+  scrollbar-color: auto !important;
+}
+
+body {
+  scrollbar-width: auto !important;
+  scrollbar-color: auto !important;
 }
 
 @layer utilities {
@@ -159,32 +166,7 @@ html {
   -moz-appearance: textfield;
 }
 
-/* Custom Purple Glowing Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px; /* Shorter/Thinner */
-}
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-compete-purple);
-  border-radius: 10px;
-  transition: all 0.3s ease;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--color-compete-purple-glow);
-  box-shadow: 0 0 10px var(--color-compete-purple);
-}
-
-/* For Firefox */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-compete-purple) rgba(255, 255, 255, 0.02);
-}
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;

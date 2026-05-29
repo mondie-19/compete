@@ -53,6 +53,12 @@ export default function LobbyPage() {
     const [userRole, setUserRole] = useState("client");
     const chatEndRef = useRef<HTMLDivElement>(null);
 
+    // useRef holds both channel instances so we can tear them down before
+    // re-subscribing — prevents "cannot add postgres_changes callbacks after
+    // subscribe()" when React re-runs this effect.
+    const lobbyChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+    const chatChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
     const getWagerDesign = (fee: number) => {
         if (fee >= 10000) {
             return {
@@ -89,9 +95,6 @@ export default function LobbyPage() {
 
     // REAL-TIME ENGINE
     useEffect(() => {
-        let lobbyChannel: any;
-        let chatChannel: any;
-
         const initLobby = async () => {
             const { data: { user } } = await supabase.auth.getUser();
 
@@ -121,8 +124,21 @@ export default function LobbyPage() {
                 .limit(50);
             if (recentMsgs) setMessages(recentMsgs.reverse());
 
+            // Tear down any existing channels before creating new ones.
+            // This prevents calling .on() on an already-subscribed channel
+            // which causes the "cannot add postgres_changes callbacks after
+            // subscribe()" runtime error on re-renders.
+            if (lobbyChannelRef.current) {
+                await supabase.removeChannel(lobbyChannelRef.current);
+                lobbyChannelRef.current = null;
+            }
+            if (chatChannelRef.current) {
+                await supabase.removeChannel(chatChannelRef.current);
+                chatChannelRef.current = null;
+            }
+
             // Real-time: Challenges
-            lobbyChannel = supabase.channel('lobby-updates')
+            lobbyChannelRef.current = supabase.channel('lobby-updates')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'challenges' }, async () => {
                     const { data: updatedChallenges } = await supabase
                         .from("challenges")
@@ -135,7 +151,7 @@ export default function LobbyPage() {
                 .subscribe();
 
             // Real-time: World Chat
-            chatChannel = supabase.channel('world-chat')
+            chatChannelRef.current = supabase.channel('world-chat')
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
                     console.log("Real-time Signal Received:", payload);
                     
@@ -150,14 +166,13 @@ export default function LobbyPage() {
                         profiles: isSelf ? { 
                             username: username, 
                             role: userRole,
-                            // Use defaults for self if profile state not fully available here
                             level: 1,
                             rank_name: "COMPETITOR"
                         } : { username: "UPLINKING..." }
                     };
                     setMessages(prev => [...prev.slice(-49), localMsg]);
 
-                    // 2. Fetch actual profile details (always fetch for full data/others)
+                    // 2. Fetch actual profile details
                     const { data: profileData } = await supabase
                         .from("profiles")
                         .select("username, avatar_url, level, rank_name, banner_url, role")
@@ -177,9 +192,17 @@ export default function LobbyPage() {
 
         initLobby();
 
+        // removeChannel fully de-registers both channels from the Supabase
+        // client on unmount so nothing lingers after the component is gone.
         return () => {
-            if (lobbyChannel) supabase.removeChannel(lobbyChannel);
-            if (chatChannel) supabase.removeChannel(chatChannel);
+            if (lobbyChannelRef.current) {
+                supabase.removeChannel(lobbyChannelRef.current);
+                lobbyChannelRef.current = null;
+            }
+            if (chatChannelRef.current) {
+                supabase.removeChannel(chatChannelRef.current);
+                chatChannelRef.current = null;
+            }
         };
     }, [supabase]);
 
@@ -209,13 +232,11 @@ export default function LobbyPage() {
         setIsProcessing(true);
 
         try {
-            // Use the secure RPC for atomic join and escrow deduction
             const { data, error } = await supabase.rpc('join_challenge_with_escrow', {
                 p_challenge_id: challenge.id
             });
 
             if (error) {
-                // Handle specific postgres errors raised by the RPC
                 if (error.message.includes('Insufficient vault credits')) {
                     toast.error("INSUFFICIENT VAULT CREDITS");
                 } else if (error.message.includes('Deployment no longer open')) {
