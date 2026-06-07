@@ -14,25 +14,37 @@ function FAQ() {
 
   const faqs = [
     {
-      question: "How do I start winning money on Compete?",
-      answer: "It costs zero to create your account! Jump onto our web platform to dive into sports, shooters, and mobile hits instantly. We match you against opponents at your exact skill level for a fair fight for cash payouts.",
+      question: "What is Compete, and how does it work?",
+      answer: "Compete is a peer-to-peer skill wagering arena. You deposit funds, deploy a match at your chosen stake, and a live opponent accepts the challenge. The winner's payout is processed automatically the moment the result is verified — no house cut, no middlemen, no waiting. Pure mechanical skill, real cash return.",
     },
     {
-      question: "What games does Compete offer?",
-      answer: "We host the biggest titles in gaming! Sports: Madden NFL 26, EA Sports College Football 26, NBA 2K26, EAFC 26, and MLB The Show 26. Shooters: Apex Legends, Battlefield 6, Fortnite, Call Of Duty: Warzone, and COD Black Ops 7. Strategy: Marvel Rivals, Rocket League, and Clash Royale.",
+      question: "How do I deploy a match and set my wager?",
+      answer: "Head to the Deploy page, select your game and platform, enter your in-game ID, and set your wager amount. Your stake enters escrow immediately. Once an opponent joins and confirms their ID, the match goes live. After the game, both sides submit their result. Matching reports trigger instant payout — dispute triggers a moderator review.",
     },
     {
-      question: "How do high-stakes wagers work?",
-      answer: "Ready to put your money where your mouth is? Wager whatever you like—from a $5 quick match to a legendary $5,000 showdown! You can even take the ultimate risk and bet on your own performance against the house.",
+      question: "How fast are winnings paid out after a match?",
+      answer: "Instant. When both players submit matching results, the prize pool is released to the winner's Compete wallet automatically — no manual review required. From there, you can withdraw to M-Pesa or bank at any time via the Vault. Withdrawals are processed within minutes, not days.",
     },
     {
-      question: "How do tournaments work?",
-      answer: "The grind never stops with tournaments running every single day! Prove your dominance on Xbox or PlayStation in our free-to-enter events to earn cash without spending a dime. For the elite, the Compete+ Subscription offers exclusive access to premium monthly tournaments with massive prize pools.",
+      question: "What happens if my opponent disputes the result?",
+      answer: "Every disputed match is escalated to our moderator team with both players' submitted proof — screenshots, clips, or scoreboard captures. A live moderator reviews the evidence and issues a binding resolution. Repeat false disputes result in account action. The system is designed to protect honest competitors, not reward bad faith.",
     },
     {
-      question: "What if my favorite game is not listed?",
-      answer: "If your favorite title isn't on the list yet, tell us! We are always looking for the next big competitive hit to add to the Compete library.",
-    }
+      question: "How is my money kept safe inside the platform?",
+      answer: "Your balance is held in a secure escrow system — never pooled with operational funds. Wager amounts are locked from both players the moment a match is accepted, so neither side can pull out mid-game. All transactions are logged immutably. Payments are processed through Paystack, a licensed payment infrastructure operating across Africa and beyond.",
+    },
+    {
+      question: "What games and platforms are supported?",
+      answer: "Compete supports titles across PC, console, and mobile. Current roster includes: Call of Duty: Warzone, Apex Legends, Fortnite, EA FC 26, NBA 2K26, Clash Royale, Rocket League, and more. Platform support covers PlayStation, Xbox, and PC. If your title isn't listed, reach out — we expand the roster based on community demand.",
+    },
+    {
+      question: "How does the ranking and XP system work?",
+      answer: "Every resolved match earns or costs XP — +10 for a win, -3 for a loss. XP drives your level (1–300) and determines your position on the global leaderboard. Your rank is updated in real time after every result. The top of the leaderboard reflects the most consistently dominant players, not just the highest spenders.",
+    },
+    {
+      question: "Where is Compete available, and who can join?",
+      answer: "Compete is open globally with a strong footprint across Africa — Kenya, Nigeria, Ghana, South Africa, Tanzania, Uganda, and growing. Any player with a verified account, a funded wallet, and a compatible game can enter the arena. No regional lock-outs. One global leaderboard. Compete where you are.",
+    },
   ];
 
   return (
@@ -94,7 +106,7 @@ export default function FAQPage() {
   const supportMethods = [
     {
       title: "Direct Helpline",
-      contact: "+254 (721776014) COMPETE",
+      contact: "+254721776014",
       desc: "Instant connection for urgent tournament disputes or account lockouts.",
       workflow: "Live Agent → Verification → Resolution",
       icon: <PhoneCall className="text-green-400" />,
@@ -110,7 +122,7 @@ export default function FAQPage() {
     },
     {
       title: "Social Support",
-      contact: "@CompeteHQ",
+      contact: "@CompeteHq",
       desc: "Quick questions regarding platform status or community events.",
       workflow: "DM Sent → Social Mod Review → Direct Fix",
       icon: <MessageCircle className="text-compete-purple" />,

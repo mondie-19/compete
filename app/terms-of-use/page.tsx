@@ -70,7 +70,7 @@ export default function TermsOfUsePage() {
                     </section>
 
                     <div className="pt-8 border-t border-white/5 text-white/30 text-xs">
-                        <p>For legal inquiries, contact: <span className="text-compete-purple">legal@compete.gg</span></p>
+                        <p>For legal inquiries, contact: <span className="text-compete-purple">competehq@gmail.com</span></p>
                     </div>
                 </div>
             </div>

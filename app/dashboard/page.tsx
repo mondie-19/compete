@@ -91,8 +91,8 @@ export default function Dashboard() {
           .from("challenges")
           .select(`
             *,
-            host:profiles!challenges_creator_id_fkey(username),
-            opponent:profiles!challenges_opponent_id_fkey(username)
+            host:profiles!host_id(username),
+            opponent:profiles!opponent_id(username)
           `)
           .or(`host_id.eq.${user.id},opponent_id.eq.${user.id}`)
           .order("created_at", { ascending: false });

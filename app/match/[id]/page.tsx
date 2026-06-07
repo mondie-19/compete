@@ -1,11 +1,12 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Zap, Timer, MessageSquare, Trophy, AlertTriangle, CheckCircle2, Upload, Send, ChevronLeft } from "lucide-react";
 import { createClient } from "@/supabase/client";
 import { toast } from "sonner";
 import { submitMatchReport } from "@/app/actions/challenges";
+import { useHeartbeat } from "@/lib/useHeartbeat";
 import Link from "next/link";
 
 const parseGameName = (fullName: string) => {
@@ -35,19 +36,23 @@ const parseGameName = (fullName: string) => {
 
 export default function MatchRoom() {
     const { id } = useParams();
-    const supabase = createClient();
-    const [match, setMatch] = useState<any>(null);
+    const router = useRouter();
+    const supabaseRef = useRef(createClient());
+    useHeartbeat();
+
+    const [match, setMatch]   = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser]     = useState<any>(null);
 
     // Chat State
-    const [messages, setMessages] = useState<any[]>([]);
+    const [messages, setMessages]     = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState("");
-    const [isSending, setIsSending] = useState(false);
+    const [isSending, setIsSending]   = useState(false);
     const chatEndRef = useRef<HTMLDivElement>(null);
 
     // Form State
-    const [proofFiles, setProofFiles] = useState<File[]>([]);
+    const [proofFiles, setProofFiles]     = useState<File[]>([]);
+    const [previewUrls, setPreviewUrls]   = useState<string[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [reportStatus, setReportStatus] = useState<"pending" | "submitted">("pending");
 
@@ -60,16 +65,23 @@ export default function MatchRoom() {
         scrollToBottom();
     }, [messages]);
 
-    // File Upload Handler
+    // Revoke object URLs when files change to prevent memory leaks
+    useEffect(() => {
+        return () => { previewUrls.forEach(URL.revokeObjectURL); };
+    }, [previewUrls]);
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const files = Array.from(e.target.files);
-            setProofFiles((prev) => [...prev, ...files]);
-        }
+        if (!e.target.files) return;
+        const newFiles = Array.from(e.target.files);
+        const newUrls  = newFiles.map((f) => URL.createObjectURL(f));
+        setProofFiles((prev) => [...prev, ...newFiles]);
+        setPreviewUrls((prev) => [...prev, ...newUrls]);
     };
 
     const removeFile = (index: number) => {
+        URL.revokeObjectURL(previewUrls[index]);
         setProofFiles((prev) => prev.filter((_, i) => i !== index));
+        setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
     };
 
     // Submit Report Logic
@@ -84,20 +96,20 @@ export default function MatchRoom() {
         setIsSubmitting(true);
 
         try {
+            const supabase = supabaseRef.current;
             const proofUrls: string[] = [];
 
-            // 1. Upload proofs to Supabase
+            // 1. Upload proofs to Supabase Storage
             for (const file of proofFiles) {
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${id}-${user?.id}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-                const { data: uploadData, error: uploadError } = await supabase.storage
+                const { error: uploadError } = await supabase.storage
                     .from('match-proofs')
                     .upload(fileName, file);
 
                 if (uploadError) throw new Error(`Failed to upload proof image: ${file.name}`);
 
-                // Get public URL
                 const { data: { publicUrl } } = supabase.storage
                     .from('match-proofs')
                     .getPublicUrl(fileName);
@@ -128,7 +140,7 @@ export default function MatchRoom() {
         if (!newMessage.trim() || isSending || !user) return;
 
         setIsSending(true);
-        const { error } = await supabase
+        const { error } = await supabaseRef.current
             .from("match_messages")
             .insert({
                 challenge_id: id,
@@ -151,20 +163,27 @@ export default function MatchRoom() {
     };
 
     useEffect(() => {
-        const fetchData = async () => {
+        const supabase = supabaseRef.current;
+
+        const init = async () => {
+            // Auth check
             const { data: { user } } = await supabase.auth.getUser();
+            if (!user) { router.replace("/auth"); return; }
             setUser(user);
 
-            // 1. Fetch Match
+            // 1. Fetch match — use column-name hints (more reliable than FK constraint names)
             const { data: matchData } = await supabase
                 .from("challenges")
-                .select(`*, host:profiles!challenges_creator_id_fkey(username, avatar_url, level, rank_name), opponent:profiles!challenges_opponent_id_fkey(username, avatar_url, level, rank_name)`)
+                .select(`*,
+                    host:profiles!host_id(username, avatar_url, level, rank_name),
+                    opponent:profiles!opponent_id(username, avatar_url, level, rank_name)
+                `)
                 .eq("id", id)
                 .single();
 
             if (matchData) setMatch(matchData);
 
-            // 2. Fetch Messages
+            // 2. Fetch existing messages
             const { data: msgData } = await supabase
                 .from("match_messages")
                 .select(`*, sender:profiles(username, avatar_url, level, rank_name, role)`)
@@ -172,42 +191,54 @@ export default function MatchRoom() {
                 .order("created_at", { ascending: true });
 
             if (msgData) setMessages(msgData);
-            
+
             setLoading(false);
         };
 
-        fetchData();
+        init();
 
-        // REAL-TIME SYNC: Match Updates
-        const matchChannel = supabase.channel(`match-${id}`)
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'challenges', filter: `id=eq.${id}` }, (payload) => {
-                setMatch((prev: any) => ({ ...prev, ...payload.new }));
-                if (payload.new.status === 'resolved') {
-                    toast.success("MATCH FINALIZED. CREDITS TRANSFERRED.");
+        // Real-time: match status changes
+        const matchChannel = supabase
+            .channel(`match-${id}`)
+            .on("postgres_changes", { event: "UPDATE", schema: "public", table: "challenges", filter: `id=eq.${id}` }, async (payload) => {
+                // Re-fetch with profile joins whenever opponent joins or match resolves
+                // because payload.new only has raw column data — no joined profiles
+                if (payload.new.opponent_id || payload.new.status === "resolved" || payload.new.status === "disputed") {
+                    const { data: refreshed } = await supabase
+                        .from("challenges")
+                        .select(`*,
+                            host:profiles!host_id(username, avatar_url, level, rank_name),
+                            opponent:profiles!opponent_id(username, avatar_url, level, rank_name)
+                        `)
+                        .eq("id", id)
+                        .single();
+                    if (refreshed) setMatch(refreshed);
+                } else {
+                    setMatch((prev: any) => ({ ...prev, ...payload.new }));
                 }
+                if (payload.new.status === "resolved") toast.success("MATCH FINALIZED. CREDITS TRANSFERRED.");
+                if (payload.new.status === "in_progress") toast.success("INTERCEPTOR JOINED. BATTLE INITIATED.");
             })
             .subscribe();
 
-        // REAL-TIME SYNC: Chat Messages
-        const chatChannel = supabase.channel(`chat-${id}`)
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'match_messages', filter: `challenge_id=eq.${id}` }, async (payload) => {
-                // Fetch sender info for the new message
+        // Real-time: new chat messages
+        const chatChannel = supabase
+            .channel(`chat-${id}`)
+            .on("postgres_changes", { event: "INSERT", schema: "public", table: "match_messages", filter: `challenge_id=eq.${id}` }, async (payload) => {
                 const { data: senderData } = await supabase
                     .from("profiles")
                     .select("username, avatar_url, level, rank_name, role")
                     .eq("id", payload.new.user_id)
                     .single();
-                
-                const newMsg = { ...payload.new, sender: senderData };
-                setMessages((prev) => [...prev, newMsg]);
+                setMessages((prev) => [...prev, { ...payload.new, sender: senderData }]);
             })
             .subscribe();
 
-        return () => { 
-            supabase.removeChannel(matchChannel); 
+        return () => {
+            supabase.removeChannel(matchChannel);
             supabase.removeChannel(chatChannel);
         };
-    }, [id, supabase]);
+    }, [id, router]);
 
     if (loading) return (
         <div className="min-h-screen bg-[#0A0A0F] flex flex-col items-center justify-center gap-4 font-mono">
@@ -272,13 +303,9 @@ export default function MatchRoom() {
                                     100% { background-position: -200% 0; }
                                 }
                             `}</style>
-                            <div 
-                                className="absolute top-0 left-0 right-0 h-[3px]"
-                                style={{
-                                    backgroundImage: wagerTheme.shimmer.replace("bg-gradient-to-r from-", "linear-gradient(to right, ").replace("via-", ", ").replace("to-", ", "),
-                                    backgroundSize: "200% 100%",
-                                    animation: "shimmer 4s linear infinite"
-                                }}
+                            <div
+                                className={`absolute top-0 left-0 right-0 h-0.75 ${wagerTheme.shimmer}`}
+                                style={{ backgroundSize: "200% 100%", animation: "shimmer 4s linear infinite" }}
                             />
 
                             <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none hidden lg:block"><Shield size={120} /></div>
@@ -294,16 +321,21 @@ export default function MatchRoom() {
                                 </div>
                             </div>
 
-                            <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10 px-2 lg:px-4">
-                                <div className="w-full lg:w-auto"><PlayerCard profile={match?.host} side="Host" /></div>
-                                <div className="text-center flex flex-row lg:flex-col items-center gap-4 lg:gap-0 shrink-0">
-                                    <div className="text-xl lg:text-3xl font-black italic text-white/10 tracking-tighter">VS</div>
-                                    <div className={`px-4 lg:px-6 py-1.5 lg:py-2 rounded-full text-[9px] lg:text-[11px] font-black uppercase tracking-widest border ${wagerTheme.glowClass} bg-black/60 border-white/10 text-white whitespace-nowrap`}>
-                                        KSh {match?.prize_pool} POT
+                            {(() => {
+                                const p = parseGameName(match?.game_name);
+                                return (
+                                    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10 px-2 lg:px-4">
+                                        <div className="w-full lg:w-auto"><PlayerCard profile={match?.host} side="Host" gamerId={p.gamerId} /></div>
+                                        <div className="text-center flex flex-row lg:flex-col items-center gap-4 lg:gap-0 shrink-0">
+                                            <div className="text-xl lg:text-3xl font-black italic text-white/10 tracking-tighter">VS</div>
+                                            <div className={`px-4 lg:px-6 py-1.5 lg:py-2 rounded-full text-[9px] lg:text-[11px] font-black uppercase tracking-widest border ${wagerTheme.glowClass} bg-black/60 border-white/10 text-white whitespace-nowrap`}>
+                                                KSh {Number(match?.prize_pool || 0).toLocaleString()} PRIZE POT
+                                            </div>
+                                        </div>
+                                        <div className="w-full lg:w-auto"><PlayerCard profile={match?.opponent} side="Interceptor" /></div>
                                     </div>
-                                </div>
-                                <div className="w-full lg:w-auto"><PlayerCard profile={match?.opponent} side="Interceptor" /></div>
-                            </div>
+                                );
+                            })()}
                         </header>
 
                         {/* Dynamic Match Details Bento Card */}
@@ -325,17 +357,18 @@ export default function MatchRoom() {
                                     </div>
                                     <div>
                                         <p className="text-[8px] font-black text-white/20 tracking-widest uppercase mb-1">INTERCEPTOR GAMER ID</p>
-                                        <p className="text-xs font-black text-white uppercase truncate" title={match?.opponent?.username || "AWAITING..."}>
-                                            {match?.opponent?.username || "AWAITING..."}
+                                        <p className="text-xs font-black text-white uppercase truncate" title={match?.opponent_game_id || match?.opponent?.username || "AWAITING..."}>
+                                            {match?.opponent_game_id || match?.opponent?.username || "AWAITING..."}
                                         </p>
                                     </div>
                                     <div>
-                                        <p className="text-[8px] font-black text-white/20 tracking-widest uppercase mb-1">WAGERED STAKE</p>
+                                        <p className="text-[8px] font-black text-white/20 tracking-widest uppercase mb-1">STAKE PER PLAYER</p>
                                         <p className="text-xs font-black text-green-400">KSh {Number(match?.entry_fee || 0).toLocaleString()}</p>
                                     </div>
                                     <div>
-                                        <p className="text-[8px] font-black text-white/20 tracking-widest uppercase mb-1">PRIZE POT</p>
-                                        <p className="text-xs font-black text-yellow-500 font-bold">KSh {Number(match?.prize_pool || 0).toLocaleString()}</p>
+                                        <p className="text-[8px] font-black text-white/20 tracking-widest uppercase mb-1">WINNER RECEIVES</p>
+                                        <p className="text-xs font-black text-yellow-400">KSh {(Number(match?.prize_pool || 0) * 0.85).toLocaleString()}</p>
+                                        <p className="text-[7px] text-white/20 uppercase tracking-widest">after 15% platform fee</p>
                                     </div>
                                     {parsed.engagements && (
                                         <div className="col-span-2 md:col-span-6 pt-4 border-t border-white/5">
@@ -349,7 +382,29 @@ export default function MatchRoom() {
 
                         {/* ACTION ZONE OR STATUS ZONE */}
                         <AnimatePresence mode="wait">
-                            {match?.status === 'resolved' ? (
+                            {match?.status === 'open' ? (
+                                <motion.div
+                                    key="open"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="bg-[#0F0F16]/60 border border-compete-purple/20 p-8 lg:p-12 rounded-3xl text-center space-y-4 backdrop-blur-md"
+                                >
+                                    <div className="w-16 h-16 bg-compete-purple/10 border border-compete-purple/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <div className="w-5 h-5 rounded-full border-2 border-compete-purple border-t-transparent animate-spin" />
+                                    </div>
+                                    <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-white">AWAITING INTERCEPTOR</h2>
+                                    <p className="text-[10px] lg:text-[11px] font-black uppercase tracking-widest text-compete-purple/60 max-w-sm mx-auto leading-loose">
+                                        YOUR DEPLOYMENT IS LIVE IN THE LOBBY.<br />
+                                        SHARE THIS LINK TO CHALLENGE A RIVAL DIRECTLY.
+                                    </p>
+                                    <button
+                                        onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success("MATCH LINK COPIED"); }}
+                                        className="mt-4 px-6 py-2.5 bg-compete-purple/10 border border-compete-purple/30 text-compete-purple rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-compete-purple hover:text-white transition-all"
+                                    >
+                                        Copy Challenge Link
+                                    </button>
+                                </motion.div>
+                            ) : match?.status === 'resolved' ? (
                                 <motion.div 
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
@@ -360,8 +415,8 @@ export default function MatchRoom() {
                                     </div>
                                     <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-white">BOUT FINALIZED</h2>
                                     <p className="text-[10px] lg:text-[11px] font-black uppercase tracking-widest text-green-500/60 max-w-sm mx-auto leading-loose">
-                                        WINNER: <span className="text-white">{match.winner_id === match.host_id ? match.host.username : match.opponent?.username}</span><br />
-                                        THE GLOBAL VAULT HAS RELEASED THE CREDITS.
+                                        WINNER: <span className="text-white">{match.winner_id === match.host_id ? match.host?.username : match.opponent?.username}</span><br />
+                                        KSh {(Number(match?.prize_pool || 0) * 0.85).toLocaleString()} CREDITED TO VAULT.
                                     </p>
                                 </motion.div>
                             ) : match?.status === 'disputed' ? (
@@ -406,7 +461,7 @@ export default function MatchRoom() {
                                             <div className="grid grid-cols-3 gap-2">
                                                 {proofFiles.map((file, idx) => (
                                                     <div key={idx} className="relative group aspect-square bg-black rounded-xl border border-white/10 overflow-hidden">
-                                                        <img src={URL.createObjectURL(file)} alt="preview" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
+                                                        <img src={previewUrls[idx]} alt="preview" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" />
                                                         <button
                                                             onClick={() => removeFile(idx)}
                                                             className="absolute inset-0 bg-black/80 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[8px] font-black uppercase text-red-500"
@@ -523,7 +578,7 @@ export default function MatchRoom() {
     );
 }
 
-function PlayerCard({ profile, side }: { profile: any, side: string }) {
+function PlayerCard({ profile, side, gamerId }: { profile: any, side: string, gamerId?: string }) {
     return (
         <div className={`flex items-center gap-3 lg:gap-5 ${side === 'Interceptor' ? 'flex-row-reverse text-right' : ''}`}>
             <div className="relative group shrink-0">
@@ -542,7 +597,10 @@ function PlayerCard({ profile, side }: { profile: any, side: string }) {
             </div>
             <div className="min-w-0">
                 <p className="text-[8px] lg:text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-0.5 lg:mb-1">{side}</p>
-                <p className="text-sm lg:text-xl font-black italic uppercase tracking-tighter leading-none mb-1 lg:mb-2 truncate">{profile?.username || "AWAITING..."}</p>
+                <p className="text-sm lg:text-xl font-black italic uppercase tracking-tighter leading-none mb-0.5 truncate">{profile?.username || "AWAITING..."}</p>
+                {gamerId && gamerId !== "NOT PROVIDED" && (
+                    <p className="text-[8px] font-black text-compete-purple uppercase tracking-widest mb-1 truncate">{gamerId}</p>
+                )}
                 <div className={`flex items-center gap-1.5 lg:gap-2 ${side === 'Interceptor' ? 'flex-row-reverse' : ''}`}>
                     <div className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-md text-[6px] lg:text-[8px] font-black text-white/40 uppercase tracking-widest whitespace-nowrap">
                         {profile?.rank_name || "NOOB"}

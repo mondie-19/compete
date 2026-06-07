@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 // @ts-ignore
 import { usePaystackPayment } from "react-paystack";
-import { verifyAndAddFunds, requestWithdrawal } from "@/app/actions/wallet";
+import { verifyAndAddFunds, requestWithdrawal, type PayoutDetails } from "@/app/actions/wallet";
 import { createClient } from "@/supabase/client";
 import { toast } from "sonner";
 
@@ -16,6 +16,10 @@ export default function VaultTab() {
   const [amount, setAmount] = useState("");
   const [status, setStatus] = useState<"idle" | "processing" | "success">("idle");
   const [rememberCard, setRememberCard] = useState(false);
+  const [payoutMethod, setPayoutMethod] = useState<'mpesa' | 'bank'>('mpesa');
+  const [payoutPhone, setPayoutPhone] = useState("");
+  const [payoutAccountNumber, setPayoutAccountNumber] = useState("");
+  const [payoutBankName, setPayoutBankName] = useState("");
 
   // REAL-TIME STATE
   const [balance, setBalance] = useState<number>(0);
@@ -77,6 +81,7 @@ export default function VaultTab() {
     email: userEmail,
     amount: parseFloat(amount || "0") * 100,
     publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "pk_test_your_key",
+    currency: "KES",
     metadata: { remember_card: rememberCard }
   };
 
@@ -113,15 +118,22 @@ export default function VaultTab() {
         },
       );
     } else {
-      requestWithdrawal(parseFloat(amount)).then((result) => {
+      const payoutDetails: PayoutDetails = payoutMethod === 'mpesa'
+        ? { method: 'mpesa', phone: payoutPhone.trim() }
+        : { method: 'bank', accountNumber: payoutAccountNumber.trim(), bankName: payoutBankName.trim() };
+
+      requestWithdrawal(parseFloat(amount), payoutDetails).then((result) => {
         if (result.success) {
           setStatus("success");
           fetchHistory();
+          setPayoutPhone("");
+          setPayoutAccountNumber("");
+          setPayoutBankName("");
           setTimeout(() => { setStatus("idle"); setAmount(""); }, 3000);
         } else {
           setStatus("idle");
           // @ts-ignore
-          alert(result.error || "Withdrawal request failed");
+          toast.error(result.error || "Withdrawal request failed");
         }
       }).catch((err) => {
         setStatus("idle");
@@ -193,9 +205,75 @@ export default function VaultTab() {
               </p>
             </div>
 
-            <button 
-              onClick={handleTransaction} 
-              disabled={status !== "idle" || !amount || parseFloat(amount) < (activeTab === 'withdraw' ? 500 : 1) || parseFloat(amount) > 50000} 
+            {/* Payout Details — shown only on withdraw tab */}
+            {activeTab === 'withdraw' && (
+              <div className="space-y-3 border border-white/5 rounded-2xl p-4 bg-black/20">
+                <p className="text-[7px] font-black tracking-[0.3em] text-white/30 uppercase">Payout Destination</p>
+
+                {/* Method toggle */}
+                <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+                  <button
+                    onClick={() => setPayoutMethod('mpesa')}
+                    className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${
+                      payoutMethod === 'mpesa' ? 'bg-compete-purple text-white' : 'text-white/20 hover:text-white/50'
+                    }`}
+                  >
+                    M-PESA
+                  </button>
+                  <button
+                    onClick={() => setPayoutMethod('bank')}
+                    className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${
+                      payoutMethod === 'bank' ? 'bg-compete-purple text-white' : 'text-white/20 hover:text-white/50'
+                    }`}
+                  >
+                    Bank Transfer
+                  </button>
+                </div>
+
+                {/* M-PESA fields */}
+                {payoutMethod === 'mpesa' && (
+                  <input
+                    type="tel"
+                    value={payoutPhone}
+                    onChange={(e) => setPayoutPhone(e.target.value)}
+                    placeholder="07XXXXXXXX"
+                    maxLength={12}
+                    className="w-full bg-transparent border-b border-white/10 py-3 text-sm font-black outline-none focus:border-compete-purple transition-all placeholder:text-white/10 text-white tracking-widest"
+                  />
+                )}
+
+                {/* Bank fields */}
+                {payoutMethod === 'bank' && (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={payoutAccountNumber}
+                      onChange={(e) => setPayoutAccountNumber(e.target.value)}
+                      placeholder="Account Number"
+                      className="w-full bg-transparent border-b border-white/10 py-3 text-sm font-black outline-none focus:border-compete-purple transition-all placeholder:text-white/10 text-white tracking-widest"
+                    />
+                    <input
+                      type="text"
+                      value={payoutBankName}
+                      onChange={(e) => setPayoutBankName(e.target.value)}
+                      placeholder="Bank Name (e.g. KCB, Equity)"
+                      className="w-full bg-transparent border-b border-white/10 py-3 text-sm font-black outline-none focus:border-compete-purple transition-all placeholder:text-white/10 text-white tracking-widest"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <button
+              onClick={handleTransaction}
+              disabled={
+                status !== "idle" ||
+                !amount ||
+                parseFloat(amount) < (activeTab === 'withdraw' ? 500 : 1) ||
+                parseFloat(amount) > 50000 ||
+                (activeTab === 'withdraw' && payoutMethod === 'mpesa' && !payoutPhone.trim()) ||
+                (activeTab === 'withdraw' && payoutMethod === 'bank' && (!payoutAccountNumber.trim() || !payoutBankName.trim()))
+              }
               className="w-full py-4 bg-white text-black rounded-full font-black tracking-[0.2em] italic hover:bg-compete-purple hover:text-white transition-all disabled:opacity-20 flex items-center justify-center text-[10px] uppercase"
             >
               {status === "idle" ? `EXECUTE ${activeTab.toUpperCase()}` : <Loader2 className="animate-spin" size={16} />}

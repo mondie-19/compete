@@ -61,8 +61,8 @@ export default function AdminDashboard() {
                 .from('challenges')
                 .select(`
                     *,
-                    host:profiles!challenges_host_id_fkey(username, region),
-                    opponent:profiles!challenges_opponent_id_fkey(username, region)
+                    host:profiles!host_id(username, region),
+                    opponent:profiles!opponent_id(username, region)
                 `)
                 .order('created_at', { ascending: false });
             if (matchesData) setAllMatches(matchesData);
@@ -84,7 +84,7 @@ export default function AdminDashboard() {
             setLoading(false);
 
             // Setup Realtime Subscription for Live Updates
-            const channel = supabase.channel('admin-dashboard')
+            const channel = supabase.channel(`admin-dashboard-${Date.now()}`)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'challenges' }, () => fetchData())
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchData())
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => fetchData())

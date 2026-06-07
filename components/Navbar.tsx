@@ -92,9 +92,9 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
 
   if (!mounted) return (
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 h-[72px] w-[90%] max-w-5xl rounded-container flex items-center justify-between px-6 md:px-8 opacity-0 pointer-events-none">
-      <div className="flex items-center gap-3">
-        <div className="h-5 w-5 rounded-sm bg-compete-purple rotate-45" />
-        <span className="text-xl font-black tracking-tighter text-white">COMPETE</span>
+      <div className="flex items-center gap-2 lg:gap-3 font-mono">
+        <div className="h-5 w-5 rounded-sm bg-compete-purple rotate-45 shadow-[0_0_10px_#9B5CFF]" />
+        <span className="text-xl font-black tracking-[0.25em] text-white">COMPETE</span>
       </div>
     </nav>
   );
@@ -115,7 +115,7 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
 
       {/* Logo */}
       <Link href="/" className="nav-item flex items-center gap-2 lg:gap-3 group font-mono">
-        <div className="h-4.5 w-4.5 rounded-full bg-compete-purple shadow-[0_0_10px_#9B5CFF]" />
+        <div className="h-5 w-5 rounded-sm bg-compete-purple rotate-45 shadow-[0_0_10px_#9B5CFF] group-hover:scale-110 transition-transform" />
         <span className="text-base lg:text-lg font-black tracking-[0.25em] text-white">COMPETE</span>
       </Link>
 

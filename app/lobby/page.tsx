@@ -35,16 +35,21 @@ const parseGameName = (fullName: string) => {
 
 export default function LobbyPage() {
     const router = useRouter();
-    const supabase = createClient();
+    // Stable ref — createClient() must NOT be called on every render or the
+    // useEffect dep array would contain a new object each time, causing the
+    // realtime channels to be torn down and rebuilt on every render.
+    const supabaseRef = useRef(createClient());
     useHeartbeat();
 
     // STATES
+    const [currentUser, setCurrentUser] = useState<any>(null);
     const [balance, setBalance] = useState(0);
     const [challenges, setChallenges] = useState<any[]>([]);
     const [activeChallenge, setActiveChallenge] = useState<any>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedPlatform, setSelectedPlatform] = useState("ALL");
     const [isProcessing, setIsProcessing] = useState(false);
+    const [interceptorGameId, setInterceptorGameId] = useState("");
     const [messages, setMessages] = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState("");
     const [isSending, setIsSending] = useState(false);
@@ -53,11 +58,15 @@ export default function LobbyPage() {
     const [userRole, setUserRole] = useState("client");
     const chatEndRef = useRef<HTMLDivElement>(null);
 
-    // useRef holds both channel instances so we can tear them down before
-    // re-subscribing — prevents "cannot add postgres_changes callbacks after
-    // subscribe()" when React re-runs this effect.
-    const lobbyChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-    const chatChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+    // Stable refs for values used inside the realtime handler closure
+    // (state variables would be stale inside the closure after the first render)
+    const usernameRef = useRef("COMPETITOR");
+    const userRoleRef = useRef("client");
+    const currentUserIdRef = useRef<string | null>(null);
+
+    // Channel refs — kept so we can cleanly remove them on unmount
+    const lobbyChannelRef = useRef<any>(null);
+    const chatChannelRef = useRef<any>(null);
 
     const getWagerDesign = (fee: number) => {
         if (fee >= 10000) {
@@ -93,30 +102,40 @@ export default function LobbyPage() {
         };
     };
 
-    // REAL-TIME ENGINE
+    // REAL-TIME ENGINE — empty deps: supabaseRef is stable so this runs once only
     useEffect(() => {
+        const supabase = supabaseRef.current;
+
         const initLobby = async () => {
             const { data: { user } } = await supabase.auth.getUser();
 
             if (user) {
-                const { data: profile } = await supabase.from("profiles").select("balance, username, role").eq("id", user.id).single();
+                setCurrentUser(user);
+                currentUserIdRef.current = user.id;
+                const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("balance, username, role")
+                    .eq("id", user.id)
+                    .single();
                 if (profile) {
                     setBalance(profile.balance);
                     setUsername(profile.username);
                     setUserRole(profile.role);
+                    usernameRef.current = profile.username;
+                    userRoleRef.current = profile.role;
                 }
             }
 
             // Initial Fetch: Challenges
             const { data: initialChallenges } = await supabase
                 .from("challenges")
-                .select("*, host:profiles!challenges_creator_id_fkey(username)")
+                .select("*, host:profiles!host_id(username)")
                 .eq("status", "open")
                 .order('created_at', { ascending: false })
                 .limit(50);
             if (initialChallenges) setChallenges(initialChallenges);
 
-            // Initial Fetch: World Chat
+            // Initial Fetch: World Chat (last 50, oldest-first)
             const { data: recentMsgs } = await supabase
                 .from("messages")
                 .select("*, profiles(username, avatar_url, level, rank_name, banner_url, role)")
@@ -124,25 +143,13 @@ export default function LobbyPage() {
                 .limit(50);
             if (recentMsgs) setMessages(recentMsgs.reverse());
 
-            // Tear down any existing channels before creating new ones.
-            // This prevents calling .on() on an already-subscribed channel
-            // which causes the "cannot add postgres_changes callbacks after
-            // subscribe()" runtime error on re-renders.
-            if (lobbyChannelRef.current) {
-                await supabase.removeChannel(lobbyChannelRef.current);
-                lobbyChannelRef.current = null;
-            }
-            if (chatChannelRef.current) {
-                await supabase.removeChannel(chatChannelRef.current);
-                chatChannelRef.current = null;
-            }
-
-            // Real-time: Challenges
-            lobbyChannelRef.current = supabase.channel('lobby-updates')
+            // Real-time: Challenges — stable channel name, runs once
+            lobbyChannelRef.current = supabase
+                .channel("lobby-challenges")
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'challenges' }, async () => {
                     const { data: updatedChallenges } = await supabase
                         .from("challenges")
-                        .select("*, host:profiles!challenges_creator_id_fkey(username)")
+                        .select("*, host:profiles!host_id(username)")
                         .eq("status", "open")
                         .order('created_at', { ascending: false })
                         .limit(50);
@@ -151,60 +158,46 @@ export default function LobbyPage() {
                 .subscribe();
 
             // Real-time: World Chat
-            chatChannelRef.current = supabase.channel('world-chat')
+            chatChannelRef.current = supabase
+                .channel("world-chat")
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
-                    console.log("Real-time Signal Received:", payload);
-                    
-                    if (!payload.new || !payload.new.id) return;
+                    if (!payload.new?.id) return;
 
-                    const { data: { user } } = await supabase.auth.getUser();
-                    const isSelf = user?.id === payload.new.user_id;
+                    const isSelf = currentUserIdRef.current === payload.new.user_id;
 
-                    // 1. Add message instantly
-                    const localMsg = {
+                    // Optimistic insert — replace with full profile data once fetched
+                    const optimistic = {
                         ...payload.new,
-                        profiles: isSelf ? { 
-                            username: username, 
-                            role: userRole,
-                            level: 1,
-                            rank_name: "COMPETITOR"
-                        } : { username: "UPLINKING..." }
+                        profiles: isSelf
+                            ? { username: usernameRef.current, role: userRoleRef.current, level: 1, rank_name: "COMPETITOR" }
+                            : { username: "..." }
                     };
-                    setMessages(prev => [...prev.slice(-49), localMsg]);
+                    setMessages(prev => [...prev.slice(-49), optimistic]);
 
-                    // 2. Fetch actual profile details
-                    const { data: profileData } = await supabase
-                        .from("profiles")
-                        .select("username, avatar_url, level, rank_name, banner_url, role")
-                        .eq("id", payload.new.user_id)
-                        .single();
-
-                    if (profileData) {
-                        setMessages(prev => prev.map(m => m.id === payload.new.id ? { ...m, profiles: profileData } : m));
-                    } else if (!isSelf) {
-                        setMessages(prev => prev.map(m => m.id === payload.new.id ? { ...m, profiles: { username: "ANONYMOUS" } } : m));
+                    if (!isSelf) {
+                        const { data: profileData } = await supabase
+                            .from("profiles")
+                            .select("username, avatar_url, level, rank_name, banner_url, role")
+                            .eq("id", payload.new.user_id)
+                            .single();
+                        if (profileData) {
+                            setMessages(prev =>
+                                prev.map(m => m.id === payload.new.id ? { ...m, profiles: profileData } : m)
+                            );
+                        }
                     }
                 })
-                .subscribe((status) => {
-                    console.log("Chat Channel Status:", status);
-                });
+                .subscribe();
         };
 
         initLobby();
 
-        // removeChannel fully de-registers both channels from the Supabase
-        // client on unmount so nothing lingers after the component is gone.
         return () => {
-            if (lobbyChannelRef.current) {
-                supabase.removeChannel(lobbyChannelRef.current);
-                lobbyChannelRef.current = null;
-            }
-            if (chatChannelRef.current) {
-                supabase.removeChannel(chatChannelRef.current);
-                chatChannelRef.current = null;
-            }
+            const s = supabaseRef.current;
+            if (lobbyChannelRef.current) { s.removeChannel(lobbyChannelRef.current); lobbyChannelRef.current = null; }
+            if (chatChannelRef.current)  { s.removeChannel(chatChannelRef.current);  chatChannelRef.current = null; }
         };
-    }, [supabase]);
+    }, []);
 
     // AUTO-SCROLL
     useEffect(() => {
@@ -223,6 +216,12 @@ export default function LobbyPage() {
     const handleJoin = async (challenge: any) => {
         if (isProcessing) return;
 
+        if (!interceptorGameId.trim()) {
+            toast.error("Enter your in-game ID before intercepting.");
+            return;
+        }
+
+        const supabase = supabaseRef.current;
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
             router.push("/auth");
@@ -232,7 +231,7 @@ export default function LobbyPage() {
         setIsProcessing(true);
 
         try {
-            const { data, error } = await supabase.rpc('join_challenge_with_escrow', {
+            const { error } = await supabase.rpc('join_challenge_with_escrow', {
                 p_challenge_id: challenge.id
             });
 
@@ -247,7 +246,14 @@ export default function LobbyPage() {
                 return;
             }
 
+            // Store interceptor's in-game ID
+            await supabase.rpc('set_opponent_game_id', {
+                p_challenge_id: challenge.id,
+                p_game_id: interceptorGameId.trim()
+            });
+
             toast.success("INTERCEPT SUCCESSFUL. UPLINKING...");
+            setInterceptorGameId("");
 
             setTimeout(() => {
                 router.push(`/match/${challenge.id}`);
@@ -265,31 +271,23 @@ export default function LobbyPage() {
         e.preventDefault();
         if (!newMessage.trim() || isSending) return;
 
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
+        if (!currentUser) {
             router.push("/auth");
             return;
         }
 
         setIsSending(true);
         try {
-            const { error } = await supabase.from("messages").insert({
-                user_id: user.id,
+            const { error } = await supabaseRef.current.from("messages").insert({
+                user_id: currentUser.id,
                 content: newMessage.trim()
             });
 
             if (error) throw error;
             setNewMessage("");
         } catch (error: any) {
-            console.error("Lobby Chat Error Details:", {
-                message: error?.message,
-                details: error?.details,
-                hint: error?.hint,
-                code: error?.code,
-                full: error
-            });
             const errorMsg = error?.message || "Unknown Error";
-            toast.error(`${errorMsg.toUpperCase()} (CODE: ${error?.code || '???'})`);
+            toast.error(`SEND FAILED: ${errorMsg.toUpperCase()}`);
         } finally {
             setIsSending(false);
         }
@@ -342,7 +340,7 @@ export default function LobbyPage() {
                                         </div>
                                     </div>
                                     <Link
-                                        href="/challenges/create"
+                                        href="/deploy"
                                         className="shrink-0 flex items-center gap-2 px-6 py-3 bg-compete-purple text-white rounded-full font-black text-[9px] tracking-[0.2em] hover:bg-white hover:text-black transition-all shadow-md uppercase"
                                     >
                                         <Zap size={10} className="animate-pulse" />
@@ -455,78 +453,118 @@ export default function LobbyPage() {
                         </section>
                     </div>                    {/* Terminal Sidebar */}
                     <aside className="lg:col-span-4">
-                        <div className="bg-[#0F0F16]/60 border border-white/10 rounded-2xl p-4 backdrop-blur-md sticky top-24 flex flex-col h-[500px]">
-                            <h3 className="text-[9px] font-black tracking-[0.3em] text-white/20 mb-4 flex items-center gap-2 shrink-0 uppercase">
-                                <TerminalIcon size={12} /> WORLD UPLINK
-                            </h3>
+                        <div className="bg-[#0F0F16]/60 border border-white/10 rounded-2xl p-4 backdrop-blur-md sticky top-24 flex flex-col h-[560px] lg:h-[600px]">
+                            {/* Header */}
+                            <div className="flex items-center justify-between mb-3 shrink-0">
+                                <h3 className="text-[9px] font-black tracking-[0.3em] text-white/20 flex items-center gap-2 uppercase">
+                                    <TerminalIcon size={12} /> WORLD UPLINK
+                                </h3>
+                                <div className="flex items-center gap-1.5">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_6px_rgba(34,197,94,0.8)]" />
+                                    <span className="text-[7px] font-black text-green-500/60 uppercase tracking-widest">LIVE</span>
+                                </div>
+                            </div>
 
                             {/* Chat Messages */}
-                            <div className="flex-1 overflow-y-auto space-y-3 pr-1 mb-4 custom-scrollbar no-scrollbar-x h-[400px]">
-                                {messages.map((msg, i) => (
-                                    <motion.div
-                                        initial={{ opacity: 0, x: 5 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        key={msg.id}
-                                        className="flex gap-2 items-start group/msg"
-                                    >
-                                        <button
-                                            onClick={() => setSelectedProfile(msg.profiles)}
-                                            className="shrink-0 mt-0.5 transition-transform hover:scale-110 active:scale-95"
+                            <div className="flex-1 overflow-y-auto space-y-3 pr-1 mb-3 custom-scrollbar no-scrollbar-x min-h-0">
+                                {messages.length === 0 && (
+                                    <div className="flex flex-col items-center justify-center h-full gap-3 opacity-20">
+                                        <TerminalIcon size={28} />
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-center">No transmissions yet.<br />Be the first to uplink.</p>
+                                    </div>
+                                )}
+                                {messages.map((msg) => {
+                                    const isOwn = msg.user_id === currentUser?.id;
+                                    return (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 4 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            key={msg.id}
+                                            className={`flex gap-2 items-end ${isOwn ? "flex-row-reverse" : ""}`}
                                         >
-                                            <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 overflow-hidden relative">
-                                                {msg.profiles?.avatar_url ? (
-                                                    <img src={msg.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-white/10">
-                                                        <Users size={10} />
+                                            {/* Avatar — only for others */}
+                                            {!isOwn && (
+                                                <button
+                                                    onClick={() => setSelectedProfile(msg.profiles)}
+                                                    className="shrink-0 mb-0.5 transition-transform hover:scale-110 active:scale-95"
+                                                >
+                                                    <div className="w-6 h-6 rounded-full bg-white/5 border border-white/10 overflow-hidden">
+                                                        {msg.profiles?.avatar_url ? (
+                                                            <img src={msg.profiles.avatar_url} alt="" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-white/20 text-[8px] font-black">
+                                                                {msg.profiles?.username?.[0]?.toUpperCase() || "?"}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            )}
+
+                                            <div className={`flex flex-col gap-0.5 max-w-[80%] ${isOwn ? "items-end" : "items-start"}`}>
+                                                {/* Username row — only for others */}
+                                                {!isOwn && (
+                                                    <div className="flex items-center gap-1.5 px-1">
+                                                        <span
+                                                            onClick={() => setSelectedProfile(msg.profiles)}
+                                                            className="text-compete-purple text-[8px] font-black tracking-tight cursor-pointer hover:underline truncate uppercase"
+                                                        >
+                                                            {msg.profiles?.username || "..."}
+                                                        </span>
+                                                        {msg.profiles?.role && msg.profiles.role !== 'client' && (
+                                                            <span className="px-1 py-0.5 bg-compete-purple/80 text-white rounded text-[5px] font-black tracking-widest uppercase">
+                                                                {msg.profiles.role}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 )}
-                                            </div>
-                                        </button>
-
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center flex-wrap gap-x-1.5 gap-y-0.5 mb-0.5">
-                                                <span
-                                                    onClick={() => setSelectedProfile(msg.profiles)}
-                                                    className="text-compete-purple text-[9px] font-black tracking-tight cursor-pointer hover:underline truncate uppercase"
-                                                >
-                                                    {msg.profiles?.username || "COMPETITOR"}
-                                                </span>
-                                                {msg.profiles?.role && msg.profiles.role !== 'client' && (
-                                                    <span className="px-1 py-0.5 bg-compete-purple text-white rounded text-[5px] font-black tracking-widest uppercase">
-                                                        {msg.profiles.role}
-                                                    </span>
-                                                )}
-                                                <span className="text-[6px] text-white/5 font-mono ml-auto">
+                                                {/* Bubble */}
+                                                <div className={`px-3 py-2 rounded-2xl text-[10px] font-medium leading-relaxed break-words border ${
+                                                    isOwn
+                                                        ? "bg-compete-purple text-white border-compete-purple/40 rounded-br-none"
+                                                        : "bg-white/[0.03] text-white/70 border-white/10 rounded-bl-none"
+                                                }`}>
+                                                    {msg.content}
+                                                </div>
+                                                <span className="text-[6px] text-white/10 font-mono px-1">
                                                     {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </span>
                                             </div>
-                                            <p className="text-[10px] text-white/60 font-medium leading-relaxed bg-white/[0.02] px-3 py-2 rounded-2xl rounded-tl-none border border-white/10 group-hover/msg:border-compete-purple/20 transition-colors break-words">
-                                                {msg.content}
-                                            </p>
-                                        </div>
-                                    </motion.div>
-                                ))}
+                                        </motion.div>
+                                    );
+                                })}
                                 <div ref={chatEndRef} />
                             </div>
 
-                            {/* Chat Input */}
-                            <form onSubmit={handleSendMessage} className="relative shrink-0 mt-auto">
-                                <input
-                                    type="text"
-                                    placeholder="TYPE SIGNAL..."
-                                    value={newMessage}
-                                    onChange={(e) => setNewMessage(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-2.5 px-4 text-[10px] font-medium focus:bg-black/60 focus:border-compete-purple outline-none transition-all pr-10 placeholder:text-white/20 tracking-widest text-white"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={!newMessage.trim() || isSending}
-                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-compete-purple hover:text-white transition-colors disabled:opacity-20"
+                            {/* Chat Input or Guest Prompt */}
+                            {currentUser ? (
+                                <form onSubmit={handleSendMessage} className="relative shrink-0">
+                                    <input
+                                        type="text"
+                                        placeholder="BROADCAST TO ALL PLAYERS..."
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        maxLength={280}
+                                        className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-[10px] font-medium focus:bg-black/70 focus:border-compete-purple/50 outline-none transition-all pr-10 placeholder:text-white/20 tracking-widest text-white"
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={!newMessage.trim() || isSending}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-compete-purple text-white hover:bg-white hover:text-black transition-all disabled:opacity-20 disabled:cursor-not-allowed"
+                                    >
+                                        {isSending
+                                            ? <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                                            : <Zap size={10} />
+                                        }
+                                    </button>
+                                </form>
+                            ) : (
+                                <Link
+                                    href="/auth"
+                                    className="shrink-0 w-full py-2.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-white/30 hover:text-white hover:border-compete-purple/40 hover:bg-compete-purple/10 transition-all text-center"
                                 >
-                                    <Zap size={12} />
-                                </button>
-                            </form>
+                                    Login to join the conversation
+                                </Link>
+                            )}
                         </div>
                     </aside>
                 </div>
@@ -538,7 +576,7 @@ export default function LobbyPage() {
                     const parsed = parseGameName(activeChallenge.game_name);
                     return (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !isProcessing && setActiveChallenge(null)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { if (!isProcessing) { setActiveChallenge(null); setInterceptorGameId(""); } }} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
                             <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative w-full max-w-lg bg-[#0B0B0F] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
                                 <div className="p-8 space-y-6">
                                     <div className="flex justify-between items-start">
@@ -549,7 +587,7 @@ export default function LobbyPage() {
                                             </div>
                                             <h2 className="text-2xl font-black italic tracking-tighter uppercase">{parsed.title}</h2>
                                         </div>
-                                        <button onClick={() => setActiveChallenge(null)} className="text-white/20 hover:text-white transition-colors">
+                                        <button onClick={() => { setActiveChallenge(null); setInterceptorGameId(""); }} className="text-white/20 hover:text-white transition-colors">
                                             <X size={20} />
                                         </button>
                                     </div>
@@ -585,10 +623,23 @@ export default function LobbyPage() {
                                         )}
                                     </div>
 
+                                    <div className="space-y-1">
+                                        <label className="text-[8px] font-black tracking-widest text-white/30 uppercase">YOUR IN-GAME ID (REQUIRED)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. SICARIO.9, Ninja#1234"
+                                            value={interceptorGameId}
+                                            onChange={(e) => setInterceptorGameId(e.target.value)}
+                                            disabled={isProcessing}
+                                            className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none focus:border-compete-purple/40 transition-all placeholder:text-white/10 font-black italic text-white disabled:opacity-50"
+                                        />
+                                        <p className="text-[8px] text-white/20 font-black uppercase tracking-widest">Enter the game ID your opponent will see during verification</p>
+                                    </div>
+
                                     <button
-                                        disabled={isProcessing}
+                                        disabled={isProcessing || !interceptorGameId.trim()}
                                         onClick={() => handleJoin(activeChallenge)}
-                                        className={`w-full py-4 font-black tracking-[0.2em] italic rounded-full transition-all flex items-center justify-center gap-3 ${isProcessing ? "bg-white/10 text-white/20 cursor-wait" : "bg-white text-black hover:bg-compete-purple hover:text-white"
+                                        className={`w-full py-4 font-black tracking-[0.2em] italic rounded-full transition-all flex items-center justify-center gap-3 ${isProcessing || !interceptorGameId.trim() ? "bg-white/10 text-white/20 cursor-wait" : "bg-white text-black hover:bg-compete-purple hover:text-white"
                                             }`}
                                     >
                                         {isProcessing ? "SYNCHRONIZING..." : "AUTHORIZE INTERCEPT"}

@@ -72,21 +72,42 @@ export async function verifyAndAddFunds(reference: string, amount: number) {
   return { error: "Transaction verification failed" };
 }
 
+// Payout details shape shared between client and server
+export type PayoutDetails = {
+  method: 'mpesa' | 'bank';
+  phone?: string;
+  accountNumber?: string;
+  bankName?: string;
+};
+
 /**
  * WITHDRAWAL: Request funds for payout
+ * Accepts optional payout details (M-PESA phone or bank account) and
+ * stores them in the payout_details JSONB column on withdrawal_requests.
  */
-export async function requestWithdrawal(amount: number) {
+export async function requestWithdrawal(amount: number, payoutDetails?: PayoutDetails) {
   const supabase = await createClient();
 
-  // 1. Limit Check (Minimum KES 500, Maximum KES 50,000 for demonstration)
+  // 1. Limit Check (Minimum KES 500, Maximum KES 50,000)
   if (amount < 500) return { error: `Minimum withdrawal is ${formatKES(500)}` };
   if (amount > 50000) return { error: `Maximum withdrawal is ${formatKES(50000)}` };
+
+  // Validate payout details when provided
+  if (payoutDetails) {
+    if (payoutDetails.method === 'mpesa' && !payoutDetails.phone?.trim()) {
+      return { error: "M-PESA phone number is required" };
+    }
+    if (payoutDetails.method === 'bank') {
+      if (!payoutDetails.accountNumber?.trim()) return { error: "Bank account number is required" };
+      if (!payoutDetails.bankName?.trim()) return { error: "Bank name is required" };
+    }
+  }
 
   // Get current authenticated user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "User not authenticated" };
 
-  // 2. Execute secure request RPC
+  // 2. Execute secure request RPC (deducts balance, creates the row)
   const { error: rpcError } = await supabase.rpc('request_withdrawal', {
     p_amount: amount
   });
@@ -95,7 +116,25 @@ export async function requestWithdrawal(amount: number) {
     return { error: rpcError.message || "Failed to register withdrawal request" };
   }
 
-  // 3. Refetch balance
+  // 3. Attach payout details to the newly created withdrawal_requests row
+  if (payoutDetails) {
+    const { data: latestRequest } = await supabase
+      .from("withdrawal_requests")
+      .select("id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (latestRequest?.id) {
+      await supabase
+        .from("withdrawal_requests")
+        .update({ payout_details: payoutDetails })
+        .eq("id", latestRequest.id);
+    }
+  }
+
+  // 4. Refetch balance
   const { data: profile } = await supabase
     .from("profiles")
     .select("balance")

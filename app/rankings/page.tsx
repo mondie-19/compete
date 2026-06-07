@@ -1,107 +1,121 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  TrendingUp, TrendingDown, Minus, Crown, Award, Search, Filter, 
-  ShieldCheck, Globe, ChevronDown, Zap, Map, Landmark, Compass, 
+import { motion } from "framer-motion";
+import {
+  TrendingUp, Minus, Crown, Award, Search,
+  ShieldCheck, Globe, Zap, Map, Landmark, Compass,
   Mountain, Snowflake, Waves, User
 } from "lucide-react";
 import { createClient } from "@/supabase/client";
 import { useHeartbeat } from "@/lib/useHeartbeat";
 import Link from "next/link";
 
-// ─── MOCK DATA TOGGLE ───────────────────────────────────────────────────────
-// Set to false to use live Supabase data
-const USE_MOCK = true;
+const CONTINENT_NAMES = ["Africa", "Asia", "Europe", "N. America", "S. America", "Oceania", "Antarctica"];
+const REGION_TO_NAME: Record<string, string> = {
+  AF: "Africa", AS: "Asia", EU: "Europe", NA: "N. America", SA: "S. America", OC: "Oceania", AN: "Antarctica",
+};
 
-const MOCK_RANKINGS = [
-  { rank: 1,  username: "ShadowKing_KE",  avatar_url: null, total_earnings: 12480, total_matches: 94,  win_rate: 91, region: "AF" },
-  { rank: 2,  username: "NeonBlade",       avatar_url: null, total_earnings: 9870,  total_matches: 78,  win_rate: 85, region: "AF" },
-  { rank: 3,  username: "ArcticWolf",      avatar_url: null, total_earnings: 8340,  total_matches: 65,  win_rate: 82, region: "EU" },
-  { rank: 4,  username: "ThunderStrike99", avatar_url: null, total_earnings: 7200,  total_matches: 60,  win_rate: 78, region: "NA" },
-  { rank: 5,  username: "ZeroGravity_TZ",  avatar_url: null, total_earnings: 6750,  total_matches: 57,  win_rate: 74, region: "AF" },
-  { rank: 6,  username: "GhostPilot",      avatar_url: null, total_earnings: 5900,  total_matches: 52,  win_rate: 73, region: "AS" },
-  { rank: 7,  username: "OmegaForce",      avatar_url: null, total_earnings: 5100,  total_matches: 48,  win_rate: 70, region: "EU" },
-  { rank: 8,  username: "ViperX",          avatar_url: null, total_earnings: 4680,  total_matches: 44,  win_rate: 68, region: "SA" },
-  { rank: 9,  username: "CyberPunk_NG",    avatar_url: null, total_earnings: 4100,  total_matches: 40,  win_rate: 65, region: "AF" },
-  { rank: 10, username: "StarSlayer",      avatar_url: null, total_earnings: 3750,  total_matches: 38,  win_rate: 63, region: "OC" },
-  { rank: 11, username: "IceBreaker_NO",   avatar_url: null, total_earnings: 3200,  total_matches: 35,  win_rate: 60, region: "EU" },
-  { rank: 12, username: "PhoenixRises",    avatar_url: null, total_earnings: 2900,  total_matches: 33,  win_rate: 57, region: "AS" },
-  { rank: 13, username: "DarkMatter",      avatar_url: null, total_earnings: 2540,  total_matches: 30,  win_rate: 55, region: "NA" },
-  { rank: 14, username: "LightningBolt_GH",avatar_url: null, total_earnings: 2100,  total_matches: 28,  win_rate: 52, region: "AF" },
-  { rank: 15, username: "StormChasR",      avatar_url: null, total_earnings: 1800,  total_matches: 25,  win_rate: 50, region: "NA" },
-];
-// ─────────────────────────────────────────────────────────────────────────────
+function ContinentTicker({ region }: { region?: string }) {
+  const playerContinent = region ? REGION_TO_NAME[region] : undefined;
+  const sequence = CONTINENT_NAMES.flatMap((n) => [n, "·"]);
+  const items = [...sequence, ...sequence];
+
+  return (
+    <div className="overflow-hidden w-32.5 mx-auto">
+      <motion.div
+        className="flex items-center gap-2 whitespace-nowrap w-max"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 12, ease: "linear", repeat: Infinity }}
+      >
+        {items.map((text, i) => (
+          <span
+            key={i}
+            className={`text-[8px] font-black uppercase tracking-widest select-none ${
+              text === "·"
+                ? "text-purple-900/40"
+                : text === playerContinent
+                ? "text-purple-300"
+                : "text-purple-700/50"
+            }`}
+          >
+            {text}
+          </span>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
 
 const CONTINENTS = [
-  { id: "All", name: "World", icon: <Globe size={14} /> },
-  { id: "AF", name: "Africa", icon: <Map size={14} /> },
-  { id: "AS", name: "Asia", icon: <Zap size={14} /> },
-  { id: "EU", name: "Europe", icon: <Landmark size={14} /> },
-  { id: "NA", name: "N. America", icon: <Compass size={14} /> },
-  { id: "SA", name: "S. America", icon: <Mountain size={14} /> },
-  { id: "OC", name: "Oceania", icon: <Waves size={14} /> },
-  { id: "AN", name: "Antarctica", icon: <Snowflake size={14} /> },
+  { id: "All",  name: "World",      icon: <Globe size={14} /> },
+  { id: "AF",   name: "Africa",     icon: <Map size={14} /> },
+  { id: "AS",   name: "Asia",       icon: <Zap size={14} /> },
+  { id: "EU",   name: "Europe",     icon: <Landmark size={14} /> },
+  { id: "NA",   name: "N. America", icon: <Compass size={14} /> },
+  { id: "SA",   name: "S. America", icon: <Mountain size={14} /> },
+  { id: "OC",   name: "Oceania",    icon: <Waves size={14} /> },
+  { id: "AN",   name: "Antarctica", icon: <Snowflake size={14} /> },
 ];
+
+interface RankingRow {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  region: string | null;
+  total_earnings: number;
+  total_matches: number;
+  total_wins: number;
+  win_rate: number;
+  xp: number;
+  level: number;
+  rank: number;
+}
 
 export default function RankingsPage() {
   const supabase = createClient();
   useHeartbeat();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("All");
-  const [rankings, setRankings] = useState<any[]>([]);
-  const [myRank, setMyRank] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm]       = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("All");
+  const [rankings, setRankings]           = useState<RankingRow[]>([]);
+  const [myRank, setMyRank]               = useState<any>(null);
+  const [loading, setLoading]             = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
 
-      if (USE_MOCK) {
-        // ── Mock mode: instant visual data, no DB needed ──
-        setRankings(MOCK_RANKINGS);
-        setMyRank({ rank: 7, username: "You (mock)", avatar_url: null, total_earnings: 5100, total_matches: 48 });
-        setLoading(false);
-        return;
-      }
+      const [{ data: rankData }, { data: { user } }] = await Promise.all([
+        supabase.from("user_rankings").select("*").order("rank", { ascending: true }),
+        supabase.auth.getUser(),
+      ]);
 
-      const { data: rankData } = await supabase
-        .from("user_rankings")
-        .select("*")
-        .order("rank", { ascending: true });
+      setRankings((rankData as RankingRow[]) || []);
 
-      setRankings(rankData || []);
-
-      const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        let myData = rankData?.find(r => r.username === (user.user_metadata?.username || user.email?.split('@')[0]));
-        
+        let myData = (rankData as RankingRow[])?.find(r => r.id === user.id);
+
         if (!myData) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('username, avatar_url')
-            .eq('id', user.id)
-            .single();
-
-          const { count } = await supabase
-            .from('challenges')
-            .select('*', { count: 'exact', head: true })
-            .or(`host_id.eq.${user.id},opponent_id.eq.${user.id}`)
-            .eq('status', 'completed');
-
-          const { data: payments } = await supabase
-            .from('profiles')
-            .select('balance')
-            .eq('id', user.id)
-            .single();
+          const [{ data: profile }, { count }] = await Promise.all([
+            supabase.from("profiles").select("username, avatar_url").eq("id", user.id).single(),
+            supabase.from("challenges")
+              .select("*", { count: "exact", head: true })
+              .or(`host_id.eq.${user.id},opponent_id.eq.${user.id}`)
+              .eq("status", "resolved"),
+          ]);
 
           myData = {
-            username: profile?.username || user.email?.split('@')[0],
-            avatar_url: profile?.avatar_url,
+            id: user.id,
+            username: profile?.username || user.email?.split("@")[0] || "Player",
+            avatar_url: profile?.avatar_url ?? null,
+            region: null,
             rank: ">99",
-            total_earnings: payments?.balance || 0,
-            total_matches: count || 0
-          };
+            total_earnings: 0,
+            total_matches: count || 0,
+            total_wins: 0,
+            win_rate: 0,
+            xp: 0,
+            level: 1,
+          } as any;
         }
         setMyRank(myData);
       }
@@ -112,21 +126,20 @@ export default function RankingsPage() {
     fetchData();
   }, [supabase]);
 
-
   const filteredPlayers = useMemo(() => {
     return rankings.filter(player => {
       const matchesSearch = player.username.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesRegion = selectedCountry === "All" || player.region === selectedCountry;
+      const matchesRegion = selectedRegion === "All" || player.region === selectedRegion;
       return matchesSearch && matchesRegion;
     });
-  }, [searchTerm, selectedCountry, rankings]);
+  }, [searchTerm, selectedRegion, rankings]);
 
   return (
     <main className="relative min-h-screen bg-[#0A0A0F] text-white overflow-hidden pt-32 font-mono">
       <div className="px-6">
 
         <div className="relative z-10 max-w-7xl mx-auto">
-          {/* Header Section */}
+          {/* Header */}
           <section className="py-4 flex flex-col md:flex-row justify-between items-end gap-4 mb-4">
             <div className="text-center md:text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-compete-purple/10 border border-compete-purple/20 text-compete-purple text-[9px] font-black uppercase tracking-widest mb-2">
@@ -139,8 +152,8 @@ export default function RankingsPage() {
           </section>
 
           <div className="flex flex-col lg:flex-row items-center gap-4 mb-6">
-            {/* Reduced Search Input */}
-            <div className="relative group flex-1 w-full lg:max-w-[240px]">
+            {/* Search */}
+            <div className="relative group flex-1 w-full lg:max-w-60">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-compete-purple transition-colors" size={12} />
               <input
                 type="text"
@@ -151,16 +164,16 @@ export default function RankingsPage() {
               />
             </div>
 
-            {/* Continent Icon Tiles */}
+            {/* Continent Filter */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1 p-1 bg-black/40 border border-white/10 rounded-xl w-full lg:w-auto">
               {CONTINENTS.map((c) => (
                 <button
                   key={c.id}
-                  onClick={() => setSelectedCountry(c.id)}
+                  onClick={() => setSelectedRegion(c.id)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
-                    selectedCountry === c.id 
-                    ? "bg-compete-purple text-white shadow-md" 
-                    : "text-white/40 hover:text-white hover:bg-white/5"
+                    selectedRegion === c.id
+                      ? "bg-compete-purple text-white shadow-md"
+                      : "text-white/40 hover:text-white hover:bg-white/5"
                   }`}
                 >
                   {c.icon}
@@ -170,9 +183,10 @@ export default function RankingsPage() {
             </div>
           </div>
 
-          {/* Detailed View - Table for Desktop, Cards for Mobile */}
+          {/* Table / Cards */}
           <section className="bg-[#0F0F16]/60 border border-white/10 rounded-2xl overflow-hidden mb-16 backdrop-blur-md shadow-2xl">
-            {/* Desktop Table View */}
+
+            {/* Desktop Table */}
             <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -185,7 +199,7 @@ export default function RankingsPage() {
                     <th className="px-6 py-4 text-right">TREND</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.03]">
+                <tbody className="divide-y divide-white/3">
                   {loading ? (
                     <tr>
                       <td colSpan={6} className="p-32 text-center text-white/20 italic font-black uppercase tracking-widest animate-pulse">
@@ -199,13 +213,13 @@ export default function RankingsPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        key={player.username}
-                        className="hover:bg-compete-purple/[0.03] transition-all group cursor-default"
+                        key={player.id}
+                        className="hover:bg-compete-purple/3 transition-all group cursor-default"
                       >
                         <td className="px-6 py-3">
                           <div className="flex items-center gap-3">
-                            <span className={`text-xl font-black italic tracking-tighter ${player.rank === 1 ? 'text-compete-purple text-glow' : 'text-white/10 group-hover:text-white/40'}`}>
-                              #{player.rank.toString().padStart(2, '0')}
+                            <span className={`text-xl font-black italic tracking-tighter ${player.rank === 1 ? "text-compete-purple text-glow" : "text-white/10 group-hover:text-white/40"}`}>
+                              #{String(player.rank).padStart(2, "0")}
                             </span>
                             {player.rank === 1 && <Crown size={14} className="text-yellow-500 animate-bounce" />}
                           </div>
@@ -213,7 +227,7 @@ export default function RankingsPage() {
                         <td className="px-6 py-3">
                           <div className="flex items-center gap-3">
                             <div className="relative">
-                              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center text-xl group-hover:scale-110 transition-transform overflow-hidden">
+                              <div className="w-9 h-9 rounded-full bg-linear-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden">
                                 {player.avatar_url ? (
                                   <img src={player.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                                 ) : (
@@ -221,7 +235,7 @@ export default function RankingsPage() {
                                 )}
                               </div>
                               <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-black border border-white/10 flex items-center justify-center text-[7px] font-black text-compete-purple">
-                                {Math.min(99, Math.floor(player.total_matches / 10) + 1)}
+                                {player.level}
                               </div>
                             </div>
                             <div>
@@ -233,7 +247,9 @@ export default function RankingsPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-3 text-center text-xl filter saturate-50 group-hover:saturate-100 transition-all opacity-20">🌍</td>
+                        <td className="px-6 py-3 text-center">
+                          <ContinentTicker region={player.region ?? undefined} />
+                        </td>
                         <td className="px-6 py-3">
                           <div className="space-y-1.5">
                             <div className="flex justify-between text-[9px] font-black uppercase tracking-tighter">
@@ -252,9 +268,12 @@ export default function RankingsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <div className={`inline-flex items-center justify-center w-8 h-8 rounded-xl bg-white/5 border border-white/10 transition-colors ${player.rank <= 3 ? "group-hover:border-green-500/50" : "group-hover:border-white/20"
-                            }`}>
-                            {player.rank <= 3 ? <TrendingUp className="text-green-400" size={12} /> : <Minus className="text-white/20" size={12} />}
+                          <div className={`inline-flex items-center justify-center w-8 h-8 rounded-xl bg-white/5 border border-white/10 transition-colors ${
+                            player.rank <= 3 ? "group-hover:border-green-500/50" : "group-hover:border-white/20"
+                          }`}>
+                            {player.rank <= 3
+                              ? <TrendingUp className="text-green-400" size={12} />
+                              : <Minus className="text-white/20" size={12} />}
                           </div>
                         </td>
                       </motion.tr>
@@ -270,8 +289,8 @@ export default function RankingsPage() {
               </table>
             </div>
 
-            {/* Mobile Card View */}
-            <div className="lg:hidden divide-y divide-white/[0.03]">
+            {/* Mobile Cards */}
+            <div className="lg:hidden divide-y divide-white/3">
               {loading ? (
                 <div className="p-16 text-center text-white/20 italic font-black uppercase tracking-widest animate-pulse text-xs">
                   SYNCHRONIZING GLOBAL STANDINGS...
@@ -279,7 +298,7 @@ export default function RankingsPage() {
               ) : filteredPlayers.length > 0 ? (
                 filteredPlayers.map((player, idx) => (
                   <motion.div
-                    key={player.username}
+                    key={player.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.05 }}
@@ -287,8 +306,8 @@ export default function RankingsPage() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className={`text-lg font-black italic tracking-tighter ${player.rank === 1 ? 'text-compete-purple' : 'text-white/10'}`}>
-                          #{player.rank.toString().padStart(2, '0')}
+                        <span className={`text-lg font-black italic tracking-tighter ${player.rank === 1 ? "text-compete-purple" : "text-white/10"}`}>
+                          #{String(player.rank).padStart(2, "0")}
                         </span>
                         <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
                           {player.avatar_url ? (
@@ -310,23 +329,25 @@ export default function RankingsPage() {
                         <p className="text-[7px] font-black uppercase text-white/20 tracking-widest">EARNINGS</p>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-3 pt-1">
-                       <div className="space-y-1">
-                          <div className="flex justify-between text-[7px] font-black uppercase tracking-tighter">
-                            <span className="text-white/20">WIN RATE</span>
-                            <span className="text-compete-purple">{player.win_rate}%</span>
-                          </div>
-                          <div className="w-full h-0.5 bg-white/5 rounded-full overflow-hidden">
-                            <div className="h-full bg-compete-purple" style={{ width: `${player.win_rate}%` }} />
-                          </div>
-                       </div>
-                       <div className="flex justify-end items-center gap-2">
-                          <span className="text-[7px] font-black uppercase text-white/20 tracking-widest">TREND</span>
-                          <div className="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                            {player.rank <= 3 ? <TrendingUp className="text-green-400" size={10} /> : <Minus className="text-white/20" size={10} />}
-                          </div>
-                       </div>
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[7px] font-black uppercase tracking-tighter">
+                          <span className="text-white/20">WIN RATE</span>
+                          <span className="text-compete-purple">{player.win_rate}%</span>
+                        </div>
+                        <div className="w-full h-0.5 bg-white/5 rounded-full overflow-hidden">
+                          <div className="h-full bg-compete-purple" style={{ width: `${player.win_rate}%` }} />
+                        </div>
+                      </div>
+                      <div className="flex justify-end items-center gap-2">
+                        <span className="text-[7px] font-black uppercase text-white/20 tracking-widest">TREND</span>
+                        <div className="w-5 h-5 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                          {player.rank <= 3
+                            ? <TrendingUp className="text-green-400" size={10} />
+                            : <Minus className="text-white/20" size={10} />}
+                        </div>
+                      </div>
                     </div>
                   </motion.div>
                 ))
@@ -338,7 +359,7 @@ export default function RankingsPage() {
             </div>
           </section>
 
-          {/* PERSONAL RANK STICKY BANNER - Optimized View */}
+          {/* Personal Rank Sticky Banner */}
           {myRank && (
             <div className="sticky bottom-8 z-40 max-w-4xl mx-auto px-4">
               <motion.div

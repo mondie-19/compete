@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { Zap, ChevronLeft, Gamepad2, ShieldAlert, AlertTriangle, Monitor, Smartphone, Globe } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createChallenge } from "@/app/actions/challenges";
 import { createClient } from "@/supabase/client";
@@ -42,34 +42,67 @@ const PLATFORMS = [
     },
 ];
 
+const MIN_STAKE = 50;
+
 export default function DeployPage() {
-    const [gameName, setGameName] = useState("");
-    const [gamerId, setGamerId] = useState("");
-    const [platform, setPlatform] = useState("PC");
-    const [entryFee, setEntryFee] = useState(1000);
+    const [gameName, setGameName]     = useState("");
+    const [gamerId, setGamerId]       = useState("");
+    const [platform, setPlatform]     = useState("PC");
+    const [entryFee, setEntryFee]     = useState(1000);
     const [engagements, setEngagements] = useState("");
-    const [balance, setBalance] = useState<number | null>(null);
+    const [balance, setBalance]       = useState<number | null>(null);
+    const [authReady, setAuthReady]   = useState(false);
     const [isDeploying, setIsDeploying] = useState(false);
     const router = useRouter();
-    const supabase = createClient();
+    const supabaseRef = useRef(createClient());
     useHeartbeat();
 
     useEffect(() => {
-        const fetchBalance = async () => {
+        const supabase = supabaseRef.current;
+        let channel: ReturnType<typeof supabase.channel> | null = null;
+
+        const init = async () => {
             const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data } = await supabase.from('profiles').select('balance, region').eq('id', user.id).single();
-                if (data) {
-                    setBalance(data.balance);
-                }
+            if (!user) {
+                router.replace("/auth");
+                return;
             }
-        }
-        fetchBalance();
-    }, []);
+
+            setAuthReady(true);
+
+            const { data } = await supabase
+                .from("profiles")
+                .select("balance")
+                .eq("id", user.id)
+                .single();
+
+            if (data) setBalance(data.balance);
+
+            // Real-time balance updates
+            channel = supabase
+                .channel(`deploy-balance-${user.id}`)
+                .on(
+                    "postgres_changes",
+                    { event: "UPDATE", schema: "public", table: "profiles", filter: `id=eq.${user.id}` },
+                    (payload) => { setBalance((payload.new as { balance: number }).balance); }
+                )
+                .subscribe();
+        };
+
+        init();
+
+        return () => {
+            if (channel) supabaseRef.current.removeChannel(channel);
+        };
+    }, [router]);
 
     const handleDeploy = async () => {
-        if (!gameName || !gamerId || entryFee <= 0) {
-            toast.error("Game Name and Gamer ID are required parameters.");
+        if (!gameName || !gamerId) {
+            toast.error("Game title and Gamer ID are required.");
+            return;
+        }
+        if (entryFee < MIN_STAKE) {
+            toast.error(`Minimum stake is KSh ${MIN_STAKE.toLocaleString()}.`);
             return;
         }
 
@@ -91,6 +124,7 @@ export default function DeployPage() {
         }
     };
 
+    const isBelowMinimum      = entryFee < MIN_STAKE;
     const isInsufficientFunds = balance !== null && entryFee > balance;
 
     const getWagerDesign = () => {
@@ -131,6 +165,8 @@ export default function DeployPage() {
     };
 
     const wager = getWagerDesign();
+
+    if (!authReady) return null;
 
     return (
         <div className="min-h-screen bg-[#0A0A0F] text-white relative font-mono flex flex-col selection:bg-compete-purple/30">
@@ -297,15 +333,16 @@ export default function DeployPage() {
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className={`text-[9px] font-black tracking-widest ml-1 uppercase ${isInsufficientFunds ? "text-red-400" : "text-white/40"}`}>
-                                        STAKE (KSh)
+                                    <label className={`text-[9px] font-black tracking-widest ml-1 uppercase ${isInsufficientFunds || isBelowMinimum ? "text-red-400" : "text-white/40"}`}>
+                                        STAKE (KSh) — MIN KSh {MIN_STAKE.toLocaleString()}
                                     </label>
                                     <input
                                         type="number"
                                         value={entryFee}
                                         step={50}
+                                        min={MIN_STAKE}
                                         onChange={(e) => setEntryFee(Math.max(0, Number(e.target.value)))}
-                                        className={`w-full bg-black/50 border ${isInsufficientFunds ? "border-red-500/50" : "border-white/10"} rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-black italic text-white ${isInsufficientFunds ? "" : wager.focusBorderClass}`}
+                                        className={`w-full bg-black/50 border ${isInsufficientFunds || isBelowMinimum ? "border-red-500/50" : "border-white/10"} rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none font-black italic text-white ${isInsufficientFunds || isBelowMinimum ? "" : wager.focusBorderClass}`}
                                     />
                                 </div>
 
@@ -337,27 +374,31 @@ export default function DeployPage() {
                                 </div>
 
                                 <button
-                                    disabled={isDeploying || !gameName || !gamerId || isInsufficientFunds}
+                                    disabled={isDeploying || !gameName || !gamerId || isInsufficientFunds || isBelowMinimum}
                                     onClick={handleDeploy}
-                                    className={`w-full py-4 text-[9px] lg:text-xs font-black tracking-widest rounded-full transition-all flex items-center justify-center gap-2 mt-1 lg:mt-2 uppercase ${isInsufficientFunds
-                                        ? "bg-red-500/10 text-red-400 border border-red-500/30 cursor-not-allowed"
+                                    className={`w-full py-4 text-[9px] lg:text-xs font-black tracking-widest rounded-full transition-all flex items-center justify-center gap-2 mt-1 lg:mt-2 uppercase ${
+                                        isInsufficientFunds
+                                            ? "bg-red-500/10 text-red-400 border border-red-500/30 cursor-not-allowed"
+                                        : isBelowMinimum
+                                            ? "bg-red-500/10 text-red-400 border border-red-500/30 cursor-not-allowed"
                                         : isDeploying || !gameName || !gamerId
                                             ? "bg-white/5 text-white/30 cursor-wait"
                                             : "bg-white text-black hover:bg-white/90 active:scale-[0.98] italic"
-                                        }`}
+                                    }`}
                                 >
-                                    {isInsufficientFunds ? (
+                                    {isInsufficientFunds || isBelowMinimum ? (
                                         <AlertTriangle size={12} />
                                     ) : (
                                         <Zap size={12} className={`${isDeploying ? "animate-pulse" : ""} ${wager.colorClass} transition-colors duration-300`} />
                                     )}
-
                                     <span>
                                         {isInsufficientFunds
                                             ? "INSUFFICIENT FUNDS"
-                                            : isDeploying
-                                                ? "DEPLOYING..."
-                                                : "DEPLOY MATCH"}
+                                            : isBelowMinimum
+                                                ? `MIN STAKE KSh ${MIN_STAKE}`
+                                                : isDeploying
+                                                    ? "DEPLOYING..."
+                                                    : "DEPLOY MATCH"}
                                     </span>
                                 </button>
                             </div>

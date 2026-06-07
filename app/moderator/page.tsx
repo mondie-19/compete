@@ -66,8 +66,8 @@ export default function ModeratorDashboard() {
                 .from("challenges")
                 .select(`
                     *,
-                    host:profiles!challenges_host_id_fkey(id, username),
-                    opponent:profiles!challenges_opponent_id_fkey(id, username),
+                    host:profiles!host_id(id, username),
+                    opponent:profiles!opponent_id(id, username),
                     reports:match_reports(*)
                 `)
                 .in("status", ["pending_review", "disputed"])
@@ -116,7 +116,7 @@ export default function ModeratorDashboard() {
             }
 
             channelRef.current = supabase
-                .channel('challenges_mod')
+                .channel(`challenges_mod-${Date.now()}`)
                 .on('postgres_changes', {
                     event: '*',
                     schema: 'public',
