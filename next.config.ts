@@ -1,15 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  webpack(config, { dev }) {
-    if (dev) {
-      config.watchOptions = {
-        ignored: ["**/node_modules/**", "**/.next/**", "**/supabase/**", "**/.git/**"],
-        aggregateTimeout: 300,
-      };
-    }
-    return config;
-  },
+  // Turbopack is the default in Next.js 16. Declaring it here silences
+  // the build error caused by having a webpack config without a turbopack config.
+  turbopack: {},
 };
 
 export default nextConfig;
