@@ -32,6 +32,28 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
+  // Enforce role-based access for privileged routes
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+  const isModeratorRoute = request.nextUrl.pathname.startsWith("/moderator");
+
+  if (isAdminRoute || isModeratorRoute) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const role = profile?.role;
+
+    if (isAdminRoute && role !== "admin") {
+      return NextResponse.redirect(new URL("/lobby", request.url));
+    }
+
+    if (isModeratorRoute && role !== "admin" && role !== "moderator" && role !== "customer_care") {
+      return NextResponse.redirect(new URL("/lobby", request.url));
+    }
+  }
+
   return response;
 }
 

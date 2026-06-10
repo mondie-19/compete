@@ -1,6 +1,6 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Lock, User, Globe, ChevronLeft, Target, Fingerprint, Loader2 } from "lucide-react";
+import { Globe, ChevronLeft, Target, Fingerprint, Loader2, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/supabase/client";
@@ -15,6 +15,7 @@ export default function AuthPage() {
     const [username, setUsername] = useState("");
     const [rememberMe, setRememberMe] = useState(true);
     const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const router = useRouter();
     const supabase = createClient();
@@ -159,17 +160,27 @@ export default function AuthPage() {
 
                     <div className="space-y-1">
                         <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">ACCESS KEY</label>
-                        <input
-                            id="password"
-                            name="password"
-                            type="password"
-                            placeholder="••••••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            autoComplete={isLogin ? "current-password" : "new-password"}
-                            className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 text-xs focus:bg-black/80 outline-none transition-all placeholder:text-white/10 font-black italic text-white focus:border-compete-purple/40"
-                        />
+                        <div className="relative">
+                            <input
+                                id="password"
+                                name="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="••••••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                autoComplete={isLogin ? "current-password" : "new-password"}
+                                className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 pr-10 text-xs focus:bg-black/80 outline-none transition-all placeholder:text-white/10 font-black italic text-white focus:border-compete-purple/40"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((v) => !v)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                                tabIndex={-1}
+                            >
+                                {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="flex items-center justify-between py-1">
@@ -207,7 +218,7 @@ export default function AuthPage() {
                         ) : (
                             <Target size={14} className="group-hover:scale-125 transition-transform" />
                         )}
-                        <span>{loading ? "AUTHORIZING..." : (isLogin ? "AUTHORIZE" : "INITIALIZE")}</span>
+                        <span>{loading ? (isLogin ? "SIGNING IN..." : "SIGNING UP...") : (isLogin ? "SIGN IN" : "SIGN UP")}</span>
                     </button>
                 </form>
 
@@ -217,7 +228,7 @@ export default function AuthPage() {
                         type="button"
                         className="w-full py-3.5 border border-white/10 rounded-full bg-white/5 text-white hover:text-black hover:bg-white active:scale-[0.98] transition-all font-black text-[9px] tracking-[0.2em] italic uppercase flex items-center justify-center gap-2"
                     >
-                        <Globe size={12} /> AUTHORIZE WITH GOOGLE
+                        <Globe size={12} /> SIGN IN WITH GOOGLE
                     </button>
                     
                     <div className="flex justify-between items-center text-[8px] font-black tracking-widest pt-2">

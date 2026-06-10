@@ -642,7 +642,7 @@ export default function LobbyPage() {
                                         className={`w-full py-4 font-black tracking-[0.2em] italic rounded-full transition-all flex items-center justify-center gap-3 ${isProcessing || !interceptorGameId.trim() ? "bg-white/10 text-white/20 cursor-wait" : "bg-white text-black hover:bg-compete-purple hover:text-white"
                                             }`}
                                     >
-                                        {isProcessing ? "SYNCHRONIZING..." : "AUTHORIZE INTERCEPT"}
+                                        {isProcessing ? "SYNCHRONIZING..." : "CONFIRM INTERCEPT"}
                                     </button>
                                 </div>
                             </motion.div>

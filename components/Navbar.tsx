@@ -175,7 +175,7 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
             onClick={handleJoinClick}
             className="rounded-full bg-compete-purple hover:bg-compete-purpleGlow px-5 py-2.5 text-[10px] font-black tracking-[0.2em] text-white transition-all shadow-md"
           >
-            AUTHORIZE
+            SIGN IN
           </button>
         )}
       </div>
@@ -220,7 +220,7 @@ export default function Navbar({ onJoinClick }: NavbarProps) {
                      onClick={handleJoinClick}
                      className="w-full rounded-xl bg-compete-purple py-4 text-[10px] font-black tracking-widest text-white shadow-purple-glow"
                    >
-                     Authorize Access
+                     Sign In
                    </button>
                  )}
               </div>
