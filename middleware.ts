@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
   // Define protected routes
-  const protectedRoutes = ["/dashboard", "/lobby", "/match", "/deploy", "/admin", "/moderator"];
+  const protectedRoutes = ["/dashboard", "/lobby", "/match", "/deploy", "/admin", "/moderator", "/customer-care"];
   const isProtectedRoute = protectedRoutes.some((route) =>
     request.nextUrl.pathname.startsWith(route)
   );
@@ -35,8 +35,9 @@ export async function middleware(request: NextRequest) {
   // Enforce role-based access for privileged routes
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
   const isModeratorRoute = request.nextUrl.pathname.startsWith("/moderator");
+  const isCustomerCareRoute = request.nextUrl.pathname.startsWith("/customer-care");
 
-  if (isAdminRoute || isModeratorRoute) {
+  if (isAdminRoute || isModeratorRoute || isCustomerCareRoute) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -49,7 +50,11 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/lobby", request.url));
     }
 
-    if (isModeratorRoute && role !== "admin" && role !== "moderator" && role !== "customer_care") {
+    if (isModeratorRoute && role !== "admin" && role !== "moderator") {
+      return NextResponse.redirect(new URL("/lobby", request.url));
+    }
+
+    if (isCustomerCareRoute && role !== "admin" && role !== "moderator" && role !== "customer_care") {
       return NextResponse.redirect(new URL("/lobby", request.url));
     }
   }
@@ -92,5 +97,6 @@ export const config = {
     "/deploy/:path*",
     "/admin/:path*",
     "/moderator/:path*",
+    "/customer-care/:path*",
   ],
 };

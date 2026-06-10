@@ -43,6 +43,7 @@ export default function AuthPage() {
                     toast.success("UPLINK ESTABLISHED");
                     if (result.role === 'admin') router.push('/admin');
                     else if (result.role === 'moderator') router.push('/moderator');
+                    else if (result.role === 'customer_care') router.push('/customer-care');
                     else router.push('/lobby');
                 }
             } else {
@@ -58,6 +59,7 @@ export default function AuthPage() {
                     toast.success("COMPETITOR INITIALIZED. CHECK EMAIL.");
                     if (result.role === 'admin') router.push('/admin');
                     else if (result.role === 'moderator') router.push('/moderator');
+                    else if (result.role === 'customer_care') router.push('/customer-care');
                     else router.push('/lobby');
                 }
             }
