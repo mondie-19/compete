@@ -1,14 +1,14 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Globe, ChevronLeft, Target, Fingerprint, Loader2, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/supabase/client";
-import { signIn, signUp } from "@/app/actions/auth";
 import { toast } from "sonner";
 import Link from "next/link";
 
 export default function AuthPage() {
+    const supabaseRef = useRef(createClient());
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -18,53 +18,89 @@ export default function AuthPage() {
     const [showPassword, setShowPassword] = useState(false);
 
     const router = useRouter();
-    const supabase = createClient();
 
     const handleGoogleSignIn = async () => {
-        const { error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
+        const { error } = await supabaseRef.current.auth.signInWithOAuth({
+            provider: "google",
             options: { redirectTo: `${window.location.origin}/auth/callback` },
         });
-        if (error) {
-            toast.error(error.message);
-        }
+        if (error) toast.error(error.message);
     };
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        const supabase = supabaseRef.current;
 
         try {
             if (isLogin) {
-                const result = await signIn(email, password);
-                if (result.error) {
-                    toast.error(result.error);
-                } else {
-                    toast.success("UPLINK ESTABLISHED");
-                    if (result.role === 'admin') router.push('/admin');
-                    else if (result.role === 'moderator') router.push('/moderator');
-                    else if (result.role === 'customer_care') router.push('/customer-care');
-                    else router.push('/lobby');
-                }
-            } else {
-                if (!username) {
-                    toast.error("COMPETITOR NAME REQUIRED");
-                    setLoading(false);
+                // ── Sign In ────────────────────────────────────────────────
+                // Using the browser client directly so the session cookie is
+                // set synchronously in the browser before navigation starts.
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+
+                if (error) {
+                    toast.error(error.message);
                     return;
                 }
-                const result = await signUp(email, password, username);
-                if (result.error) {
-                    toast.error(result.error);
+
+                // Fetch role (fast — row is cached by Supabase edge)
+                const { data: profile } = await supabase
+                    .from("profiles")
+                    .select("role")
+                    .eq("id", data.user.id)
+                    .single();
+
+                const role = profile?.role || "client";
+
+                toast.success("UPLINK ESTABLISHED");
+
+                // router.refresh() forces Next.js to re-evaluate the middleware
+                // with the new session cookie before navigating.
+                router.refresh();
+
+                if (role === "admin") router.push("/admin");
+                else if (role === "moderator") router.push("/moderator");
+                else if (role === "customer_care") router.push("/customer-care");
+                else router.push("/lobby");
+
+            } else {
+                // ── Sign Up ────────────────────────────────────────────────
+                if (!username.trim()) {
+                    toast.error("COMPETITOR NAME REQUIRED");
+                    return;
+                }
+
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: { username: username.trim() },
+                    },
+                });
+
+                if (error) {
+                    toast.error(error.message);
+                    return;
+                }
+
+                if (data.session) {
+                    // Email confirmation is disabled — user is already signed in
+                    toast.success("ACCOUNT CREATED. WELCOME TO COMPETE.");
+                    router.refresh();
+                    router.push("/lobby");
                 } else {
-                    toast.success("COMPETITOR INITIALIZED. CHECK EMAIL.");
-                    if (result.role === 'admin') router.push('/admin');
-                    else if (result.role === 'moderator') router.push('/moderator');
-                    else if (result.role === 'customer_care') router.push('/customer-care');
-                    else router.push('/lobby');
+                    // Email confirmation required
+                    toast.success("CHECK YOUR EMAIL TO VERIFY YOUR ACCOUNT.", { duration: 6000 });
+                    setIsLogin(true);
+                    setPassword("");
                 }
             }
-        } catch (err) {
-            toast.error("COMMUNICATION ERROR");
+        } catch (err: any) {
+            toast.error("CONNECTION ERROR. PLEASE TRY AGAIN.");
         } finally {
             setLoading(false);
         }
@@ -101,12 +137,9 @@ export default function AuthPage() {
                         100% { background-position: -200% 0; }
                     }
                 `}</style>
-                <div 
+                <div
                     className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#0F0A1A] via-[#9B5CFF] via-[#5A20B3] via-[#9B5CFF] to-[#0F0A1A]"
-                    style={{
-                        backgroundSize: "200% 100%",
-                        animation: "shimmer 4s linear infinite"
-                    }}
+                    style={{ backgroundSize: "200% 100%", animation: "shimmer 4s linear infinite" }}
                 />
 
                 <div className="mb-6 text-left mt-2">
@@ -125,14 +158,12 @@ export default function AuthPage() {
                         {!isLogin && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
+                                animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
                                 className="space-y-1"
                             >
                                 <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">COMPETITOR HANDLE</label>
                                 <input
-                                    id="username"
-                                    name="username"
                                     type="text"
                                     placeholder="e.g. NINJA#1234"
                                     value={username}
@@ -148,8 +179,6 @@ export default function AuthPage() {
                     <div className="space-y-1">
                         <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">EMAIL ADDRESS</label>
                         <input
-                            id="email"
-                            name="email"
                             type="email"
                             placeholder="e.g. CODESMITH@COMPETE.GG"
                             value={email}
@@ -164,8 +193,6 @@ export default function AuthPage() {
                         <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">ACCESS KEY</label>
                         <div className="relative">
                             <input
-                                id="password"
-                                name="password"
                                 type={showPassword ? "text" : "password"}
                                 placeholder="••••••••••••"
                                 value={password}
@@ -232,11 +259,11 @@ export default function AuthPage() {
                     >
                         <Globe size={12} /> SIGN IN WITH GOOGLE
                     </button>
-                    
+
                     <div className="flex justify-between items-center text-[8px] font-black tracking-widest pt-2">
                         <span className="text-white/20 uppercase">UPLINK REGISTRY</span>
                         <button
-                            onClick={() => setIsLogin(!isLogin)}
+                            onClick={() => { setIsLogin(!isLogin); setPassword(""); }}
                             type="button"
                             className="text-compete-purple hover:text-white transition-colors uppercase italic"
                         >

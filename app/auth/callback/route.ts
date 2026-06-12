@@ -22,6 +22,7 @@ export async function GET(request: Request) {
 
       if (role === 'admin') redirectPath = '/admin';
       else if (role === 'moderator') redirectPath = '/moderator';
+      else if (role === 'customer_care') redirectPath = '/customer-care';
 
       return NextResponse.redirect(`${origin}${searchParams.get('next') ?? redirectPath}`);
     }

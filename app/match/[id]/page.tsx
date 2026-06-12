@@ -88,6 +88,12 @@ export default function MatchRoom() {
     const handleReport = async (outcome: "win" | "loss") => {
         if (isSubmitting) return;
 
+        // Client-side guard — the RPC enforces this server-side too
+        if (!match || (user?.id !== match.host_id && user?.id !== match.opponent_id)) {
+            toast.error("YOU ARE NOT A PARTICIPANT IN THIS MATCH.");
+            return;
+        }
+
         if (proofFiles.length < 3) {
             toast.error("You must upload at least 3 screenshots showing the match results and opponent name.");
             return;
@@ -247,6 +253,15 @@ export default function MatchRoom() {
         </div>
     );
 
+    if (!match) return (
+        <div className="min-h-screen bg-[#0A0A0F] flex flex-col items-center justify-center gap-4 font-mono">
+            <Shield className="text-white/10" size={48} />
+            <div className="font-black tracking-[0.5em] text-white/20 uppercase text-xs">MATCH NOT FOUND</div>
+            <Link href="/lobby" className="text-compete-purple text-xs font-black uppercase tracking-widest hover:text-white transition-colors">← RETURN TO LOBBY</Link>
+        </div>
+    );
+
+    const isParticipant = user?.id === match.host_id || user?.id === match.opponent_id;
     const fee = Number(match?.entry_fee || 0);
     const getWagerTheme = () => {
         if (fee >= 10000) {
@@ -382,7 +397,22 @@ export default function MatchRoom() {
 
                         {/* ACTION ZONE OR STATUS ZONE */}
                         <AnimatePresence mode="wait">
-                            {match?.status === 'open' ? (
+                            {match?.status === 'pending_review' && !isParticipant ? (
+                                <motion.div
+                                    key="review-spectator"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="bg-[#0F0F16]/60 border border-yellow-500/20 p-8 lg:p-12 rounded-3xl text-center space-y-4 backdrop-blur-md"
+                                >
+                                    <div className="w-16 h-16 bg-yellow-500/10 border border-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Timer size={28} className="text-yellow-500" />
+                                    </div>
+                                    <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-white">UNDER REVIEW</h2>
+                                    <p className="text-[10px] lg:text-[11px] font-black uppercase tracking-widest text-yellow-500/60 max-w-sm mx-auto leading-loose">
+                                        RESULTS SUBMITTED. MODERATOR REVIEW IN PROGRESS.
+                                    </p>
+                                </motion.div>
+                            ) : match?.status === 'open' ? (
                                 <motion.div
                                     key="open"
                                     initial={{ opacity: 0, scale: 0.95 }}
@@ -431,6 +461,21 @@ export default function MatchRoom() {
                                     <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-white">DISPUTE FLAGGED</h2>
                                     <p className="text-[10px] lg:text-[11px] font-black uppercase tracking-widest text-red-500/60 max-w-sm mx-auto leading-loose">
                                         CONFLICTING REPORTS LOGGED. ADMIN INTERVENTION REQUIRED. SCREENSHOT EVIDENCE IS UNDER RECOGNITION.
+                                    </p>
+                                </motion.div>
+                            ) : !isParticipant ? (
+                                <motion.div
+                                    key="spectator"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="bg-[#0F0F16]/60 border border-white/10 p-8 lg:p-12 rounded-3xl text-center space-y-4 backdrop-blur-md"
+                                >
+                                    <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Shield size={28} className="text-white/20" />
+                                    </div>
+                                    <h2 className="text-xl lg:text-2xl font-black italic uppercase tracking-tighter text-white/60">SPECTATOR VIEW</h2>
+                                    <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-white/30 max-w-sm mx-auto leading-loose">
+                                        YOU ARE NOT A PARTICIPANT IN THIS MATCH.<br />RESULT SUBMISSION IS LOCKED.
                                     </p>
                                 </motion.div>
                             ) : (
