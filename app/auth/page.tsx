@@ -2,7 +2,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Globe, ChevronLeft, Target, Fingerprint, Loader2, Eye, EyeOff } from "lucide-react";
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/supabase/client";
 import { toast } from "sonner";
 import Link from "next/link";
@@ -16,8 +15,6 @@ export default function AuthPage() {
     const [rememberMe, setRememberMe] = useState(true);
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-
-    const router = useRouter();
 
     const handleGoogleSignIn = async () => {
         const { error } = await supabaseRef.current.auth.signInWithOAuth({
@@ -58,14 +55,14 @@ export default function AuthPage() {
 
                 toast.success("UPLINK ESTABLISHED");
 
-                // router.refresh() forces Next.js to re-evaluate the middleware
-                // with the new session cookie before navigating.
-                router.refresh();
-
-                if (role === "admin") router.push("/admin");
-                else if (role === "moderator") router.push("/moderator");
-                else if (role === "customer_care") router.push("/customer-care");
-                else router.push("/lobby");
+                // Hard navigation: guarantees the browser flushes session cookies
+                // into the request before the server evaluates middleware.
+                // router.push() (soft nav) can race with cookie propagation and
+                // cause middleware's getUser() to see no session.
+                if (role === "admin") window.location.href = "/admin";
+                else if (role === "moderator") window.location.href = "/moderator";
+                else if (role === "customer_care") window.location.href = "/customer-care";
+                else window.location.href = "/lobby";
 
             } else {
                 // ── Sign Up ────────────────────────────────────────────────
@@ -87,11 +84,17 @@ export default function AuthPage() {
                     return;
                 }
 
+                // Fire-and-forget welcome email — does not block navigation.
+                fetch("/api/auth/welcome-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, username: username.trim() }),
+                }).catch(() => {});
+
                 if (data.session) {
                     // Email confirmation is disabled — user is already signed in
                     toast.success("ACCOUNT CREATED. WELCOME TO COMPETE.");
-                    router.refresh();
-                    router.push("/lobby");
+                    window.location.href = "/lobby";
                 } else {
                     // Email confirmation required
                     toast.success("CHECK YOUR EMAIL TO VERIFY YOUR ACCOUNT.", { duration: 6000 });
