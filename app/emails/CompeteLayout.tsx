@@ -1,4 +1,6 @@
-import { Html, Head, Body, Container, Preview, Font } from '@react-email/components';
+import {
+  Html, Head, Body, Container, Preview, Font, Section, Text,
+} from '@react-email/components';
 import { CompeteTheme } from '@/constants/email-theme';
 import * as React from 'react';
 
@@ -9,74 +11,106 @@ interface CompeteLayoutProps {
 
 export const CompeteLayout = ({ children, previewText }: CompeteLayoutProps) => {
   return (
-    <Html>
+    <Html lang="en">
       <Head>
         <Font
-          fontFamily="Inter"
-          fallbackFontFamily="sans-serif"
-          webFont={{
-            url: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZhrib2Bg-4.ttf',
-            format: 'truetype',
-          }}
+          fontFamily="Courier New"
+          fallbackFontFamily="monospace"
           fontWeight={400}
-          fontStyle="normal"
-        />
-        <Font
-          fontFamily="Inter"
-          fallbackFontFamily="sans-serif"
-          webFont={{
-            url: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fMZhrib2Bg-4.ttf',
-            format: 'truetype',
-          }}
-          fontWeight={700}
           fontStyle="normal"
         />
       </Head>
       <Preview>{previewText}</Preview>
-      <Body style={{ backgroundColor: CompeteTheme.background, margin: 0, padding: 0 }}>
+      <Body style={{
+        backgroundColor: CompeteTheme.background,
+        margin: 0,
+        padding: '32px 0',
+        fontFamily: "'Courier New', Courier, monospace",
+      }}>
         <Container style={{
+          maxWidth: '560px',
+          margin: '0 auto',
           backgroundColor: CompeteTheme.card,
+          borderRadius: '16px',
+          overflow: 'hidden',
           border: `1px solid ${CompeteTheme.border}`,
-          borderRadius: '12px',
-          margin: '40px auto',
-          padding: '40px',
-          maxWidth: '600px',
         }}>
-          {/* Logo Section */}
-          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <h1 style={{ 
-              color: CompeteTheme.text, 
-              fontSize: '28px', 
-              margin: '0',
+
+          {/* Top purple accent bar */}
+          <div style={{
+            height: '3px',
+            background: CompeteTheme.brand,
+          }} />
+
+          {/* Header / wordmark */}
+          <div style={{
+            padding: '32px 40px 28px',
+            borderBottom: `1px solid ${CompeteTheme.border}`,
+            textAlign: 'center',
+          }}>
+            <div style={{
+              display: 'inline-block',
+              marginBottom: '6px',
+            }}>
+              <span style={{ fontSize: '10px', letterSpacing: '4px', color: CompeteTheme.brand, fontWeight: 'bold' }}>
+                ● ● ●
+              </span>
+            </div>
+            <div style={{
+              fontSize: '28px',
               fontWeight: 'bold',
-              letterSpacing: '-0.5px'
+              color: CompeteTheme.text,
+              letterSpacing: '-1px',
+              fontStyle: 'italic',
+              lineHeight: 1,
             }}>
               COMPETE
-            </h1>
+            </div>
             <div style={{
+              width: '32px',
               height: '2px',
-              width: '40px',
-              backgroundColor: CompeteTheme.brand,
-              margin: '10px auto 0'
+              background: CompeteTheme.brand,
+              margin: '10px auto 0',
             }} />
           </div>
 
-          {/* Main Content */}
-          <div style={{ color: CompeteTheme.text, fontFamily: 'Inter, sans-serif' }}>
+          {/* Main content */}
+          <div style={{
+            padding: '36px 40px',
+            fontFamily: "'Courier New', Courier, monospace",
+          }}>
             {children}
           </div>
 
-          {/* Footer Section */}
+          {/* Footer */}
           <div style={{
             borderTop: `1px solid ${CompeteTheme.border}`,
-            marginTop: '40px',
-            paddingTop: '20px',
-            textAlign: 'center'
+            padding: '20px 40px',
+            backgroundColor: CompeteTheme.background,
           }}>
-            <p style={{ color: CompeteTheme.muted, fontSize: '12px', margin: '0' }}>
-              &copy; {new Date().getFullYear()} Compete Esports Platform. All rights reserved.
-            </p>
+            <table width="100%" cellPadding="0" cellSpacing="0">
+              <tbody>
+                <tr>
+                  <td style={{
+                    fontSize: '10px',
+                    color: CompeteTheme.muted,
+                    letterSpacing: '2px',
+                    textTransform: 'uppercase',
+                  }}>
+                    ENCRYPTED TRANSMISSION
+                  </td>
+                  <td style={{
+                    fontSize: '10px',
+                    color: CompeteTheme.muted,
+                    textAlign: 'right',
+                  }}>
+                    © {new Date().getFullYear()} Compete
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+
         </Container>
       </Body>
     </Html>

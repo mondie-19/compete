@@ -8,60 +8,190 @@ interface WelcomeEmailProps {
 }
 
 export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) => {
+  const mono: React.CSSProperties = {
+    fontFamily: "'Courier New', Courier, monospace",
+  };
+
   return (
-    <CompeteLayout previewText={`Welcome to Compete, ${username}!`}>
-      {/* Header Section */}
-      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <h2 style={{ color: CompeteTheme.text, fontSize: '22px', margin: '0 0 10px 0' }}>
-          Welcome to the Arena
-        </h2>
-        <p style={{ color: CompeteTheme.muted, fontSize: '14px' }}>
-          Operative: <span style={{ color: CompeteTheme.brand }}>{username}</span>
-        </p>
+    <CompeteLayout previewText={`Identity confirmed, ${username}. The arena awaits.`}>
+
+      {/* Status tag */}
+      <div style={{ marginBottom: '28px' }}>
+        <span style={{
+          ...mono,
+          display: 'inline-block',
+          backgroundColor: CompeteTheme.brandFaint,
+          border: `1px solid ${CompeteTheme.brand}`,
+          color: CompeteTheme.brand,
+          fontSize: '9px',
+          fontWeight: 'bold',
+          letterSpacing: '4px',
+          padding: '5px 12px',
+          borderRadius: '4px',
+          textTransform: 'uppercase',
+        }}>
+          ⚡ IDENTITY CONFIRMED
+        </span>
       </div>
 
-      <p style={{ color: CompeteTheme.text, fontSize: '16px', lineHeight: '1.6' }}>
-        You've successfully registered for <strong>Compete</strong>. Your account has been created, and you're almost ready to start climbing the leaderboards and earning payouts.
+      {/* Hero headline */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{
+          ...mono,
+          fontSize: '28px',
+          fontWeight: 'bold',
+          fontStyle: 'italic',
+          color: CompeteTheme.text,
+          letterSpacing: '-1px',
+          lineHeight: '1.1',
+          textTransform: 'uppercase',
+          marginBottom: '6px',
+        }}>
+          WELCOME TO
+        </div>
+        <div style={{
+          ...mono,
+          fontSize: '28px',
+          fontWeight: 'bold',
+          fontStyle: 'italic',
+          color: CompeteTheme.brand,
+          letterSpacing: '-1px',
+          lineHeight: '1.1',
+          textTransform: 'uppercase',
+        }}>
+          THE ARENA
+        </div>
+      </div>
+
+      {/* Operative tag */}
+      <div style={{
+        backgroundColor: CompeteTheme.cardAlt,
+        border: `1px solid ${CompeteTheme.border}`,
+        borderRadius: '10px',
+        padding: '16px 20px',
+        marginBottom: '28px',
+      }}>
+        <table width="100%" cellPadding="0" cellSpacing="0">
+          <tbody>
+            <tr>
+              <td>
+                <div style={{ ...mono, fontSize: '9px', letterSpacing: '3px', color: CompeteTheme.muted, textTransform: 'uppercase', marginBottom: '4px' }}>
+                  OPERATIVE
+                </div>
+                <div style={{ ...mono, fontSize: '18px', fontWeight: 'bold', fontStyle: 'italic', color: CompeteTheme.text, textTransform: 'uppercase', letterSpacing: '-0.5px' }}>
+                  {username}
+                </div>
+              </td>
+              <td style={{ textAlign: 'right', verticalAlign: 'middle' }}>
+                <div style={{
+                  display: 'inline-block',
+                  width: '10px',
+                  height: '10px',
+                  backgroundColor: CompeteTheme.success,
+                  borderRadius: '50%',
+                  verticalAlign: 'middle',
+                }} />
+                <span style={{ ...mono, fontSize: '9px', color: CompeteTheme.success, letterSpacing: '2px', textTransform: 'uppercase', marginLeft: '6px', verticalAlign: 'middle' }}>
+                  ACTIVE
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* Body copy */}
+      <p style={{
+        ...mono,
+        fontSize: '13px',
+        color: CompeteTheme.mutedLight,
+        lineHeight: '1.7',
+        margin: '0 0 28px 0',
+      }}>
+        Your account is live on the Compete network. Challenge real opponents,
+        wager real stakes, and collect real payouts — all verified on-platform.
+        The leaderboard is waiting.
       </p>
 
-      {/* Verification Instructions */}
-      <div style={{ 
-        borderLeft: `4px solid ${CompeteTheme.brand}`, 
-        paddingLeft: '15px', 
-        margin: '25px 0',
-        backgroundColor: 'rgba(14, 165, 233, 0.05)',
-        padding: '15px',
-        borderRadius: '0 8px 8px 0'
-      }}>
-        <p style={{ color: CompeteTheme.text, fontSize: '15px', margin: '0 0 8px 0', fontWeight: 'bold' }}>
-          Action Required: Verify Your Identity
-        </p>
-        <p style={{ color: CompeteTheme.muted, fontSize: '14px', margin: 0, lineHeight: '1.5' }}>
-          Before you can deposit funds or join high-stakes matches, you must verify your email address. 
-          Please click the link below to activate your account.
-        </p>
-      </div>
+      {/* Feature boxes */}
+      <table width="100%" cellPadding="0" cellSpacing="0" style={{ marginBottom: '32px' }}>
+        <tbody>
+          <tr>
+            <td width="48%" style={{ verticalAlign: 'top' }}>
+              <div style={{
+                backgroundColor: CompeteTheme.cardAlt,
+                border: `1px solid ${CompeteTheme.border}`,
+                borderRadius: '10px',
+                padding: '18px',
+              }}>
+                <div style={{ ...mono, fontSize: '18px', marginBottom: '8px' }}>💰</div>
+                <div style={{ ...mono, fontSize: '9px', letterSpacing: '3px', color: CompeteTheme.brand, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '6px' }}>
+                  VAULT
+                </div>
+                <div style={{ ...mono, fontSize: '12px', color: CompeteTheme.mutedLight, lineHeight: '1.5' }}>
+                  Deposit M-Pesa credits and fund your wagers instantly.
+                </div>
+              </div>
+            </td>
+            <td width="4%" />
+            <td width="48%" style={{ verticalAlign: 'top' }}>
+              <div style={{
+                backgroundColor: CompeteTheme.cardAlt,
+                border: `1px solid ${CompeteTheme.border}`,
+                borderRadius: '10px',
+                padding: '18px',
+              }}>
+                <div style={{ ...mono, fontSize: '18px', marginBottom: '8px' }}>⚔️</div>
+                <div style={{ ...mono, fontSize: '9px', letterSpacing: '3px', color: CompeteTheme.brand, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '6px' }}>
+                  CHALLENGE
+                </div>
+                <div style={{ ...mono, fontSize: '12px', color: CompeteTheme.mutedLight, lineHeight: '1.5' }}>
+                  Host or intercept live matches across all platforms.
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      {/* Call to Action */}
-      <div style={{ textAlign: 'center', marginTop: '35px', marginBottom: '20px' }}>
-        <a href={verificationLink} style={{
-          display: 'inline-block',
-          backgroundColor: CompeteTheme.brand,
-          color: '#FFFFFF',
-          padding: '14px 28px',
-          borderRadius: '8px',
-          fontWeight: 'bold',
-          textDecoration: 'none',
-          fontSize: '15px',
-          boxShadow: `0 4px 15px ${CompeteTheme.primaryGlow}`
-        }}>
-          Verify Email Address
+      {/* Divider */}
+      <div style={{ height: '1px', backgroundColor: CompeteTheme.border, marginBottom: '32px' }} />
+
+      {/* CTA */}
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <a
+          href={verificationLink}
+          style={{
+            display: 'inline-block',
+            backgroundColor: CompeteTheme.text,
+            color: '#000000',
+            padding: '16px 40px',
+            borderRadius: '100px',
+            fontWeight: 'bold',
+            fontStyle: 'italic',
+            fontFamily: "'Courier New', Courier, monospace",
+            textDecoration: 'none',
+            fontSize: '12px',
+            letterSpacing: '3px',
+            textTransform: 'uppercase',
+          }}
+        >
+          ENTER THE ARENA →
         </a>
       </div>
 
-      <p style={{ color: CompeteTheme.muted, fontSize: '13px', textAlign: 'center', marginTop: '30px' }}>
-        If you didn't create this account, you can safely ignore this email.
+      {/* Small print */}
+      <p style={{
+        ...mono,
+        fontSize: '10px',
+        color: CompeteTheme.muted,
+        textAlign: 'center',
+        margin: 0,
+        letterSpacing: '1px',
+      }}>
+        If you didn't create this account, ignore this transmission.
       </p>
+
     </CompeteLayout>
   );
 };

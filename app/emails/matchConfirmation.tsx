@@ -28,7 +28,7 @@ export const MatchConfirmedEmail = ({
           Match Locked & Loaded
         </h2>
         <p style={{ color: CompeteTheme.muted, fontSize: '14px' }}>
-          Match ID: <span style={{ color: CompeteTheme.purple }}>#{matchId}</span>
+          Match ID: <span style={{ color: CompeteTheme.brand }}>#{matchId}</span>
         </p>
       </div>
 
@@ -58,10 +58,10 @@ export const MatchConfirmedEmail = ({
             </td>
           </tr>
           <tr style={{ borderTop: `1px solid ${CompeteTheme.border}` }}>
-            <td style={{ color: CompeteTheme.purple, paddingTop: '15px', fontWeight: 'bold', fontSize: '16px' }}>
+            <td style={{ color: CompeteTheme.brand, paddingTop: '15px', fontWeight: 'bold', fontSize: '16px' }}>
               Potential Payout
             </td>
-            <td style={{ color: CompeteTheme.purpleGlow, textAlign: 'right', paddingTop: '15px', fontWeight: 'bold', fontSize: '18px' }}>
+            <td style={{ color: CompeteTheme.brandGlow, textAlign: 'right', paddingTop: '15px', fontWeight: 'bold', fontSize: '18px' }}>
               KES {potentialWin.toLocaleString('en-KE', { minimumFractionDigits: 2 })}
             </td>
           </tr>
@@ -70,7 +70,7 @@ export const MatchConfirmedEmail = ({
 
       {/* Verification Instructions */}
       <div style={{ 
-        borderLeft: `4px solid ${CompeteTheme.purple}`, 
+        borderLeft: `4px solid ${CompeteTheme.brand}`, 
         paddingLeft: '15px', 
         margin: '20px 0' 
       }}>
@@ -86,7 +86,7 @@ export const MatchConfirmedEmail = ({
       <div style={{ textAlign: 'center', marginTop: '30px' }}>
         <a href={`https://compete.app/match/${matchId}`} style={{
           display: 'inline-block',
-          backgroundColor: CompeteTheme.purple,
+          backgroundColor: CompeteTheme.brand,
           color: '#FFFFFF',
           padding: '14px 28px',
           borderRadius: '8px',

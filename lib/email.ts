@@ -17,7 +17,7 @@ export async function sendEmail({ to, subject, react }: SendEmailParams) {
 
   try {
     const { data, error } = await resend.emails.send({
-      from: 'Compete Platform <noreply@compete.app>', // Update to verified domain in production
+      from: process.env.RESEND_FROM_EMAIL ?? 'Compete <onboarding@resend.dev>',
       to,
       subject,
       react,
