@@ -1,6 +1,6 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, ChevronLeft, Target, Fingerprint, Loader2, Eye, EyeOff } from "lucide-react";
+import { Globe, ChevronLeft, Target, Fingerprint, Loader2, Eye, EyeOff, Mail, RotateCcw } from "lucide-react";
 import { useRef, useState } from "react";
 import { createClient } from "@/supabase/client";
 import { toast } from "sonner";
@@ -8,13 +8,15 @@ import Link from "next/link";
 
 export default function AuthPage() {
     const supabaseRef = useRef(createClient());
-    const [isLogin, setIsLogin] = useState(true);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [username, setUsername] = useState("");
-    const [rememberMe, setRememberMe] = useState(true);
-    const [loading, setLoading] = useState(false);
+
+    const [isLogin, setIsLogin]           = useState(true);
+    const [email, setEmail]               = useState("");
+    const [password, setPassword]         = useState("");
+    const [username, setUsername]         = useState("");
+    const [rememberMe, setRememberMe]     = useState(true);
+    const [loading, setLoading]           = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [checkEmail, setCheckEmail]     = useState(false);
 
     const handleGoogleSignIn = async () => {
         const { error } = await supabaseRef.current.auth.signInWithOAuth({
@@ -32,37 +34,29 @@ export default function AuthPage() {
         try {
             if (isLogin) {
                 // ── Sign In ────────────────────────────────────────────────
-                // Using the browser client directly so the session cookie is
-                // set synchronously in the browser before navigation starts.
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
                 if (error) {
                     toast.error(error.message);
                     return;
                 }
 
-                // Fetch role (fast — row is cached by Supabase edge)
                 const { data: profile } = await supabase
                     .from("profiles")
                     .select("role")
                     .eq("id", data.user.id)
                     .single();
 
-                const role = profile?.role || "client";
+                const role = profile?.role ?? "client";
 
                 toast.success("UPLINK ESTABLISHED");
 
-                // Hard navigation: guarantees the browser flushes session cookies
-                // into the request before the server evaluates middleware.
-                // router.push() (soft nav) can race with cookie propagation and
-                // cause middleware's getUser() to see no session.
-                if (role === "admin") window.location.href = "/admin";
+                // Hard navigation ensures cookies are flushed before middleware
+                // evaluates the session (soft-nav can race with cookie write).
+                if (role === "admin")          window.location.href = "/admin";
                 else if (role === "moderator") window.location.href = "/moderator";
                 else if (role === "customer_care") window.location.href = "/customer-care";
-                else window.location.href = "/lobby";
+                else                           window.location.href = "/lobby";
 
             } else {
                 // ── Sign Up ────────────────────────────────────────────────
@@ -71,44 +65,115 @@ export default function AuthPage() {
                     return;
                 }
 
-                const { data, error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: { username: username.trim() },
-                    },
+                // Server-side route: creates user via admin SDK + sends
+                // a single branded verification email through Resend.
+                // Supabase never sends its own duplicate email this way.
+                const res  = await fetch("/api/auth/signup", {
+                    method:  "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body:    JSON.stringify({ email, password, username: username.trim() }),
                 });
+                const body = await res.json();
 
-                if (error) {
-                    toast.error(error.message);
+                if (!res.ok || body.error) {
+                    toast.error(body.error ?? "SIGNUP FAILED. PLEASE TRY AGAIN.");
                     return;
                 }
 
-                // Fire-and-forget welcome email — does not block navigation.
-                fetch("/api/auth/welcome-email", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email, username: username.trim() }),
-                }).catch(() => {});
-
-                if (data.session) {
-                    // Email confirmation is disabled — user is already signed in
-                    toast.success("ACCOUNT CREATED. WELCOME TO COMPETE.");
-                    window.location.href = "/lobby";
-                } else {
-                    // Email confirmation required
-                    toast.success("CHECK YOUR EMAIL TO VERIFY YOUR ACCOUNT.", { duration: 6000 });
-                    setIsLogin(true);
-                    setPassword("");
-                }
+                setCheckEmail(true);
             }
-        } catch (err: any) {
+        } catch {
             toast.error("CONNECTION ERROR. PLEASE TRY AGAIN.");
         } finally {
             setLoading(false);
         }
     };
 
+    const handleResend = async () => {
+        setLoading(true);
+        try {
+            const res  = await fetch("/api/auth/signup", {
+                method:  "POST",
+                headers: { "Content-Type": "application/json" },
+                body:    JSON.stringify({ email, password, username: username.trim() }),
+            });
+            const body = await res.json();
+            if (!res.ok || body.error) {
+                toast.error(body.error ?? "COULD NOT RESEND. TRY AGAIN.");
+            } else {
+                toast.success("VERIFICATION LINK RESENT.");
+            }
+        } catch {
+            toast.error("CONNECTION ERROR.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const switchTab = (toLogin: boolean) => {
+        setIsLogin(toLogin);
+        setPassword("");
+        setCheckEmail(false);
+    };
+
+    // ── Check-email confirmation screen ───────────────────────────────────────
+    if (checkEmail) {
+        return (
+            <div className="relative min-h-screen bg-[#0A0A0F] text-white flex flex-col items-center pt-32 p-6 overflow-hidden selection:bg-compete-purple selection:text-white font-mono">
+                <div className="absolute inset-0 z-0 pointer-events-none opacity-20">
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#1a1a1a_1px,transparent_1px),linear-gradient(to_bottom,#1a1a1a_1px,transparent_1px)] bg-[size:40px_40px]" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black" />
+                </div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative z-20 w-full max-w-[380px] bg-[#0F0F16]/60 border border-white/10 p-8 rounded-3xl shadow-2xl backdrop-blur-md text-center"
+                >
+                    <div className="absolute top-0 left-0 right-0 h-[3px] bg-compete-purple rounded-t-3xl" />
+
+                    <div className="w-14 h-14 rounded-2xl bg-compete-purple/10 border border-compete-purple/30 flex items-center justify-center mx-auto mb-6">
+                        <Mail size={24} className="text-compete-purple" />
+                    </div>
+
+                    <div className="text-[8px] font-black tracking-[0.4em] text-compete-purple mb-3 uppercase">
+                        VERIFICATION SENT
+                    </div>
+                    <h1 className="text-xl font-black italic tracking-tighter uppercase mb-3">
+                        CHECK YOUR<br />
+                        <span className="text-compete-purple">INBOX</span>
+                    </h1>
+                    <p className="text-[11px] text-white/40 font-medium leading-relaxed mb-2">
+                        We sent a verification link to
+                    </p>
+                    <p className="text-[11px] text-white font-black mb-6 truncate px-4">
+                        {email}
+                    </p>
+                    <p className="text-[10px] text-white/30 font-medium leading-relaxed mb-8">
+                        Click the button in the email to verify your account and enter the arena. The link expires in 24 hours.
+                    </p>
+
+                    <button
+                        onClick={handleResend}
+                        disabled={loading}
+                        className="w-full flex items-center justify-center gap-2 py-3 border border-white/10 rounded-full text-[9px] font-black tracking-widest uppercase text-white/40 hover:text-white hover:border-compete-purple/40 transition-all disabled:opacity-40 mb-4"
+                    >
+                        {loading ? <Loader2 size={11} className="animate-spin" /> : <RotateCcw size={11} />}
+                        RESEND VERIFICATION LINK
+                    </button>
+
+                    <button
+                        onClick={() => switchTab(true)}
+                        className="text-[9px] font-black tracking-widest text-compete-purple hover:text-white transition-colors uppercase"
+                    >
+                        ← BACK TO SIGN IN
+                    </button>
+                </motion.div>
+            </div>
+        );
+    }
+
+    // ── Main auth form ─────────────────────────────────────────────────────────
     return (
         <div className="relative min-h-screen bg-[#0A0A0F] text-white flex flex-col items-center pt-32 p-6 overflow-hidden selection:bg-compete-purple selection:text-white font-mono">
 
@@ -165,8 +230,10 @@ export default function AuthPage() {
                                 exit={{ opacity: 0, height: 0 }}
                                 className="space-y-1"
                             >
-                                <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">COMPETITOR HANDLE</label>
+                                <label htmlFor="username" className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">COMPETITOR HANDLE</label>
                                 <input
+                                    id="username"
+                                    name="username"
                                     type="text"
                                     placeholder="e.g. NINJA#1234"
                                     value={username}
@@ -180,8 +247,10 @@ export default function AuthPage() {
                     </AnimatePresence>
 
                     <div className="space-y-1">
-                        <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">EMAIL ADDRESS</label>
+                        <label htmlFor="email" className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">EMAIL ADDRESS</label>
                         <input
+                            id="email"
+                            name="email"
                             type="email"
                             placeholder="e.g. CODESMITH@COMPETE.GG"
                             value={email}
@@ -193,14 +262,17 @@ export default function AuthPage() {
                     </div>
 
                     <div className="space-y-1">
-                        <label className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">ACCESS KEY</label>
+                        <label htmlFor="password" className="text-[9px] font-black tracking-widest text-white/40 ml-1 uppercase">ACCESS KEY</label>
                         <div className="relative">
                             <input
+                                id="password"
+                                name="password"
                                 type={showPassword ? "text" : "password"}
                                 placeholder="••••••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                minLength={isLogin ? undefined : 8}
                                 autoComplete={isLogin ? "current-password" : "new-password"}
                                 className="w-full bg-black/50 border border-white/10 rounded-xl py-2.5 px-4 pr-10 text-xs focus:bg-black/80 outline-none transition-all placeholder:text-white/10 font-black italic text-white focus:border-compete-purple/40"
                             />
@@ -209,6 +281,7 @@ export default function AuthPage() {
                                 onClick={() => setShowPassword((v) => !v)}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
                                 tabIndex={-1}
+                                aria-label={showPassword ? "Hide password" : "Show password"}
                             >
                                 {showPassword ? <EyeOff size={12} /> : <Eye size={12} />}
                             </button>
@@ -250,7 +323,7 @@ export default function AuthPage() {
                         ) : (
                             <Target size={14} className="group-hover:scale-125 transition-transform" />
                         )}
-                        <span>{loading ? (isLogin ? "SIGNING IN..." : "SIGNING UP...") : (isLogin ? "SIGN IN" : "SIGN UP")}</span>
+                        <span>{loading ? (isLogin ? "SIGNING IN..." : "INITIALIZING...") : (isLogin ? "SIGN IN" : "SIGN UP")}</span>
                     </button>
                 </form>
 
@@ -266,7 +339,7 @@ export default function AuthPage() {
                     <div className="flex justify-between items-center text-[8px] font-black tracking-widest pt-2">
                         <span className="text-white/20 uppercase">UPLINK REGISTRY</span>
                         <button
-                            onClick={() => { setIsLogin(!isLogin); setPassword(""); }}
+                            onClick={() => switchTab(!isLogin)}
                             type="button"
                             className="text-compete-purple hover:text-white transition-colors uppercase italic"
                         >

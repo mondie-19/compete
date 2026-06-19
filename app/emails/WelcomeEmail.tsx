@@ -13,14 +13,14 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
   };
 
   return (
-    <CompeteLayout previewText={`Identity confirmed, ${username}. The arena awaits.`}>
+    <CompeteLayout previewText={`One step away, ${username}. Verify your email to enter the arena.`}>
 
-      {/* Status tag */}
+      {/* Status badge */}
       <div style={{ marginBottom: '28px' }}>
         <span style={{
           ...mono,
           display: 'inline-block',
-          backgroundColor: CompeteTheme.brandFaint,
+          backgroundColor: '#1a0a2e',
           border: `1px solid ${CompeteTheme.brand}`,
           color: CompeteTheme.brand,
           fontSize: '9px',
@@ -30,11 +30,11 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
           borderRadius: '4px',
           textTransform: 'uppercase',
         }}>
-          ⚡ IDENTITY CONFIRMED
+          ⚡ IDENTITY PENDING VERIFICATION
         </span>
       </div>
 
-      {/* Hero headline */}
+      {/* Hero */}
       <div style={{ marginBottom: '24px' }}>
         <div style={{
           ...mono,
@@ -45,9 +45,9 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
           letterSpacing: '-1px',
           lineHeight: '1.1',
           textTransform: 'uppercase',
-          marginBottom: '6px',
+          marginBottom: '4px',
         }}>
-          WELCOME TO
+          CONFIRM
         </div>
         <div style={{
           ...mono,
@@ -59,11 +59,11 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
           lineHeight: '1.1',
           textTransform: 'uppercase',
         }}>
-          THE ARENA
+          YOUR ACCESS
         </div>
       </div>
 
-      {/* Operative tag */}
+      {/* Operative card */}
       <div style={{
         backgroundColor: CompeteTheme.cardAlt,
         border: `1px solid ${CompeteTheme.border}`,
@@ -87,12 +87,12 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
                   display: 'inline-block',
                   width: '10px',
                   height: '10px',
-                  backgroundColor: CompeteTheme.success,
+                  backgroundColor: CompeteTheme.gold,
                   borderRadius: '50%',
                   verticalAlign: 'middle',
                 }} />
-                <span style={{ ...mono, fontSize: '9px', color: CompeteTheme.success, letterSpacing: '2px', textTransform: 'uppercase', marginLeft: '6px', verticalAlign: 'middle' }}>
-                  ACTIVE
+                <span style={{ ...mono, fontSize: '9px', color: CompeteTheme.gold, letterSpacing: '2px', textTransform: 'uppercase', marginLeft: '6px', verticalAlign: 'middle' }}>
+                  PENDING
                 </span>
               </td>
             </tr>
@@ -100,7 +100,7 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
         </table>
       </div>
 
-      {/* Body copy */}
+      {/* Body */}
       <p style={{
         ...mono,
         fontSize: '13px',
@@ -108,12 +108,12 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
         lineHeight: '1.7',
         margin: '0 0 28px 0',
       }}>
-        Your account is live on the Compete network. Challenge real opponents,
-        wager real stakes, and collect real payouts — all verified on-platform.
-        The leaderboard is waiting.
+        You are one step away from the arena. Click the button below to verify
+        your email address and activate your Compete account. The link expires
+        in&nbsp;<strong style={{ color: CompeteTheme.text }}>24 hours</strong>.
       </p>
 
-      {/* Feature boxes */}
+      {/* What you unlock preview */}
       <table width="100%" cellPadding="0" cellSpacing="0" style={{ marginBottom: '32px' }}>
         <tbody>
           <tr>
@@ -122,14 +122,14 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
                 backgroundColor: CompeteTheme.cardAlt,
                 border: `1px solid ${CompeteTheme.border}`,
                 borderRadius: '10px',
-                padding: '18px',
+                padding: '16px',
               }}>
-                <div style={{ ...mono, fontSize: '18px', marginBottom: '8px' }}>💰</div>
-                <div style={{ ...mono, fontSize: '9px', letterSpacing: '3px', color: CompeteTheme.brand, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '6px' }}>
+                <div style={{ ...mono, fontSize: '16px', marginBottom: '6px' }}>💰</div>
+                <div style={{ ...mono, fontSize: '9px', letterSpacing: '3px', color: CompeteTheme.brand, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>
                   VAULT
                 </div>
-                <div style={{ ...mono, fontSize: '12px', color: CompeteTheme.mutedLight, lineHeight: '1.5' }}>
-                  Deposit M-Pesa credits and fund your wagers instantly.
+                <div style={{ ...mono, fontSize: '11px', color: CompeteTheme.muted, lineHeight: '1.5' }}>
+                  Deposit credits and fund your wagers.
                 </div>
               </div>
             </td>
@@ -139,14 +139,14 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
                 backgroundColor: CompeteTheme.cardAlt,
                 border: `1px solid ${CompeteTheme.border}`,
                 borderRadius: '10px',
-                padding: '18px',
+                padding: '16px',
               }}>
-                <div style={{ ...mono, fontSize: '18px', marginBottom: '8px' }}>⚔️</div>
-                <div style={{ ...mono, fontSize: '9px', letterSpacing: '3px', color: CompeteTheme.brand, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '6px' }}>
+                <div style={{ ...mono, fontSize: '16px', marginBottom: '6px' }}>⚔️</div>
+                <div style={{ ...mono, fontSize: '9px', letterSpacing: '3px', color: CompeteTheme.brand, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '4px' }}>
                   CHALLENGE
                 </div>
-                <div style={{ ...mono, fontSize: '12px', color: CompeteTheme.mutedLight, lineHeight: '1.5' }}>
-                  Host or intercept live matches across all platforms.
+                <div style={{ ...mono, fontSize: '11px', color: CompeteTheme.muted, lineHeight: '1.5' }}>
+                  Host or intercept live matches.
                 </div>
               </div>
             </td>
@@ -158,13 +158,13 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
       <div style={{ height: '1px', backgroundColor: CompeteTheme.border, marginBottom: '32px' }} />
 
       {/* CTA */}
-      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <a
           href={verificationLink}
           style={{
             display: 'inline-block',
-            backgroundColor: CompeteTheme.text,
-            color: '#000000',
+            backgroundColor: CompeteTheme.brand,
+            color: '#ffffff',
             padding: '16px 40px',
             borderRadius: '100px',
             fontWeight: 'bold',
@@ -176,7 +176,7 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
             textTransform: 'uppercase',
           }}
         >
-          ENTER THE ARENA →
+          VERIFY &amp; ENTER THE ARENA →
         </a>
       </div>
 
@@ -186,10 +186,30 @@ export const WelcomeEmail = ({ username, verificationLink }: WelcomeEmailProps) 
         fontSize: '10px',
         color: CompeteTheme.muted,
         textAlign: 'center',
-        margin: 0,
+        margin: '0 0 8px 0',
         letterSpacing: '1px',
       }}>
         If you didn't create this account, ignore this transmission.
+      </p>
+      <p style={{
+        ...mono,
+        fontSize: '10px',
+        color: CompeteTheme.muted,
+        textAlign: 'center',
+        margin: 0,
+        letterSpacing: '1px',
+      }}>
+        Button not working? Copy and paste this link into your browser:
+      </p>
+      <p style={{
+        ...mono,
+        fontSize: '9px',
+        color: CompeteTheme.brand,
+        textAlign: 'center',
+        margin: '4px 0 0 0',
+        wordBreak: 'break-all',
+      }}>
+        {verificationLink}
       </p>
 
     </CompeteLayout>
