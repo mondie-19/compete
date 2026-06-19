@@ -43,7 +43,10 @@ export async function POST(request: Request) {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const redirectTo = `${process.env.NEXT_PUBLIC_BASE_URL ?? "https://compete.app"}/auth/callback`;
+  // Derive the origin from the incoming request so the verification link
+  // always points to the correct domain in every environment — no env var needed.
+  const { origin } = new URL(request.url);
+  const redirectTo = `${origin}/auth/callback`;
 
   // admin.generateLink creates the user AND returns a real verification token
   // without triggering Supabase's own confirmation email.
