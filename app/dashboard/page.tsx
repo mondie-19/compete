@@ -11,15 +11,6 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContaine
 
 const VaultTab = dynamic(() => import("@/components/dashboard/VaultTab"), { ssr: false });
 
-const NEURAL_AVATARS = [
-  "https://images.unsplash.com/photo-1614680376593-902f74cc0d41?w=200&h=200&fit=crop",
-  "https://images.unsplash.com/photo-1560253023-3ec5d502959f?w=200&h=200&fit=crop",
-  "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=200&h=200&fit=crop",
-  "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=200&h=200&fit=crop",
-  "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=200&h=200&fit=crop",
-  "https://images.unsplash.com/photo-1627389955805-400407591b35?w=200&h=200&fit=crop"
-];
-
 const SIDEBAR_ITEMS = [
   { id: "overview", label: "Overview", icon: Trophy },
   { id: "performance", label: "Performance", icon: BarChart3 },
@@ -491,80 +482,52 @@ export default function Dashboard() {
                   </div>
                 </motion.div>
 
-                {/* Win/Loss & Skills */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6 flex flex-col items-center"
-                  >
-                    <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] mb-6 opacity-50 uppercase self-start">TOTAL RECORD</h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie
-                          data={[
-                            { name: "Wins", value: totalWins, fill: "#9B5CFF" },
-                            { name: "Losses", value: totalLosses, fill: "rgba(155, 92, 255, 0.1)" }
-                          ]}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={90}
-                          paddingAngle={4}
-                          dataKey="value"
-                        >
-                          {[
-                            { name: "Wins", value: totalWins, fill: "#9B5CFF" },
-                            { name: "Losses", value: totalLosses, fill: "rgba(155, 92, 255, 0.1)" }
-                          ].map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} stroke="rgba(255, 255, 255, 0.05)" />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "#0B0B10",
-                            border: "1px solid rgba(155, 92, 255, 0.2)",
-                            borderRadius: "12px",
-                            fontSize: "9px"
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6"
-                  >
-                    <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] mb-6 opacity-50 uppercase">NEURAL SKILL PROFILE</h3>
-                    <div className="space-y-4">
-                      {[
-                        { skill: "WIN VELOCITY", value: 85, color: "from-blue-500 to-cyan-500" },
-                        { skill: "STRATEGIC LOGIC", value: Math.min(100, (totalWins * 3) + 45), color: "from-purple-500 to-pink-500" },
-                        { skill: "ADAPTABILITY SCORE", value: Math.min(100, (matches.length * 2) + 50), color: "from-green-500 to-emerald-500" },
-                        { skill: "CONSISTENCY INDEX", value: Math.min(100, (totalWins / (matches.length || 1)) * 100), color: "from-orange-500 to-red-500" }
-                      ].map((metric, i) => (
-                        <div key={i}>
-                          <div className="flex justify-between mb-2">
-                            <span className="text-[8px] text-white/30 font-black tracking-widest uppercase">{metric.skill}</span>
-                            <span className="text-[9px] text-white font-black italic">{metric.value.toFixed(0)}%</span>
-                          </div>
-                          <div className="w-full bg-white/5 rounded-full h-1 overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${metric.value}%` }}
-                              transition={{ duration: 0.8, delay: i * 0.1 }}
-                              className={`bg-gradient-to-r ${metric.color} h-full rounded-full shadow-[0_0_10px_rgba(255,255,255,0.1)]`}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                {/* Win/Loss Record */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="bg-[#0F0F16]/60 border border-white/10 backdrop-blur-md rounded-3xl p-6 flex flex-col items-center"
+                >
+                  <h3 className="text-white font-black italic tracking-[0.25em] text-[8px] lg:text-[9px] mb-6 opacity-50 uppercase self-start">TOTAL RECORD</h3>
+                  {totalWins === 0 && totalLosses === 0 ? (
+                    <div className="h-[250px] flex items-center justify-center">
+                      <p className="text-white/20 text-[10px] font-black tracking-[0.3em] uppercase">No matches yet</p>
                     </div>
-                  </motion.div>
-                </div>
+                  ) : (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: "Wins", value: totalWins, fill: "#9B5CFF" },
+                          { name: "Losses", value: totalLosses, fill: "rgba(155, 92, 255, 0.1)" }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={4}
+                        dataKey="value"
+                      >
+                        {[
+                          { name: "Wins", value: totalWins, fill: "#9B5CFF" },
+                          { name: "Losses", value: totalLosses, fill: "rgba(155, 92, 255, 0.1)" }
+                        ].map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} stroke="rgba(255, 255, 255, 0.05)" />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#0B0B10",
+                          border: "1px solid rgba(155, 92, 255, 0.2)",
+                          borderRadius: "12px",
+                          fontSize: "9px"
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  )}
+                </motion.div>
               </motion.div>
             )}
 
@@ -938,21 +901,12 @@ export default function Dashboard() {
                       exit={{ opacity: 0, x: -10 }}
                       className="space-y-3"
                     >
-                      <div className="flex justify-between items-center mb-2">
-                        <p className="text-[8px] font-black text-white/30 tracking-widest uppercase">SELECT NEURAL ASSET</p>
+                      <div className="flex justify-between items-center mb-4">
+                        <p className="text-[8px] font-black text-white/30 tracking-widest uppercase">SELECT AVATAR</p>
                         <button onClick={() => setIsSelectingAvatar(false)} className="text-[8px] font-black text-compete-purple uppercase">BACK</button>
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
-                        {NEURAL_AVATARS.map((url, i) => (
-                          <button
-                            key={i}
-                            disabled={updatingAvatar}
-                            onClick={() => handleAvatarUpdate(url)}
-                            className={`aspect-square rounded-full overflow-hidden border transition-all ${profile?.avatar_url === url ? 'border-compete-purple scale-95' : 'border-white/5 hover:border-white/10'}`}
-                          >
-                            <img src={url} className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" />
-                          </button>
-                        ))}
+                      <div className="flex items-center justify-center py-6 border border-white/10 rounded-2xl bg-white/[0.02]">
+                        <p className="text-white/20 text-[9px] font-black tracking-[0.3em] uppercase">Custom photo upload coming soon</p>
                       </div>
                     </motion.div>
                   ) : (

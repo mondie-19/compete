@@ -60,8 +60,8 @@ function useCountUp(target: number, enabled: boolean) {
 
 export default function AboutSection() {
   const supabase = createClient();
-  const [userCount, setUserCount]   = useState(10000);
-  const [prizeUSD, setPrizeUSD]     = useState(50000);
+  const [userCount, setUserCount]   = useState(0);
+  const [prizeUSD, setPrizeUSD]     = useState(0);
   const [inView, setInView]         = useState(false);
   const [currencyCfg, setCurrencyCfg] = useState(CURRENCY_CONFIG["default"]);
 
@@ -85,8 +85,8 @@ export default function AboutSection() {
 
       const totalPrize = prizeData?.reduce((acc, c) => acc + (c.prize_pool || 0), 0) ?? 0;
 
-      setUserCount(Math.max(10000, profileCount ?? 0));
-      setPrizeUSD(Math.max(50000, totalPrize));
+      setUserCount(profileCount ?? 0);
+      setPrizeUSD(totalPrize);
     };
 
     fetchStats();
@@ -169,12 +169,10 @@ export default function AboutSection() {
           </div>
         </motion.div>
 
-        <div className="relative">
-          <img
-            src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070"
-            alt="Competitive gaming"
-            className="relative z-10 rounded-2xl border border-white/10 grayscale hover:grayscale-0 transition-all duration-700 shadow-2xl"
-          />
+        <div className="relative flex items-center justify-center">
+          <div className="w-full aspect-video rounded-2xl border border-white/10 bg-[#0F0F16]/60 flex items-center justify-center">
+            <p className="text-white/20 text-[10px] font-black tracking-[0.3em] uppercase">Media Coming Soon</p>
+          </div>
         </div>
       </section>
 

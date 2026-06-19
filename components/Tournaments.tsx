@@ -52,7 +52,7 @@ function useCountUp(target: number, enabled: boolean) {
 
 export default function Tournaments() {
   const supabase = createClient();
-  const [prizeUSD, setPrizeUSD] = useState(10000);
+  const [prizeUSD, setPrizeUSD] = useState(0);
   const [inView, setInView] = useState(false);
   const [currencyCfg, setCurrencyCfg] = useState(CURRENCY_CONFIG["default"]);
 
@@ -69,7 +69,7 @@ export default function Tournaments() {
         .eq("status", "resolved");
 
       const total = data?.reduce((acc, c) => acc + (c.prize_pool || 0), 0) ?? 0;
-      setPrizeUSD(Math.max(10000, total));
+      setPrizeUSD(total);
     };
     fetchPrize();
   }, [supabase]);

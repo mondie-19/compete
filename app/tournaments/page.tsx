@@ -56,7 +56,7 @@ export default function TournamentsPage() {
   const supabase = createClient();
   useHeartbeat();
 
-  const [prizeUSD, setPrizeUSD]       = useState(10000);
+  const [prizeUSD, setPrizeUSD]       = useState(0);
   const [inView, setInView]           = useState(false);
   const [currencyCfg, setCurrencyCfg] = useState(CURRENCY_CONFIG["default"]);
   const [isLoggedIn, setIsLoggedIn]   = useState(false);
@@ -104,7 +104,7 @@ export default function TournamentsPage() {
         .select("prize_pool")
         .eq("status", "completed");
       const total = data?.reduce((acc, c) => acc + (c.prize_pool || 0), 0) ?? 0;
-      setPrizeUSD(Math.max(10000, total));
+      setPrizeUSD(total);
     };
     fetchPrize();
   }, [supabase]);

@@ -4,8 +4,6 @@ import Hero from "../components/Hero";
 import AboutSection from "@/components/AboutSection";
 import Tournaments from "../components/Tournaments";
 import Leaderboard from "../components/Leaderboard";
-import Reviews from "../components/Reviews";
-
 import { useRouter } from "next/navigation";
 import { createClient } from "@/supabase/client";
 
@@ -39,7 +37,6 @@ export default function Home() {
         <AboutSection />
         <Tournaments />
         <Leaderboard />
-        <Reviews />
       </main>
     </div>
   );

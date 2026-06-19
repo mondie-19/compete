@@ -4,9 +4,12 @@ import { TrendingUp, Trophy, Target, Zap, BarChart3, Loader2, Star } from "lucid
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { createClient } from "@/supabase/client";
 
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 export default function StatsDashboard() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>(null);
+  const [monthlyData, setMonthlyData] = useState<{month: string; wins: number; losses: number}[]>([]);
   const [timeframe, setTimeframe] = useState<"week" | "month" | "all">("month");
   const supabase = createClient();
 
@@ -18,19 +21,36 @@ export default function StatsDashboard() {
         return;
       }
 
-      // 1. Fetch Profile Data
       const { data: profile } = await supabase
         .from("profiles")
         .select("username, level, rank_name, created_at")
         .eq("id", user.id)
         .single();
 
-      // 2. Fetch Ranking/Win Rate Data
       const { data: ranking } = await supabase
         .from("user_rankings")
         .select("*")
         .eq("username", profile?.username)
         .single();
+
+      const { data: matchHistory } = await supabase
+        .from("challenges")
+        .select("created_at, winner_id, status")
+        .or(`host_id.eq.${user.id},opponent_id.eq.${user.id}`)
+        .eq("status", "resolved")
+        .order("created_at", { ascending: true });
+
+      if (matchHistory) {
+        const groups: Record<string, {month: string; wins: number; losses: number}> = {};
+        for (const m of matchHistory) {
+          const d = new Date(m.created_at);
+          const key = `${d.getFullYear()}-${String(d.getMonth()).padStart(2, "0")}`;
+          if (!groups[key]) groups[key] = { month: MONTH_NAMES[d.getMonth()], wins: 0, losses: 0 };
+          if (m.winner_id === user.id) groups[key].wins++;
+          else groups[key].losses++;
+        }
+        setMonthlyData(Object.values(groups).slice(-6));
+      }
 
       setStats({
         username: profile?.username || "COMPETITOR",
@@ -75,12 +95,6 @@ export default function StatsDashboard() {
     { icon: Star, label: "Neural XP", value: stats.xp, color: "text-orange-500" },
   ];
 
-  // Simulated performance data relative to user's real totals for visual appeal
-  const performanceData = [
-    { month: "Apr", wins: Math.floor(stats.totalWins * 0.2), losses: Math.floor(stats.totalLosses * 0.3) },
-    { month: "May", wins: Math.floor(stats.totalWins * 0.3), losses: Math.floor(stats.totalLosses * 0.2) },
-    { month: "Jun", wins: Math.floor(stats.totalWins * 0.5), losses: Math.floor(stats.totalLosses * 0.5) },
-  ];
 
   return (
     <section className="py-20 px-4">
@@ -164,8 +178,13 @@ export default function StatsDashboard() {
               </div>
             </div>
             <div className="h-[300px] w-full">
+              {monthlyData.length === 0 ? (
+                <div className="h-full flex items-center justify-center">
+                  <p className="text-white/20 text-[10px] font-black tracking-[0.3em] uppercase">No match history yet</p>
+                </div>
+              ) : (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={performanceData}>
+                <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                   <XAxis 
                     dataKey="month" 
@@ -193,6 +212,7 @@ export default function StatsDashboard() {
                   <Bar dataKey="losses" fill="rgba(155, 92, 255, 0.1)" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
+              )}
             </div>
           </motion.div>
 

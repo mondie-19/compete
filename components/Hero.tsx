@@ -68,7 +68,7 @@ export default function Hero({ onJoinClick }: HeroProps) {
         </div>
 
         <p className="hero-anim max-w-lg text-xs md:text-sm text-white/50 leading-relaxed mt-4">
-          Zero casual queues. Pure high-stakes brackets. Climb the leaderboards, crush your rivals, and turn mechanical skill into cash payouts.
+          Head-to-head 1v1 wagering. Pay an entry fee, play a match, and the winner takes the pot. Real money. Real skill.
         </p>
 
         {/* Action-oriented CTA */}
