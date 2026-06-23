@@ -37,6 +37,8 @@ export default function Dashboard() {
   const [isEditingName, setIsEditingName] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [updatingName, setUpdatingName] = useState(false);
+  const [locationForm, setLocationForm] = useState({ country: "", city: "" });
+  const [savingLocation, setSavingLocation] = useState(false);
 
   const getLevelInfo = (lvl: number) => {
     if (lvl <= 50) return { name: "Initiate", bg: "bg-green-500/10", border: "border-green-500/20", text: "text-green-400" };
@@ -68,6 +70,7 @@ export default function Dashboard() {
         if (profileError) throw profileError;
         setProfile(profileData);
         setNewUsername(profileData.username);
+        setLocationForm({ country: profileData.country || "", city: profileData.city || "" });
 
         // Fetch Transactions
         const { data: transData } = await supabase
@@ -756,36 +759,90 @@ export default function Dashboard() {
                     </div>
 
                     <div className="pt-6 border-t border-white/10">
-                      <p className="text-[8px] font-black text-compete-purple tracking-[0.25em] mb-4 uppercase">NEURAL LOCATION SETSETTINGS</p>
-                      <div className="relative group flex items-center">
-                        <Globe className="absolute left-4 z-10 text-compete-purple pointer-events-none" size={14} />
-                        <select
-                          value={profile?.region || 'Africa'}
-                          onChange={async (e) => {
-                            const newRegion = e.target.value;
+                      <p className="text-[8px] font-black text-compete-purple tracking-[0.25em] mb-4 uppercase">LOCATION</p>
+                      <div className="space-y-3">
+                        {/* Continent */}
+                        <div className="relative group flex items-center">
+                          <Globe className="absolute left-4 z-10 text-compete-purple pointer-events-none" size={14} />
+                          <select
+                            value={profile?.region || ''}
+                            onChange={async (e) => {
+                              const newRegion = e.target.value;
+                              const { error } = await supabase
+                                .from('profiles')
+                                .update({ region: newRegion })
+                                .eq('id', profile.id);
+                              if (error) {
+                                toast.error("Failed to update continent");
+                              } else {
+                                setProfile({ ...profile, region: newRegion });
+                                toast.success("Continent updated");
+                              }
+                            }}
+                            className="w-full bg-white/[0.03] border border-white/10 p-4 pl-12 pr-10 text-white outline-none focus:border-compete-purple transition-all font-mono font-black tracking-[0.1em] text-[10px] appearance-none cursor-pointer rounded-2xl"
+                          >
+                            <option value="" className="bg-[#0A0A0F]">SELECT CONTINENT</option>
+                            {[
+                              { code: 'AF', name: 'Africa' },
+                              { code: 'AS', name: 'Asia' },
+                              { code: 'EU', name: 'Europe' },
+                              { code: 'NA', name: 'N. America' },
+                              { code: 'SA', name: 'S. America' },
+                              { code: 'OC', name: 'Oceania' },
+                              { code: 'AN', name: 'Antarctica' },
+                            ].map(r => (
+                              <option key={r.code} value={r.code} className="bg-[#0A0A0F]">{r.name.toUpperCase()}</option>
+                            ))}
+                          </select>
+                          <div className="absolute right-4 z-10 pointer-events-none text-white/20 text-[10px]">▼</div>
+                        </div>
+
+                        {/* Country */}
+                        <input
+                          type="text"
+                          placeholder="COUNTRY (e.g. Kenya)"
+                          value={locationForm.country}
+                          onChange={(e) => setLocationForm(prev => ({ ...prev, country: e.target.value }))}
+                          className="w-full bg-white/[0.03] border border-white/10 p-4 text-white outline-none focus:border-compete-purple transition-all font-mono font-black tracking-[0.1em] text-[10px] placeholder:text-white/20 rounded-2xl uppercase"
+                        />
+
+                        {/* City */}
+                        <input
+                          type="text"
+                          placeholder="CITY (e.g. Nairobi)"
+                          value={locationForm.city}
+                          onChange={(e) => setLocationForm(prev => ({ ...prev, city: e.target.value }))}
+                          className="w-full bg-white/[0.03] border border-white/10 p-4 text-white outline-none focus:border-compete-purple transition-all font-mono font-black tracking-[0.1em] text-[10px] placeholder:text-white/20 rounded-2xl uppercase"
+                        />
+
+                        <button
+                          onClick={async () => {
+                            setSavingLocation(true);
                             const { error } = await supabase
                               .from('profiles')
-                              .update({ region: newRegion })
+                              .update({
+                                country: locationForm.country.trim() || null,
+                                city: locationForm.city.trim() || null,
+                              })
                               .eq('id', profile.id);
-
+                            setSavingLocation(false);
                             if (error) {
-                              toast.error("Failed to update sector");
+                              toast.error("Failed to save location");
                             } else {
-                              setProfile({ ...profile, region: newRegion });
-                              toast.success(`Sector updated to ${newRegion}`);
+                              setProfile({ ...profile, ...locationForm });
+                              toast.success("Location saved — rankings updated");
                             }
                           }}
-                          className="w-full bg-white/[0.03] border border-white/10 p-4 pl-12 pr-10 text-white outline-none focus:border-compete-purple focus:bg-white/[0.08] transition-all font-mono font-black tracking-[0.1em] text-[10px] appearance-none cursor-pointer rounded-2xl"
+                          disabled={savingLocation}
+                          className="w-full py-3 bg-compete-purple/10 border border-compete-purple/20 text-compete-purple text-[9px] font-black uppercase tracking-widest rounded-2xl hover:bg-compete-purple hover:text-white transition-all disabled:opacity-50"
                         >
-                          {['Africa', 'Asia', 'Europe', 'N. America', 'S. America', 'Oceania', 'Antarctica'].map(r => (
-                            <option key={r} value={r} className="bg-[#0A0A0F]">{r.toUpperCase()}</option>
-                          ))}
-                        </select>
-                        <div className="absolute right-4 z-10 pointer-events-none text-white/20 text-[10px] flex items-center">
-                          <span className="mt-[2px]">▼</span>
-                        </div>
+                          {savingLocation ? "Saving..." : "Save Location"}
+                        </button>
+
+                        <p className="text-[8px] font-black text-white/20 tracking-widest uppercase">
+                          Your city, country, and continent determine which leaderboard tiers you appear on.
+                        </p>
                       </div>
-                      <p className="text-[8px] font-black text-white/20 tracking-widest mt-3 uppercase">This affects your leaderboard and regional intelligence feed.</p>
                     </div>
                   </div>
                 </motion.div>
