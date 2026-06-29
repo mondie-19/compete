@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend, AreaChart, Area } from "recharts";
+import BlackHoleLoader from "@/components/BlackHoleLoader";
 
 const VaultTab = dynamic(() => import("@/components/dashboard/VaultTab"), { ssr: false });
 
@@ -191,9 +192,8 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white/20 font-black tracking-[0.5em] ">
-        <Zap size={64} className="mb-4 animate-pulse text-compete-purple" />
-        Syncing Neural Dashboard...
+      <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+        <BlackHoleLoader label="Syncing Dashboard..." />
       </div>
     );
   }
