@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { createClient } from "@/supabase/client";
 import { toast } from "sonner";
 import Link from "next/link";
+import Checkbox from "@/components/Checkbox";
 
 export default function AuthPage() {
     const supabaseRef = useRef(createClient());
@@ -289,23 +290,11 @@ export default function AuthPage() {
                     </div>
 
                     <div className="flex items-center justify-between py-1">
-                        <label className="flex items-center gap-2 cursor-pointer group/check">
-                            <div className="relative w-3.5 h-3.5 border border-white/20 group-hover/check:border-compete-purple transition-colors rounded-sm overflow-hidden flex items-center justify-center">
-                                <input
-                                    type="checkbox"
-                                    checked={rememberMe}
-                                    onChange={(e) => setRememberMe(e.target.checked)}
-                                    className="peer absolute inset-0 opacity-0 cursor-pointer z-10"
-                                />
-                                <div className="w-full h-full bg-compete-purple scale-0 peer-checked:scale-100 transition-transform duration-200 ease-out" />
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                    <div className="w-1.5 h-1.5 bg-white rounded-full scale-0 peer-checked:scale-100 transition-transform delay-100" />
-                                </div>
-                            </div>
-                            <span className="text-[8px] font-black tracking-widest text-white/40 group-hover/check:text-white transition-colors uppercase">
-                                REMEMBER ACCESS
-                            </span>
-                        </label>
+                        <Checkbox
+                            checked={rememberMe}
+                            onChange={(c) => setRememberMe(c)}
+                            label="REMEMBER ACCESS"
+                        />
                         {isLogin && (
                             <Link href="/auth/forgot" className="text-[8px] font-black tracking-widest text-compete-purple hover:text-white transition-colors uppercase">
                                 LOST PASSWORD?
