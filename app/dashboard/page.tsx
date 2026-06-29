@@ -9,6 +9,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend, AreaChart, Area } from "recharts";
 import BlackHoleLoader from "@/components/BlackHoleLoader";
+import Switch from "@/components/Switch";
 
 const VaultTab = dynamic(() => import("@/components/dashboard/VaultTab"), { ssr: false });
 
@@ -741,21 +742,21 @@ export default function Dashboard() {
                         <p className="text-sm font-black text-white uppercase tracking-wider">EMAIL NOTIFICATIONS</p>
                         <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mt-1">Receive updates about your matches</p>
                       </div>
-                      <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-white/10 text-compete-purple focus:ring-0 focus:ring-offset-0 cursor-pointer" />
+                      <Switch defaultChecked />
                     </div>
                     <div className="flex items-center justify-between p-4 bg-white/[0.02] rounded-2xl border border-white/10">
                       <div>
                         <p className="text-sm font-black text-white uppercase tracking-wider">MATCH REMINDERS</p>
                         <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mt-1">Get notified before upcoming matches</p>
                       </div>
-                      <input type="checkbox" defaultChecked className="w-5 h-5 rounded border-white/10 text-compete-purple focus:ring-0 focus:ring-offset-0 cursor-pointer" />
+                      <Switch defaultChecked />
                     </div>
                     <div className="flex items-center justify-between p-4 bg-white/[0.02] rounded-2xl border border-white/10">
                       <div>
                         <p className="text-sm font-black text-white uppercase tracking-wider">DARK MODE</p>
                         <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mt-1">Always enabled</p>
                       </div>
-                      <input type="checkbox" defaultChecked disabled className="w-5 h-5 rounded border-white/10 text-compete-purple/50 cursor-not-allowed" />
+                      <Switch defaultChecked disabled />
                     </div>
 
                     <div className="pt-6 border-t border-white/10">
