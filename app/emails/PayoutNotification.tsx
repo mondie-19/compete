@@ -9,67 +9,101 @@ interface PayoutNotificationProps {
   matchId: string;
 }
 
-export const PayoutNotification = ({ 
-  username, 
-  gameName, 
-  payoutAmount, 
-  matchId 
+const mono: React.CSSProperties = {
+  fontFamily: "'Courier New', Courier, monospace",
+};
+
+export const PayoutNotification = ({
+  username,
+  gameName,
+  payoutAmount,
+  matchId,
 }: PayoutNotificationProps) => {
-  
   return (
-    <CompeteLayout previewText={`Payout Processed: KES ${payoutAmount} for ${gameName}`}>
-      {/* Header Section */}
-      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-        <h2 style={{ color: CompeteTheme.success, fontSize: '24px', margin: '0 0 10px 0' }}>
-          Victory Secured!
-        </h2>
-        <p style={{ color: CompeteTheme.muted, fontSize: '14px' }}>
-          Match ID: <span style={{ color: CompeteTheme.brand }}>#{matchId}</span>
-        </p>
-      </div>
+    <CompeteLayout previewText={`You won — KES ${payoutAmount.toLocaleString()} has been added to your balance.`}>
 
-      <p style={{ color: CompeteTheme.text, fontSize: '16px', lineHeight: '1.6', textAlign: 'center' }}>
-        Congratulations, <strong>{username}</strong>! Your recent <strong>{gameName}</strong> match has been successfully resolved in your favor.
-      </p>
-
-      {/* Payout Details */}
-      <div style={{ 
-        backgroundColor: '#000000', 
-        borderRadius: '12px', 
-        padding: '25px', 
-        margin: '30px 0', 
-        border: `1px solid ${CompeteTheme.success}`,
-        textAlign: 'center'
-      }}>
-        <p style={{ color: CompeteTheme.muted, margin: '0 0 10px 0', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-          Total Payout Credited
-        </p>
-        <p style={{ color: CompeteTheme.success, margin: '0', fontSize: '32px', fontWeight: 'bold' }}>
-          KES {payoutAmount.toLocaleString('en-KE', { minimumFractionDigits: 2 })}
-        </p>
-      </div>
-
-      <p style={{ color: CompeteTheme.text, fontSize: '15px', lineHeight: '1.6', textAlign: 'center', margin: '0 0 30px 0' }}>
-        These funds have been deposited directly into your platform wallet. You can use them to deploy new matches or withdraw them to your external account.
-      </p>
-
-      {/* Call to Action */}
-      <div style={{ textAlign: 'center' }}>
-        <a href={`https://compete.app/dashboard`} style={{
-          display: 'inline-block',
-          backgroundColor: CompeteTheme.card,
-          color: CompeteTheme.text,
-          border: `1px solid ${CompeteTheme.border}`,
-          padding: '14px 28px',
-          borderRadius: '8px',
+      {/* Heading */}
+      <div style={{ marginBottom: '24px' }}>
+        <div style={{
+          ...mono,
+          fontSize: '9px',
+          letterSpacing: '4px',
+          color: CompeteTheme.success,
+          textTransform: 'uppercase',
           fontWeight: 'bold',
-          textDecoration: 'none',
-          fontSize: '15px',
-          transition: 'all 0.2s ease',
+          marginBottom: '8px',
         }}>
-          View Dashboard Balance
+          Match Resolved
+        </div>
+        <div style={{
+          ...mono,
+          fontSize: '22px',
+          fontWeight: 'bold',
+          fontStyle: 'italic',
+          color: CompeteTheme.text,
+          letterSpacing: '-0.5px',
+          lineHeight: '1.2',
+          textTransform: 'uppercase',
+          marginBottom: '4px',
+        }}>
+          You won, {username}.
+        </div>
+        <div style={{ ...mono, fontSize: '13px', color: CompeteTheme.muted }}>
+          Game: <strong style={{ color: CompeteTheme.text }}>{gameName}</strong>
+          &nbsp;&nbsp;·&nbsp;&nbsp;
+          Match: <span style={{ color: CompeteTheme.brand }}>#{matchId}</span>
+        </div>
+      </div>
+
+      {/* Payout amount */}
+      <div style={{
+        backgroundColor: CompeteTheme.cardAlt,
+        border: `1px solid ${CompeteTheme.success}`,
+        borderRadius: '10px',
+        padding: '24px',
+        marginBottom: '24px',
+        textAlign: 'center',
+      }}>
+        <div style={{ ...mono, fontSize: '11px', color: CompeteTheme.muted, letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '8px' }}>
+          Credited to your balance
+        </div>
+        <div style={{ ...mono, fontSize: '34px', fontWeight: 'bold', color: CompeteTheme.success, lineHeight: 1 }}>
+          KES {payoutAmount.toLocaleString('en-KE', { minimumFractionDigits: 2 })}
+        </div>
+      </div>
+
+      {/* Body */}
+      <p style={{
+        ...mono,
+        fontSize: '13px',
+        color: CompeteTheme.mutedLight,
+        lineHeight: '1.7',
+        margin: '0 0 28px 0',
+      }}>
+        Your winnings are in your Compete wallet. Use them for your next match or
+        withdraw them to your account.
+      </p>
+
+      {/* CTA */}
+      <div style={{ textAlign: 'center' }}>
+        <a href="https://competehq.online/dashboard" style={{
+          display: 'inline-block',
+          backgroundColor: CompeteTheme.brand,
+          color: '#ffffff',
+          padding: '14px 32px',
+          borderRadius: '100px',
+          fontWeight: 'bold',
+          fontStyle: 'italic',
+          fontFamily: "'Courier New', Courier, monospace",
+          textDecoration: 'none',
+          fontSize: '12px',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+        }}>
+          View Balance →
         </a>
       </div>
+
     </CompeteLayout>
   );
 };
