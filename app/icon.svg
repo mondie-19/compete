@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
-    <filter id="g" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="blur"/>
+    <filter id="g" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
       <feMerge>
         <feMergeNode in="blur"/>
         <feMergeNode in="SourceGraphic"/>
@@ -12,19 +12,6 @@
   <!-- Dark background -->
   <rect width="32" height="32" rx="7" fill="#0A0A0F"/>
 
-  <!--
-    Bold C arc:
-    Centre (16,16), arc-radius 9.75 (midpoint of 7.5–12 ring)
-    Opening ±40° from 3-o'clock = 80° gap facing right
-    Upper-right: (23.47, 9.73)  Lower-right: (23.47, 22.27)
-    large-arc=1  sweep=0  → CCW on screen = traces the long way around (top→left→bottom)
-  -->
-  <path
-    d="M 23.47,9.73 A 9.75,9.75 0 1,0 23.47,22.27"
-    fill="none"
-    stroke="#9B5CFF"
-    stroke-width="4.5"
-    stroke-linecap="round"
-    filter="url(#g)"
-  />
+  <!-- Purple diamond — matches the rotate-45 square in the Navbar logo -->
+  <rect x="9" y="9" width="14" height="14" rx="2" fill="#9B5CFF" transform="rotate(45 16 16)" filter="url(#g)"/>
 </svg>
