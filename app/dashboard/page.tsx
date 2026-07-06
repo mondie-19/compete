@@ -10,6 +10,7 @@ import dynamic from "next/dynamic";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend, AreaChart, Area } from "recharts";
 import BlackHoleLoader from "@/components/BlackHoleLoader";
 import Switch from "@/components/Switch";
+import Dropdown from "@/components/Dropdown";
 
 const VaultTab = dynamic(() => import("@/components/dashboard/VaultTab"), { ssr: false });
 
@@ -116,16 +117,11 @@ export default function Dashboard() {
   }, [supabase]);
 
   useEffect(() => {
-    const handleLocationChange = () => {
-      const params = new URLSearchParams(window.location.search);
-      const tabParam = params.get("tab");
-      if (tabParam && ["overview", "performance", "financial", "matches", "vault", "settings"].includes(tabParam)) {
-        setActiveTab(tabParam);
-      }
-    };
-    handleLocationChange();
-    const interval = setInterval(handleLocationChange, 200);
-    return () => clearInterval(interval);
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get("tab");
+    if (tabParam && ["overview", "performance", "financial", "matches", "vault", "settings"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
   }, []);
 
   const handleNameUpdate = async () => {
@@ -763,40 +759,28 @@ export default function Dashboard() {
                       <p className="text-[8px] font-black text-compete-purple tracking-[0.25em] mb-4 uppercase">LOCATION</p>
                       <div className="space-y-3">
                         {/* Continent */}
-                        <div className="relative group flex items-center">
-                          <Globe className="absolute left-4 z-10 text-compete-purple pointer-events-none" size={14} />
-                          <select
-                            value={profile?.region || ''}
-                            onChange={async (e) => {
-                              const newRegion = e.target.value;
-                              const { error } = await supabase
-                                .from('profiles')
-                                .update({ region: newRegion })
-                                .eq('id', profile.id);
-                              if (error) {
-                                toast.error("Failed to update continent");
-                              } else {
-                                setProfile({ ...profile, region: newRegion });
-                                toast.success("Continent updated");
-                              }
-                            }}
-                            className="w-full bg-white/[0.03] border border-white/10 p-4 pl-12 pr-10 text-white outline-none focus:border-compete-purple transition-all font-mono font-black tracking-[0.1em] text-[10px] appearance-none cursor-pointer rounded-2xl"
-                          >
-                            <option value="" className="bg-[#0A0A0F]">SELECT CONTINENT</option>
-                            {[
-                              { code: 'AF', name: 'Africa' },
-                              { code: 'AS', name: 'Asia' },
-                              { code: 'EU', name: 'Europe' },
-                              { code: 'NA', name: 'N. America' },
-                              { code: 'SA', name: 'S. America' },
-                              { code: 'OC', name: 'Oceania' },
-                              { code: 'AN', name: 'Antarctica' },
-                            ].map(r => (
-                              <option key={r.code} value={r.code} className="bg-[#0A0A0F]">{r.name.toUpperCase()}</option>
-                            ))}
-                          </select>
-                          <div className="absolute right-4 z-10 pointer-events-none text-white/20 text-[10px]">▼</div>
-                        </div>
+                        <Dropdown
+                          options={[
+                            { value: 'AF', label: 'Africa' },
+                            { value: 'AS', label: 'Asia' },
+                            { value: 'EU', label: 'Europe' },
+                            { value: 'NA', label: 'N. America' },
+                            { value: 'SA', label: 'S. America' },
+                            { value: 'OC', label: 'Oceania' },
+                            { value: 'AN', label: 'Antarctica' },
+                          ]}
+                          value={profile?.region || ''}
+                          onChange={async (val) => {
+                            const { error } = await supabase
+                              .from('profiles')
+                              .update({ region: val })
+                              .eq('id', profile.id);
+                            if (error) toast.error("Failed to update continent");
+                            else { setProfile({ ...profile, region: val }); toast.success("Continent updated"); }
+                          }}
+                          placeholder="Select Continent"
+                          icon={<Globe size={14} />}
+                        />
 
                         {/* Country */}
                         <input

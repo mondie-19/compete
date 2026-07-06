@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Zap, TrendingUp, Loader2 } from "lucide-react";
+import { Zap, TrendingUp } from "lucide-react";
+import BlackHoleLoader from "@/components/BlackHoleLoader";
 import { createClient } from "@/supabase/client";
 
 export default function PrizePoolTracker() {
@@ -56,9 +57,8 @@ export default function PrizePoolTracker() {
 
   if (loading) {
     return (
-      <div className="py-20 flex flex-col items-center justify-center opacity-30">
-        <Loader2 className="animate-spin text-compete-purple mb-4" size={40} />
-        <p className="text-[10px] font-black tracking-[0.4em]">Synching Prize Matrix...</p>
+      <div className="py-20 flex items-center justify-center">
+        <BlackHoleLoader label="Synching Prize Matrix..." />
       </div>
     );
   }

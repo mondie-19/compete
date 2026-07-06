@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Trophy, Target, Clock, Users, Loader2 } from "lucide-react";
+import { ChevronDown, Trophy, Target, Clock, Users } from "lucide-react";
+import BlackHoleLoader from "@/components/BlackHoleLoader";
 import { createClient } from "@/supabase/client";
 
 export default function MatchHistory() {
@@ -77,9 +78,8 @@ export default function MatchHistory() {
 
   if (loading) {
     return (
-      <div className="py-20 flex flex-col items-center justify-center space-y-4 opacity-40">
-        <Loader2 className="animate-spin text-compete-purple" size={48} />
-        <p className="text-[10px] font-black  tracking-[0.5em]">Retrieving Combat Logs...</p>
+      <div className="py-20 flex items-center justify-center">
+        <BlackHoleLoader label="Retrieving Combat Logs..." />
       </div>
     );
   }

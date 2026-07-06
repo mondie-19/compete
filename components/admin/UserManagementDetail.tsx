@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Headphones, Users, Search, Ban, Key, Trash2 } from "lucide-react";
+import Dropdown from "@/components/Dropdown";
 import { toast } from "sonner";
 
 interface UserManagementDetailProps {
@@ -175,16 +176,16 @@ export function UserManagementDetail({ users }: UserManagementDetailProps) {
                 </div>
                 <div className="space-y-1">
                   <p className="text-[7px] font-black uppercase text-white/40 tracking-widest ml-0.5">Assigned Badge / Role</p>
-                  <select 
+                  <Dropdown
+                    options={[
+                      { value: 'client',       label: 'Player Badge' },
+                      { value: 'moderator',    label: 'Moderator Shield' },
+                      { value: 'customer_care', label: 'Support Unit' },
+                      { value: 'admin',        label: 'Command Admin' },
+                    ]}
                     value={newRole}
-                    onChange={(e) => setNewRole(e.target.value as any)}
-                    className="w-full bg-black/40 border border-white/10 rounded-none py-2 px-3 text-xs outline-none focus:border-compete-purple transition-all appearance-none cursor-pointer text-white"
-                  >
-                    <option value="client" className="bg-[#0A0A0F]">Player Badge</option>
-                    <option value="moderator" className="bg-[#0A0A0F]">Moderator Shield</option>
-                    <option value="customer_care" className="bg-[#0A0A0F]">Support Unit</option>
-                    <option value="admin" className="bg-[#0A0A0F]">Command Admin</option>
-                  </select>
+                    onChange={(val) => setNewRole(val as any)}
+                  />
                 </div>
               </div>
 

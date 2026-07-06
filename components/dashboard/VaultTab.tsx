@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  CreditCard, History, Wallet, CheckCircle2, 
-  Loader2, Lock, ArrowUpRight, ArrowDownLeft 
+import {
+  CreditCard, History, Wallet, CheckCircle2,
+  Loader2, Lock, ArrowUpRight, ArrowDownLeft
 } from "lucide-react";
+import Radio from "@/components/Radio";
 // @ts-ignore
 import { usePaystackPayment } from "react-paystack";
 import { verifyAndAddFunds, requestWithdrawal, type PayoutDetails } from "@/app/actions/wallet";
@@ -211,24 +212,15 @@ export default function VaultTab() {
                 <p className="text-[7px] font-black tracking-[0.3em] text-white/30 uppercase">Payout Destination</p>
 
                 {/* Method toggle */}
-                <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
-                  <button
-                    onClick={() => setPayoutMethod('mpesa')}
-                    className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${
-                      payoutMethod === 'mpesa' ? 'bg-compete-purple text-white' : 'text-white/20 hover:text-white/50'
-                    }`}
-                  >
-                    M-PESA
-                  </button>
-                  <button
-                    onClick={() => setPayoutMethod('bank')}
-                    className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${
-                      payoutMethod === 'bank' ? 'bg-compete-purple text-white' : 'text-white/20 hover:text-white/50'
-                    }`}
-                  >
-                    Bank Transfer
-                  </button>
-                </div>
+                <Radio
+                  name="payout-method"
+                  options={[
+                    { value: 'mpesa', label: 'M-Pesa' },
+                    { value: 'bank', label: 'Bank Transfer' },
+                  ]}
+                  value={payoutMethod}
+                  onChange={(val) => setPayoutMethod(val as 'mpesa' | 'bank')}
+                />
 
                 {/* M-PESA fields */}
                 {payoutMethod === 'mpesa' && (

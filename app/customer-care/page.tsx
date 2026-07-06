@@ -2,14 +2,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
     Headphones, Users, Search, Activity, Clock,
-    MessageSquare, ChevronRight, LogOut, Shield,
-    Gamepad2, DollarSign, X, ExternalLink, RefreshCw
+    MessageSquare, ChevronRight, LogOut,
+    Gamepad2, X, ExternalLink, RefreshCw,
+    Inbox, CheckCheck, Mail, Bug, Lightbulb, Star,
+    AlertCircle, ChevronDown, ChevronUp
 } from "lucide-react";
 import { createClient } from "@/supabase/client";
 import { useHeartbeat } from "@/lib/useHeartbeat";
 import { toast } from "sonner";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import BlackHoleLoader from "@/components/BlackHoleLoader";
+import Dropdown from "@/components/Dropdown";
 
 const STATUS_COLORS: Record<string, string> = {
     open: "text-green-400 bg-green-400/10 border-green-400/20",
@@ -18,6 +22,13 @@ const STATUS_COLORS: Record<string, string> = {
     disputed: "text-red-400 bg-red-400/10 border-red-400/20",
     resolved: "text-white/40 bg-white/5 border-white/10",
     cancelled: "text-white/20 bg-white/5 border-white/5",
+};
+
+const FEEDBACK_CATEGORIES: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+    game:     { label: "Game Suggestion",    color: "text-compete-purple bg-compete-purple/10 border-compete-purple/25", icon: Gamepad2 },
+    platform: { label: "Platform Request",   color: "text-blue-400 bg-blue-400/10 border-blue-400/20",                  icon: Star },
+    bug:      { label: "Bug Report",         color: "text-red-400 bg-red-400/10 border-red-400/20",                     icon: Bug },
+    feedback: { label: "General Feedback",   color: "text-green-400 bg-green-400/10 border-green-400/20",               icon: Lightbulb },
 };
 
 const formatKES = (n: number) =>
@@ -33,6 +44,10 @@ const timeAgo = (dateStr: string) => {
     return `${Math.floor(h / 24)}d ago`;
 };
 
+type Tab = "players" | "matches" | "feedback";
+type MatchFilter = "all" | "disputed" | "pending_review" | "in_progress";
+type FeedbackFilter = "all" | "pending" | "reviewed";
+
 export default function CustomerCareDashboard() {
     const supabase = createClient();
     useHeartbeat();
@@ -41,24 +56,28 @@ export default function CustomerCareDashboard() {
     const [agentName, setAgentName] = useState("");
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [activeTab, setActiveTab] = useState<Tab>("feedback");
 
     // Data
     const [users, setUsers] = useState<any[]>([]);
     const [matches, setMatches] = useState<any[]>([]);
-    const [stats, setStats] = useState({ totalUsers: 0, onlineToday: 0, activeMatches: 0, disputedMatches: 0 });
+    const [feedback, setFeedback] = useState<any[]>([]);
 
     // UI state
     const [userSearch, setUserSearch] = useState("");
-    const [matchFilter, setMatchFilter] = useState<"all" | "disputed" | "pending_review" | "in_progress">("all");
+    const [matchFilter, setMatchFilter] = useState<MatchFilter>("all");
+    const [feedbackFilter, setFeedbackFilter] = useState<FeedbackFilter>("pending");
     const [selectedUser, setSelectedUser] = useState<any | null>(null);
     const [userMatches, setUserMatches] = useState<any[]>([]);
     const [loadingUserDetail, setLoadingUserDetail] = useState(false);
+    const [expandedFeedback, setExpandedFeedback] = useState<string | null>(null);
+    const [markingReviewed, setMarkingReviewed] = useState<string | null>(null);
 
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
     const fetchData = useCallback(async () => {
         try {
-            const [usersRes, matchesRes] = await Promise.all([
+            const [usersRes, matchesRes, feedbackRes] = await Promise.all([
                 supabase
                     .from("profiles")
                     .select("id, username, avatar_url, balance, role, region, last_seen_at, created_at")
@@ -72,21 +91,16 @@ export default function CustomerCareDashboard() {
                     `)
                     .order("created_at", { ascending: false })
                     .limit(100),
+                supabase
+                    .from("feedback")
+                    .select("*")
+                    .order("created_at", { ascending: false })
+                    .limit(200),
             ]);
 
-            const allUsers: any[] = usersRes.data || [];
-            const allMatches: any[] = matchesRes.data || [];
-
-            setUsers(allUsers);
-            setMatches(allMatches);
-
-            const oneDayAgo = new Date(Date.now() - 86400000).toISOString();
-            setStats({
-                totalUsers: allUsers.filter(u => u.role === "client" || !u.role).length,
-                onlineToday: allUsers.filter(u => u.last_seen_at > oneDayAgo).length,
-                activeMatches: allMatches.filter(m => m.status === "in_progress").length,
-                disputedMatches: allMatches.filter(m => m.status === "disputed" || m.status === "pending_review").length,
-            });
+            setUsers(usersRes.data || []);
+            setMatches(matchesRes.data || []);
+            setFeedback(feedbackRes.data || []);
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -120,9 +134,16 @@ export default function CustomerCareDashboard() {
             }
 
             channelRef.current = supabase
-                .channel("customer-care-feed")
+                .channel(`cc-feed-${Date.now()}`)
                 .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, fetchData)
                 .on("postgres_changes", { event: "*", schema: "public", table: "challenges" }, fetchData)
+                .on("postgres_changes", { event: "INSERT", schema: "public", table: "feedback" }, (payload) => {
+                    setFeedback(prev => [payload.new, ...prev]);
+                    toast("New feedback received", { icon: "📬" });
+                })
+                .on("postgres_changes", { event: "UPDATE", schema: "public", table: "feedback" }, (payload) => {
+                    setFeedback(prev => prev.map(f => f.id === payload.new.id ? payload.new : f));
+                })
                 .subscribe();
         };
 
@@ -138,6 +159,14 @@ export default function CustomerCareDashboard() {
     const handleRefresh = async () => {
         setRefreshing(true);
         await fetchData();
+    };
+
+    const markReviewed = async (id: string) => {
+        setMarkingReviewed(id);
+        const { error } = await supabase.from("feedback").update({ status: "reviewed" }).eq("id", id);
+        if (error) toast.error("Failed to update");
+        else setFeedback(prev => prev.map(f => f.id === id ? { ...f, status: "reviewed" } : f));
+        setMarkingReviewed(null);
     };
 
     const openUserDetail = async (user: any) => {
@@ -169,13 +198,23 @@ export default function CustomerCareDashboard() {
         matchFilter === "all" ? true : m.status === matchFilter
     );
 
+    const filteredFeedback = feedback.filter(f =>
+        feedbackFilter === "all" ? true : f.status === feedbackFilter
+    );
+
+    const pendingCount = feedback.filter(f => f.status === "pending").length;
+    const oneDayAgo = new Date(Date.now() - 86400000).toISOString();
+    const stats = {
+        totalUsers: users.filter(u => u.role === "client" || !u.role).length,
+        onlineToday: users.filter(u => u.last_seen_at > oneDayAgo).length,
+        disputedMatches: matches.filter(m => m.status === "disputed" || m.status === "pending_review").length,
+        pendingFeedback: pendingCount,
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                    <Headphones size={28} className="text-blue-400 animate-pulse" />
-                    <p className="text-[9px] font-black tracking-[0.4em] text-white/40 uppercase">Loading Support Console...</p>
-                </div>
+                <BlackHoleLoader label="Loading Support Console..." />
             </div>
         );
     }
@@ -185,10 +224,10 @@ export default function CustomerCareDashboard() {
     return (
         <div className="min-h-screen bg-[#0A0A0F] text-white font-mono">
             {/* Header */}
-            <div className="border-b border-white/5 bg-[#0A0A0F]/80 backdrop-blur-md sticky top-0 z-30">
+            <div className="border-b border-white/5 bg-[#0A0A0F]/90 backdrop-blur-md sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
                             <Headphones size={14} className="text-blue-400" />
                         </div>
                         <div>
@@ -200,13 +239,13 @@ export default function CustomerCareDashboard() {
                         <button
                             onClick={handleRefresh}
                             disabled={refreshing}
-                            className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all disabled:opacity-40"
+                            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all disabled:opacity-40"
                         >
                             <RefreshCw size={12} className={refreshing ? "animate-spin" : ""} />
                         </button>
                         <button
                             onClick={async () => { await supabase.auth.signOut(); window.location.href = "/auth"; }}
-                            className="p-2 rounded-lg bg-white/5 border border-white/10 text-white/20 hover:text-red-400 transition-all"
+                            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/20 hover:text-red-400 transition-all"
                         >
                             <LogOut size={12} />
                         </button>
@@ -216,15 +255,15 @@ export default function CustomerCareDashboard() {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
 
-                {/* Stats Row */}
+                {/* Stats */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                        { label: "Total Players", value: stats.totalUsers, icon: Users, color: "text-white" },
-                        { label: "Active Today", value: stats.onlineToday, icon: Activity, color: "text-green-400" },
-                        { label: "Live Matches", value: stats.activeMatches, icon: Gamepad2, color: "text-blue-400" },
-                        { label: "Need Review", value: stats.disputedMatches, icon: MessageSquare, color: "text-yellow-400" },
-                    ].map(({ label, value, icon: Icon, color }) => (
-                        <div key={label} className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-4">
+                        { label: "Total Players", value: stats.totalUsers,       icon: Users,        color: "text-white",           bg: "bg-white/5 border-white/10" },
+                        { label: "Active Today",  value: stats.onlineToday,      icon: Activity,     color: "text-green-400",       bg: "bg-green-500/5 border-green-500/15" },
+                        { label: "Need Review",   value: stats.disputedMatches,  icon: AlertCircle,  color: "text-yellow-400",      bg: "bg-yellow-500/5 border-yellow-500/15" },
+                        { label: "Unread Inbox",  value: stats.pendingFeedback,  icon: Inbox,        color: "text-compete-purple",  bg: pendingCount > 0 ? "bg-compete-purple/10 border-compete-purple/25" : "bg-white/5 border-white/10" },
+                    ].map(({ label, value, icon: Icon, color, bg }) => (
+                        <div key={label} className={`border rounded-2xl p-4 ${bg}`}>
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-[8px] font-black tracking-widest text-white/30 uppercase">{label}</span>
                                 <Icon size={12} className={color} />
@@ -234,10 +273,171 @@ export default function CustomerCareDashboard() {
                     ))}
                 </div>
 
-                {/* Main Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Tabs */}
+                <div className="flex gap-1 bg-white/[0.02] border border-white/[0.06] rounded-2xl p-1">
+                    {([
+                        { id: "feedback", label: "Feedback Inbox", icon: Inbox,    badge: pendingCount },
+                        { id: "players",  label: "Players",        icon: Users,    badge: 0 },
+                        { id: "matches",  label: "Matches",        icon: Gamepad2, badge: stats.disputedMatches },
+                    ] as const).map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                                activeTab === tab.id
+                                    ? "bg-white/[0.07] text-white"
+                                    : "text-white/30 hover:text-white/60"
+                            }`}
+                        >
+                            <tab.icon size={11} />
+                            <span className="hidden sm:inline">{tab.label}</span>
+                            {tab.badge > 0 && (
+                                <span className={`text-[7px] font-black px-1.5 py-0.5 rounded-full ${
+                                    tab.id === "feedback" ? "bg-compete-purple/20 text-compete-purple" : "bg-yellow-500/20 text-yellow-400"
+                                }`}>
+                                    {tab.badge}
+                                </span>
+                            )}
+                        </button>
+                    ))}
+                </div>
 
-                    {/* ── Left: Player Lookup ────────────────────────────────── */}
+                {/* Feedback Tab */}
+                {activeTab === "feedback" && (
+                    <div className="space-y-3">
+                        {/* Filter row */}
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex gap-1 bg-white/[0.02] border border-white/[0.06] rounded-xl p-1">
+                                {(["pending", "reviewed", "all"] as FeedbackFilter[]).map(f => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setFeedbackFilter(f)}
+                                        className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider transition-all ${
+                                            feedbackFilter === f
+                                                ? f === "pending" ? "bg-compete-purple/20 text-compete-purple border border-compete-purple/30"
+                                                  : f === "reviewed" ? "bg-green-500/15 text-green-400 border border-green-500/25"
+                                                  : "bg-white/[0.07] text-white border border-white/10"
+                                                : "text-white/30 hover:text-white/60"
+                                        }`}
+                                    >
+                                        {f === "pending" ? `Unread (${pendingCount})` : f === "reviewed" ? "Reviewed" : "All"}
+                                    </button>
+                                ))}
+                            </div>
+                            <span className="text-[8px] text-white/20 font-black">{filteredFeedback.length} entries</span>
+                        </div>
+
+                        {filteredFeedback.length === 0 ? (
+                            <div className="py-16 text-center text-white/20 border border-white/[0.06] rounded-2xl bg-white/[0.02]">
+                                <Inbox size={24} className="mx-auto mb-3 opacity-30" />
+                                <p className="text-[9px] font-black uppercase tracking-widest">
+                                    {feedbackFilter === "pending" ? "Inbox is clear" : "No entries"}
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                {filteredFeedback.map(entry => {
+                                    const cat = FEEDBACK_CATEGORIES[entry.category] ?? {
+                                        label: entry.category,
+                                        color: "text-white/40 bg-white/5 border-white/10",
+                                        icon: MessageSquare,
+                                    };
+                                    const CatIcon = cat.icon;
+                                    const isExpanded = expandedFeedback === entry.id;
+                                    const isPending = entry.status === "pending";
+
+                                    return (
+                                        <motion.div
+                                            key={entry.id}
+                                            layout
+                                            initial={{ opacity: 0, y: -8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className={`border rounded-2xl overflow-hidden transition-all ${
+                                                isPending
+                                                    ? "bg-white/[0.03] border-white/10"
+                                                    : "bg-white/[0.01] border-white/[0.05] opacity-60"
+                                            }`}
+                                        >
+                                            <button
+                                                className="w-full text-left px-4 py-3 flex items-center gap-3"
+                                                onClick={() => setExpandedFeedback(isExpanded ? null : entry.id)}
+                                            >
+                                                {/* Category badge */}
+                                                <span className={`shrink-0 flex items-center gap-1.5 text-[7px] font-black uppercase tracking-wider px-2 py-1 rounded-full border ${cat.color}`}>
+                                                    <CatIcon size={9} />
+                                                    {cat.label}
+                                                </span>
+
+                                                {/* Message preview */}
+                                                <span className="flex-1 text-[10px] text-white/60 font-black truncate">
+                                                    {entry.message}
+                                                </span>
+
+                                                <div className="flex items-center gap-3 shrink-0">
+                                                    {entry.email && (
+                                                        <span className="hidden sm:flex items-center gap-1 text-[7px] text-blue-400/60 font-black">
+                                                            <Mail size={8} />
+                                                            {entry.email}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-[7px] text-white/20 font-black">{timeAgo(entry.created_at)}</span>
+                                                    {isExpanded ? <ChevronUp size={10} className="text-white/30" /> : <ChevronDown size={10} className="text-white/30" />}
+                                                </div>
+                                            </button>
+
+                                            <AnimatePresence>
+                                                {isExpanded && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: "auto", opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        className="overflow-hidden"
+                                                    >
+                                                        <div className="px-4 pb-4 space-y-3 border-t border-white/[0.05] pt-3">
+                                                            <p className="text-xs text-white/70 leading-relaxed">{entry.message}</p>
+
+                                                            <div className="flex items-center justify-between flex-wrap gap-2">
+                                                                <div className="flex items-center gap-3 text-[8px] text-white/30 font-black">
+                                                                    {entry.email && (
+                                                                        <span className="flex items-center gap-1.5">
+                                                                            <Mail size={9} className="text-blue-400/60" />
+                                                                            {entry.email}
+                                                                        </span>
+                                                                    )}
+                                                                    <span className="flex items-center gap-1.5">
+                                                                        <Clock size={9} />
+                                                                        {new Date(entry.created_at).toLocaleString()}
+                                                                    </span>
+                                                                </div>
+
+                                                                {isPending && (
+                                                                    <button
+                                                                        onClick={() => markReviewed(entry.id)}
+                                                                        disabled={markingReviewed === entry.id}
+                                                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-[8px] font-black uppercase tracking-wider hover:bg-green-500 hover:text-white transition-all disabled:opacity-40"
+                                                                    >
+                                                                        {markingReviewed === entry.id
+                                                                            ? <div className="w-3 h-3 border border-green-400 border-t-transparent rounded-full animate-spin" />
+                                                                            : <CheckCheck size={10} />
+                                                                        }
+                                                                        Mark Reviewed
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Players Tab */}
+                {activeTab === "players" && (
                     <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
                         <div className="p-4 border-b border-white/[0.06] flex items-center justify-between">
                             <div className="flex items-center gap-2">
@@ -246,8 +446,6 @@ export default function CustomerCareDashboard() {
                             </div>
                             <span className="text-[8px] text-white/20 font-black">{filteredUsers.length} players</span>
                         </div>
-
-                        {/* Search */}
                         <div className="p-3 border-b border-white/[0.04]">
                             <div className="relative">
                                 <Search size={11} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/20" />
@@ -260,9 +458,7 @@ export default function CustomerCareDashboard() {
                                 />
                             </div>
                         </div>
-
-                        {/* User List */}
-                        <div className="overflow-y-auto max-h-[460px] custom-scrollbar divide-y divide-white/[0.04]">
+                        <div className="overflow-y-auto max-h-[520px] custom-scrollbar divide-y divide-white/[0.04]">
                             {filteredUsers.length === 0 ? (
                                 <div className="py-12 text-center text-white/20">
                                     <Users size={20} className="mx-auto mb-2 opacity-30" />
@@ -303,8 +499,10 @@ export default function CustomerCareDashboard() {
                             })}
                         </div>
                     </div>
+                )}
 
-                    {/* ── Right: Match Monitor ───────────────────────────────── */}
+                {/* Matches Tab */}
+                {activeTab === "matches" && (
                     <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl overflow-hidden">
                         <div className="p-4 border-b border-white/[0.06]">
                             <div className="flex items-center justify-between mb-3">
@@ -314,7 +512,6 @@ export default function CustomerCareDashboard() {
                                 </div>
                                 <span className="text-[8px] text-white/20 font-black">{filteredMatches.length} matches</span>
                             </div>
-                            {/* Filter Tabs */}
                             <div className="flex gap-1">
                                 {(["all", "in_progress", "pending_review", "disputed"] as const).map(f => (
                                     <button
@@ -323,15 +520,14 @@ export default function CustomerCareDashboard() {
                                         className={`px-2.5 py-1 rounded-lg text-[7px] font-black uppercase tracking-wider transition-all ${matchFilter === f
                                             ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                                             : "bg-white/[0.03] text-white/30 border border-white/[0.06] hover:text-white/60"
-                                            }`}
+                                        }`}
                                     >
                                         {f === "all" ? "All" : f === "in_progress" ? "Live" : f === "pending_review" ? "Review" : "Disputed"}
                                     </button>
                                 ))}
                             </div>
                         </div>
-
-                        <div className="overflow-y-auto max-h-[460px] custom-scrollbar divide-y divide-white/[0.04]">
+                        <div className="overflow-y-auto max-h-[520px] custom-scrollbar divide-y divide-white/[0.04]">
                             {filteredMatches.length === 0 ? (
                                 <div className="py-12 text-center text-white/20">
                                     <Gamepad2 size={20} className="mx-auto mb-2 opacity-30" />
@@ -369,10 +565,10 @@ export default function CustomerCareDashboard() {
                             ))}
                         </div>
                     </div>
-                </div>
+                )}
             </div>
 
-            {/* ── User Detail Modal ──────────────────────────────────────────── */}
+            {/* User Detail Modal */}
             <AnimatePresence>
                 {selectedUser && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -389,7 +585,6 @@ export default function CustomerCareDashboard() {
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
                             className="relative z-10 w-full max-w-lg bg-[#0F0F16] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
                         >
-                            {/* Modal Header */}
                             <div className="p-5 border-b border-white/[0.06] flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-sm font-black text-white/40 overflow-hidden">
@@ -412,8 +607,6 @@ export default function CustomerCareDashboard() {
                                     <X size={12} />
                                 </button>
                             </div>
-
-                            {/* Stats */}
                             <div className="grid grid-cols-3 divide-x divide-white/[0.06] border-b border-white/[0.06]">
                                 <div className="p-4 text-center">
                                     <p className="text-[7px] font-black uppercase tracking-widest text-white/30 mb-1">Vault Balance</p>
@@ -428,8 +621,6 @@ export default function CustomerCareDashboard() {
                                     <p className="text-[10px] font-black">{timeAgo(selectedUser.last_seen_at || selectedUser.created_at)}</p>
                                 </div>
                             </div>
-
-                            {/* Match History */}
                             <div className="p-4">
                                 <p className="text-[8px] font-black uppercase tracking-widest text-white/30 mb-3">Recent Match History</p>
                                 {loadingUserDetail ? (

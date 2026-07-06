@@ -9,6 +9,7 @@ import { createClient } from "@/supabase/client";
 import { useHeartbeat } from "@/lib/useHeartbeat";
 import { resolveMatchAsModerator } from "@/app/actions/moderator";
 import { toast } from "sonner";
+import BlackHoleLoader from "@/components/BlackHoleLoader";
 import Link from "next/link";
 
 export default function ModeratorDashboard() {
@@ -174,9 +175,8 @@ export default function ModeratorDashboard() {
 
     if (!isMod || loading) {
         return (
-            <div className="min-h-screen bg-[#0B0B10] flex flex-col items-center justify-center text-white/30 font-sans font-black tracking-[0.4em] uppercase">
-                <Shield size={48} className="mb-4 animate-pulse text-[#9B5CFF]" style={{ filter: "drop-shadow(0 0 15px rgba(155,92,255,0.4))" }} />
-                Accessing Command Core...
+            <div className="min-h-screen bg-[#0B0B10] flex items-center justify-center">
+                <BlackHoleLoader label="Accessing Command Core..." />
             </div>
         );
     }
@@ -445,7 +445,7 @@ export default function ModeratorDashboard() {
                                         <div className="p-6 bg-white/[0.01] flex flex-col sm:flex-row justify-center items-center gap-3 border-t border-white/5">
                                             {solving === match.id ? (
                                                 <div className="flex items-center gap-2 text-white/30 text-[9px] font-black uppercase tracking-widest italic py-2">
-                                                    <div className="w-3.5 h-3.5 border-2 border-[#9B5CFF] border-t-transparent rounded-full animate-spin" />
+                                                    <div className="w-3.5 h-3.5 border-2 border-compete-purple border-t-transparent rounded-full animate-spin" />
                                                     Processing resolution...
                                                 </div>
                                             ) : (
@@ -538,7 +538,7 @@ export default function ModeratorDashboard() {
                         <div className="flex flex-wrap justify-center gap-2.5 w-full md:w-auto">
                             {solving === previewMedia.matchId ? (
                                 <div className="flex items-center gap-2 text-white/30 text-[9px] font-black uppercase tracking-widest italic py-2">
-                                    <div className="w-3.5 h-3.5 border-2 border-[#9B5CFF] border-t-transparent rounded-full animate-spin" />
+                                    <div className="w-3.5 h-3.5 border-2 border-compete-purple border-t-transparent rounded-full animate-spin" />
                                     Processing resolution...
                                 </div>
                             ) : (

@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Users, Clock, Globe } from "lucide-react";
+import Dropdown from "@/components/Dropdown";
 import { formatDistanceToNow } from "date-fns";
 
 interface LiveUsersDetailProps {
@@ -109,20 +110,13 @@ export function LiveUsersDetail({ users }: LiveUsersDetailProps) {
             </button>
           </div>
 
-          <div className="relative min-w-[200px] flex items-center">
-            <Globe className="absolute left-3.5 z-10 text-compete-purple pointer-events-none" size={12} />
-            <select 
+          <div className="min-w-50">
+            <Dropdown
+              options={REGIONS.map(r => ({ value: r, label: r }))}
               value={regionFilter === 'all' ? 'World' : regionFilter}
-              onChange={(e) => setRegionFilter(e.target.value === 'World' ? 'all' : e.target.value)}
-              className="w-full h-full bg-transparent border border-white/10 rounded-none pl-9 pr-9 py-2 text-[9px] font-black uppercase tracking-[0.1em] outline-none focus:border-compete-purple appearance-none cursor-pointer hover:bg-white/5 transition-all text-white/80"
-            >
-              {REGIONS.map(r => (
-                <option key={r} value={r} className="bg-[#0A0A0F]">{r}</option>
-              ))}
-            </select>
-            <div className="absolute right-3.5 z-10 pointer-events-none text-white/20 text-[9px] flex items-center">
-               <span className="mt-[1px]">▼</span>
-            </div>
+              onChange={(val) => setRegionFilter(val === 'World' ? 'all' : val)}
+              icon={<Globe size={12} />}
+            />
           </div>
         </div>
 

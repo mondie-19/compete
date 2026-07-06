@@ -143,9 +143,9 @@ export default function LobbyPage() {
                 .limit(50);
             if (recentMsgs) setMessages(recentMsgs.reverse());
 
-            // Real-time: Challenges — stable channel name, runs once
+            // Real-time: Challenges — unique name per mount avoids reuse of a subscribed channel
             lobbyChannelRef.current = supabase
-                .channel("lobby-challenges")
+                .channel(`lobby-challenges-${crypto.randomUUID()}`)
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'challenges' }, async () => {
                     const { data: updatedChallenges } = await supabase
                         .from("challenges")
@@ -159,7 +159,7 @@ export default function LobbyPage() {
 
             // Real-time: World Chat
             chatChannelRef.current = supabase
-                .channel("world-chat")
+                .channel(`world-chat-${crypto.randomUUID()}`)
                 .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
                     if (!payload.new?.id) return;
 
@@ -552,7 +552,7 @@ export default function LobbyPage() {
                                         className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-compete-purple text-white hover:bg-white hover:text-black transition-all disabled:opacity-20 disabled:cursor-not-allowed"
                                     >
                                         {isSending
-                                            ? <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+                                            ? <div className="w-3 h-3 border border-white/50 border-t-white rounded-full animate-spin" />
                                             : <Zap size={10} />
                                         }
                                     </button>

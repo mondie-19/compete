@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Zap, Timer, MessageSquare, Trophy, AlertTriangle, CheckCircle2, Upload, Send, ChevronLeft } from "lucide-react";
+import BlackHoleLoader from "@/components/BlackHoleLoader";
 import { createClient } from "@/supabase/client";
 import { toast } from "sonner";
 import { submitMatchReport } from "@/app/actions/challenges";
@@ -247,9 +248,8 @@ export default function MatchRoom() {
     }, [id, router]);
 
     if (loading) return (
-        <div className="min-h-screen bg-[#0A0A0F] flex flex-col items-center justify-center gap-4 font-mono">
-            <Zap className="text-compete-purple animate-pulse" size={48} />
-            <div className="font-black tracking-[0.5em] text-white/20 uppercase text-xs">Establishing Secure Uplink...</div>
+        <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+            <BlackHoleLoader label="Establishing Secure Uplink..." />
         </div>
     );
 
@@ -420,7 +420,7 @@ export default function MatchRoom() {
                                     className="bg-[#0F0F16]/60 border border-compete-purple/20 p-8 lg:p-12 rounded-3xl text-center space-y-4 backdrop-blur-md"
                                 >
                                     <div className="w-16 h-16 bg-compete-purple/10 border border-compete-purple/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <div className="w-5 h-5 rounded-full border-2 border-compete-purple border-t-transparent animate-spin" />
+                                        <div className="w-5 h-5 rounded-full border-2 border-compete-purple/60 border-t-compete-purple animate-spin" />
                                     </div>
                                     <h2 className="text-2xl lg:text-3xl font-black italic uppercase tracking-tighter text-white">AWAITING INTERCEPTOR</h2>
                                     <p className="text-[10px] lg:text-[11px] font-black uppercase tracking-widest text-compete-purple/60 max-w-sm mx-auto leading-loose">
@@ -530,7 +530,7 @@ export default function MatchRoom() {
                                         {reportStatus === "submitted" ? (
                                             <div className="bg-compete-purple/5 border border-compete-purple/20 rounded-2xl p-6 text-center mt-6">
                                                 <div className="flex flex-col items-center gap-3">
-                                                    <div className="w-6 h-6 rounded-full border-2 border-compete-purple border-t-transparent animate-spin" />
+                                                    <div className="w-6 h-6 rounded-full border-2 border-compete-purple/60 border-t-compete-purple animate-spin" />
                                                     <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-compete-purple">TRANSMITTING RESULT...</p>
                                                 </div>
                                             </div>

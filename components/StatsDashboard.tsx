@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { TrendingUp, Trophy, Target, Zap, BarChart3, Loader2, Star } from "lucide-react";
+import { TrendingUp, Trophy, Target, Zap, BarChart3, Star } from "lucide-react";
+import BlackHoleLoader from "@/components/BlackHoleLoader";
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { createClient } from "@/supabase/client";
 
@@ -72,9 +73,8 @@ export default function StatsDashboard() {
 
   if (loading) {
     return (
-      <div className="py-20 flex flex-col items-center justify-center space-y-4 opacity-40">
-        <Loader2 className="animate-spin text-compete-purple" size={48} />
-        <p className="text-[10px] font-black  tracking-[0.5em]">Synchronizing Neural Stats...</p>
+      <div className="py-20 flex items-center justify-center">
+        <BlackHoleLoader label="Synchronizing Neural Stats..." />
       </div>
     );
   }

@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import BlackHoleLoader from "@/components/BlackHoleLoader";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useHeartbeat } from "@/lib/useHeartbeat";
@@ -99,28 +100,8 @@ export default function AdminDashboard() {
 
     if (!isAdmin || loading) {
         return (
-            <div className="min-h-screen bg-[#0A0A0F] flex flex-col items-center justify-center text-white/20 font-black tracking-[0.5em] uppercase">
-            <div className="relative mb-8">
-                <motion.div 
-                    animate={{ 
-                        scale: [1, 1.5, 1],
-                        rotate: [45, 225, 405],
-                        opacity: [0.5, 1, 0.5],
-                        boxShadow: [
-                            "0 0 20px rgba(155,92,255,0.2)",
-                            "0 0 50px rgba(155,92,255,0.6)",
-                            "0 0 20px rgba(155,92,255,0.2)"
-                        ]
-                    }}
-                    transition={{ 
-                        duration: 3, 
-                        repeat: Infinity, 
-                        ease: "easeInOut" 
-                    }}
-                    className="w-16 h-16 bg-compete-purple rounded-xl"
-                />
-            </div>
-            Authorizing Command Link...
+            <div className="min-h-screen bg-[#0A0A0F] flex items-center justify-center">
+                <BlackHoleLoader label="Authorizing Command Link..." />
             </div>
         );
     }
