@@ -5,7 +5,7 @@ import {
     MessageSquare, ChevronRight, LogOut,
     Gamepad2, X, ExternalLink, RefreshCw,
     Inbox, CheckCheck, Mail, Bug, Lightbulb, Star,
-    AlertCircle, ChevronDown, ChevronUp
+    AlertCircle, ChevronDown, ChevronUp, Send, Reply
 } from "lucide-react";
 import { createClient } from "@/supabase/client";
 import { useHeartbeat } from "@/lib/useHeartbeat";
@@ -72,6 +72,9 @@ export default function CustomerCareDashboard() {
     const [loadingUserDetail, setLoadingUserDetail] = useState(false);
     const [expandedFeedback, setExpandedFeedback] = useState<string | null>(null);
     const [markingReviewed, setMarkingReviewed] = useState<string | null>(null);
+    const [replyingTo, setReplyingTo] = useState<string | null>(null);
+    const [replyDraft, setReplyDraft] = useState("");
+    const [sendingReply, setSendingReply] = useState(false);
 
     const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
@@ -167,6 +170,37 @@ export default function CustomerCareDashboard() {
         if (error) toast.error("Failed to update");
         else setFeedback(prev => prev.map(f => f.id === id ? { ...f, status: "reviewed" } : f));
         setMarkingReviewed(null);
+    };
+
+    const sendReply = async (entry: any) => {
+        if (!replyDraft.trim()) return;
+        setSendingReply(true);
+        try {
+            const res = await fetch("/api/support/reply", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    feedbackId: entry.id,
+                    to: entry.email,
+                    replyMessage: replyDraft,
+                    originalMessage: entry.message,
+                    category: entry.category,
+                }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success("Reply sent.");
+                setFeedback(prev => prev.map(f => f.id === entry.id ? { ...f, status: "reviewed" } : f));
+                setReplyingTo(null);
+                setReplyDraft("");
+            } else {
+                toast.error(data.error || "Failed to send reply.");
+            }
+        } catch {
+            toast.error("Network error.");
+        } finally {
+            setSendingReply(false);
+        }
     };
 
     const openUserDetail = async (user: any) => {
@@ -393,9 +427,11 @@ export default function CustomerCareDashboard() {
                                                         exit={{ height: 0, opacity: 0 }}
                                                         className="overflow-hidden"
                                                     >
-                                                        <div className="px-4 pb-4 space-y-3 border-t border-white/[0.05] pt-3">
+                                                        <div className="px-4 pb-4 space-y-4 border-t border-white/[0.05] pt-3">
+                                                            {/* Full message */}
                                                             <p className="text-xs text-white/70 leading-relaxed">{entry.message}</p>
 
+                                                            {/* Meta + actions */}
                                                             <div className="flex items-center justify-between flex-wrap gap-2">
                                                                 <div className="flex items-center gap-3 text-[8px] text-white/30 font-black">
                                                                     {entry.email && (
@@ -410,20 +446,80 @@ export default function CustomerCareDashboard() {
                                                                     </span>
                                                                 </div>
 
-                                                                {isPending && (
-                                                                    <button
-                                                                        onClick={() => markReviewed(entry.id)}
-                                                                        disabled={markingReviewed === entry.id}
-                                                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-[8px] font-black uppercase tracking-wider hover:bg-green-500 hover:text-white transition-all disabled:opacity-40"
-                                                                    >
-                                                                        {markingReviewed === entry.id
-                                                                            ? <div className="w-3 h-3 border border-green-400 border-t-transparent rounded-full animate-spin" />
-                                                                            : <CheckCheck size={10} />
-                                                                        }
-                                                                        Mark Reviewed
-                                                                    </button>
-                                                                )}
+                                                                <div className="flex items-center gap-2">
+                                                                    {entry.email && (
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setReplyingTo(replyingTo === entry.id ? null : entry.id);
+                                                                                setReplyDraft("");
+                                                                            }}
+                                                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[8px] font-black uppercase tracking-wider transition-all ${
+                                                                                replyingTo === entry.id
+                                                                                    ? "bg-blue-500/20 border-blue-500/30 text-blue-400"
+                                                                                    : "bg-white/5 border-white/10 text-white/40 hover:text-white hover:border-white/20"
+                                                                            }`}
+                                                                        >
+                                                                            <Reply size={10} />
+                                                                            Reply
+                                                                        </button>
+                                                                    )}
+                                                                    {isPending && (
+                                                                        <button
+                                                                            onClick={() => markReviewed(entry.id)}
+                                                                            disabled={markingReviewed === entry.id}
+                                                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-[8px] font-black uppercase tracking-wider hover:bg-green-500 hover:text-white transition-all disabled:opacity-40"
+                                                                        >
+                                                                            {markingReviewed === entry.id
+                                                                                ? <div className="w-3 h-3 border border-green-400 border-t-transparent rounded-full animate-spin" />
+                                                                                : <CheckCheck size={10} />
+                                                                            }
+                                                                            Mark Reviewed
+                                                                        </button>
+                                                                    )}
+                                                                </div>
                                                             </div>
+
+                                                            {/* Reply compose */}
+                                                            <AnimatePresence>
+                                                                {replyingTo === entry.id && (
+                                                                    <motion.div
+                                                                        initial={{ height: 0, opacity: 0 }}
+                                                                        animate={{ height: "auto", opacity: 1 }}
+                                                                        exit={{ height: 0, opacity: 0 }}
+                                                                        className="overflow-hidden"
+                                                                    >
+                                                                        <div className="bg-blue-500/5 border border-blue-500/15 rounded-xl p-3 space-y-3">
+                                                                            <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest text-blue-400/70">
+                                                                                <Reply size={9} />
+                                                                                Replying to {entry.email}
+                                                                            </div>
+                                                                            <textarea
+                                                                                value={replyDraft}
+                                                                                onChange={e => setReplyDraft(e.target.value)}
+                                                                                placeholder="Type your reply..."
+                                                                                rows={4}
+                                                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-white/20 outline-none focus:border-blue-500/40 resize-none transition-all font-mono"
+                                                                            />
+                                                                            <div className="flex items-center justify-between gap-2">
+                                                                                <span className="text-[7px] text-white/20 font-black">
+                                                                                    Sent as: Re: Your {entry.category} — Compete Support
+                                                                                </span>
+                                                                                <button
+                                                                                    onClick={() => sendReply(entry)}
+                                                                                    disabled={!replyDraft.trim() || sendingReply}
+                                                                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-500 text-white text-[8px] font-black uppercase tracking-wider hover:bg-blue-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                                                                >
+                                                                                    {sendingReply
+                                                                                        ? <div className="w-3 h-3 border border-white/50 border-t-white rounded-full animate-spin" />
+                                                                                        : <Send size={10} />
+                                                                                    }
+                                                                                    {sendingReply ? "Sending..." : "Send Reply"}
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </motion.div>
+                                                                )}
+                                                            </AnimatePresence>
                                                         </div>
                                                     </motion.div>
                                                 )}
